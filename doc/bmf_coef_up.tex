@@ -1,0 +1,29 @@
+\documentclass[a4paper,11pt]{report}
+\input{notation.inc}
+\begin{document}
+\noindent\paragraph{Initialization}
+\begin{eqnarray}
+\mat{G} &=& \mat{d}\transp\mat{d}\\
+\vec{a}\iter{0} &=& 0\\
+e\iter{0} &=& x\iter{0}\\
+w\iter{0} &=& \|\vec{e}\iter{0}\|^2\\
+\vec{r}\iter{0} &=& \mat{d}\transp\vec{e}\iter{0}\\
+\vec{h}_k\iter{0} &=& \|\mat{d}_k-\vec{e}\iter{0}\|^2 = g_{kk} - 2r_{k}
++ w\iter{0}\\
+t &=& 0
+\end{eqnarray}
+\noindent\paragraph{Loop}
+\begin{eqnarray}
+j\opt &=& \arg\min_j \left\{ \| \vec{h}_j\iter{t} \| \right\}\\
+w\iter{t+1} &=& \vec{h}_{j\opt }\iter{t}\\
+%\vec{e}\iter{t+1} &=& \vec{e}\iter{t}-\vec{d}_{k\opt } \\
+\vec{r}\iter{t+1} &=& \vec{r}\iter{t} - \vec{g}_{j\opt}\\
+h_k\iter{t+1} &=& \|\vec{e}\iter{t} - \vec{d}_k - \vec{d}_{j\opt}\|\\
+ &=& \|(\vec{e}\iter{t} - \vec{d}_k) - \vec{d}_{j\opt}\|\\
+ &=& [(\vec{e}\iter{t} - \vec{d}_k) -\vec{d}_{j\opt }]\transp[(\vec{e}\iter{t} - \vec{d}_k) -\vec{d}_{j\opt }]\\
+ &=& h_k\iter{t} -2\vec{d}_{j\opt }\transp(\vec{e}\iter{t} -
+\vec{d}_k) + \vec{d}_{j\opt }\transp\vec{d}_{j\opt }\\
+ &=& h_k\iter{t} -2r_{j\opt}\iter{t} +
+2g_{kj\opt} + g_{j\opt j\opt} \\
+\end{eqnarray}
+\end{document}

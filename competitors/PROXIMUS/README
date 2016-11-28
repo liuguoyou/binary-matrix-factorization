@@ -1,0 +1,196 @@
+TERMS OF USE
+-------------
+Please read these Terms of Use carefully before accessing PROXIMUS. 
+Your access to the Software is subject to your agreement to these Terms of 
+Use.  If you do not agree to be bound by these Terms of Use, please refrain 
+from viewing, using, downloading or otherwise accessing the Software.  
+By accessing the Software, you accept, without limitation or qualification, 
+these Terms of Use.  
+
+Modification of the Agreement 
+
+Purdue University and Purdue Research Foundation (collectively, Purdue) maintain 
+the right to modify these Terms of Use and may do so by posting modifications on this 
+file.  Any modification is effective immediately upon posting the modification unless 
+otherwise stated.  Your continued use of the Software following the posting of any 
+modification signifies your acceptance of that modification. 
+
+Grant of Rights
+1)For solely non-commercial purposes, you are granted and may exercise a royalty-free, 
+non-exclusive license, subject to third party intellectual property claims, to use, 
+modify, display, and perform the Software, with or without Modifications, and/or as 
+part of another work, provided that you agree to and comply with the terms of use on an 
+ongoing basis. Modifications mean any addition or deletion by you from the substance or 
+structure of either the original Software or any previous modifications, to the extent 
+such modifications are permitted under these Terms of Use.
+a)You may copy the Software only to the extent necessary to exercise the other specific 
+non-exclusive rights identified above and provided:
+(1)All notices and disclaimers remain with the Software; and,
+(2)You do not identify the Software as your product or property.
+b)You may make Modifications to the Software only for non-commercial purposes, and 
+provided you agree also:
+(1)Not to modify the Software such that the Modifications constitute an infringement 
+of third-party rights;
+(2)Not to assert ownership to the Software as modified;
+(3)To provide Modifications for non-commercial purposes to others at no cost;
+(4)That Purdue has a first option to negotiate with you a separate agreement for 
+any rights that you may claim relating to the commercialization of the Software 
+and/or Modifications;
+(5)To maintain and not alter or remove these Terms of Use and all notices or disclaimers 
+that accompany the Software during the preparation or as a result of the Modifications; and 
+(6)To provide Purdue with all Modifications, sufficient information such that Purdue 
+and other potential users know how and when you changed the Software.
+2)You may exercise the rights with respect to the Software in original or modified 
+form in legally permissible applications.
+3)You may not commercially distribute or otherwise grant rights to another or 
+others with respect to the Software with or without Modifications. Any such attempt 
+or use for public or commercial purposes will automatically terminate your rights with 
+respect to the Software.
+
+Conduct 
+
+You agree to access and use the Software only for lawful purposes.  You are solely responsible 
+for the knowledge of and adherence to any and all laws, statutes, rules and regulations pertaining 
+to your use of the Software.  By accessing the Software, you agree that you will not: 
+
+Use the Software to commit a criminal offense or to encourage others to conduct that would constitute 
+a criminal offense or give rise to a civil liability; 
+Violate any applicable law;
+Use the Software to upload any content that contains a software virus, "Trojan Horse" or any other computer 
+code, files, or programs that may alter, damage, or interrupt the functionality of the Software or the hardware 
+or software of any other person who accesses the Software; 
+Damage the Software. 
+
+Termination of Use 
+
+Purdue may, in its sole discretion, terminate or suspend your access to and use of the Software without 
+notice and for any reason, including for violation of these Terms of Use or for other conduct that Purdue, 
+in its sole discretion, believes to be unlawful or harmful to others.  In the event of termination, 
+you are no longer authorized to access the Software, and you must immediately uninstall the Software 
+and stop using it.
+
+Disclaimer of Warranty/Limitation of Liability 
+
+THE SOFTWARE AND ANY INFORMATION, PRODUCTS OR SERVICES THEREIN ARE PROVIDED "AS IS" WITHOUT 
+WARRANTY OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION, THE IMPLIED 
+WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  Purdue does not warrant, 
+and hereby disclaims any warranties, either express or implied, with respect to the Software 
+or Modifications.  Purdue does not warrant that the Software will operate in an uninterrupted 
+or error-free manner or that the Software is free of viruses or other harmful components.  
+Use of information obtained from or through the Software is at your own risk.
+
+You agree that Purdue and its employees shall have no liability for any consequential, indirect, 
+punitive, special or incidental damages, whether foreseeable or unforeseeable (including, but 
+not limited to, claims for defamation, errors, loss of data, or interruption in availability of data), 
+arising out of or relating to these Terms of Use, the Software or Modifications, including without limitation, 
+loss of revenue or anticipated profits, loss of goodwill, loss of business, loss of data, or computer failure 
+or malfunction, whether based in contract, tort, statutory or other law. 
+
+Indemnity 
+
+You agree to defend, indemnify, and hold harmless Purdue and its employees from any and all claims, 
+liabilities, and costs incurred by Purdue in connection with any claim arising from a) any breach by 
+you of these Terms of Use or b) your use, modification, duplication, distribution or sale of the 
+Software or any part thereof, including reasonable attorney fees and costs.  You agree to cooperate 
+fully in the defense of any claim against Purdue relating to you or the Software.  Purdue reserves 
+the right to assume, at its own expense, the exclusive defense and control of any matter otherwise 
+subject to indemnification by you. 
+
+Choice of Law/Forum Selection/Attorney Fees 
+
+You agree that any dispute arising out of or relating to the Software or these Terms of Use, whether 
+based in contract, tort, statutory or other law, will be governed by United States law, the laws of 
+the State of Indiana (excluding its conflicts of law provisions) and the Universal Copyright Convention.  
+You agree to the personal jurisdiction of and exclusive venue in the federal and state courts located in 
+and serving Tippecanoe County, Indiana as the exclusive legal forums for any such dispute.  You agree 
+that the prevailing party shall be entitled to reimbursement of its attorney fees and costs from the 
+nonprevailing party.
+
+What is PROXIMUS?
+PROXIMUS is a non-orthogonal matrix transform based on recursive partitioning of a dataset depending on the distance of a relation from the dominant pattern. The dominant pattern is computed as a binary singular vector of the matrix of relations. It provides several facilities to analyze discrete attributed data including:
+
+    * discovering dominant and deviant patterns in the data in a hierarchical manner
+    * clustering of data in an error-bounded and physically interpretable form
+    * finding a concise representation for the data
+    * isolating signal from noise in a multi-resolution framework
+
+The code provided here can be used both as an application to compute non-orthogonal decomposition of binary matrices and as a library for applications involving computations on binary datasets.
+
+Content
+Makefile 	compiles and builds executable code into file bnd.
+src/bnd.c 	contains the main routine for the application.
+src/bndsolve.c 	library for rank-one approximation and recursive decomposition.
+src/matrix.c 	library for binary matrix operations.
+src/vector.c 	library for discrete vector operations.
+src/binvector.c 	library for binary vector operations.
+src/system.c 	library for memory management.
+src/io.c 	library providing I/O operations for the application.
+sample/A.mtx	sample input matrix.
+
+
+All source files are associated with a header file that can be found in the "include/" directory.
+
+Running PROXIMUS
+The application bnd requires name of the file containing the input matrix as its first argument. All other arguments are optional. The general syntax for running the application is as:
+
+% bnd [filename] [optional arguments]
+Argument	Meaning	Default value
+[filename] 	Name of the file containing input matrix	None
+-a [algorithm] 	Algorithm
+(1)	Discrete: Uses a discrete objective function that is equivalent to the cost function of the problem. Algorithm of choice for many instances.
+(2)	Continuous: Uses a continuous approximation to the cost function of the problem. Might be handy for loose approximations while working with very sparce matrices.
+	Discrete
+-i [init] 	Initialization strategy
+(1)	Allones
+(2)	Center
+(3)	Maximum
+(4)	Partition
+(5)	GGG
+(6)	Neighbor
+(7)	Random-row
+(8)	Random
+	Random-row
+-e [epsilon] 	Bound on Hamming radius. If default value is used, the application will provide an exact decomposition. Increase this value in order to get a more compact decomposition on the cost of less accuracy in approximation. 	0
+-w	Write output vectors If used, presence and pattern vectors will be written in files [filename].X.out and [filename].Y.out respectively.	FALSE
+-c [minclustersize] 	Minimum size of a cluster. If this parameter is set to a value c>1, then bnd stops for submatrices having number of rows less than c without checking the stopping criterion. The idea while using this parameter will be "a submatrix that has c rows is small enough to be considered as a good cluster of rows."	1
+-m [logmemsize] 	Log2 of the static memory pool to be allocated for the application. Increase this value while working with larger matrices. 	28 (256 MB)
+-t [logtmpsize] 	Log2 of the temporary memory pool to be allocated for the application. Increase this value while working with larger matrices. 	24 (16 MB)
+
+Input & Output Format
+Proximus uses row-major format to store sparse matrices. The input and output formats are consistent with this. In this format, each line contains the ID's of columns corresponding to the nonzero entries of one row. The first line of the file is reserved for declaration of matrix parameters: number of rows, number of columns and number of nonzeros in the specified order, all being integers. A file storing the matrix
+1 	0 	1
+1 	1 	0
+0 	1 	0
+0 	0 	1
+	, will look like: 	
+4 	3 	6
+0 	2 	
+0 	1 	
+1 		
+2 		
+Note the following constraints:
+
+    * The file has to have exactly n+1 rows, n being the declared number of rows.
+    * Numbering of columns starts from 0 and goes upto m-1, m being the declared number of columns.
+    * No column can be repeated in the nonzero list of a particular row.
+    * The file has to contain nz+3 integers, nz being the declared number of nonzeros.
+    * The file must not contain any empty rows.
+
+The "sample" directory contains a sample sparse matrix file.
+If the application is run with -w option, the resulting pattern (Y) and presence matrices (X) will be written in files with added extensions ".Y.out" and ".X.out" respectively in the same format.The presence matrix (X) will be a sparse binary matrix of size kXm and the pattern matrix(Y) will be of size kXn, k being the number of identified patterns. The approximation matrix will then be X'Y, where X' denotes the transpose of matrix X.
+
+Related Publications
+
+    * J. Chi, M. Koyuturk and A. Grama, "CONQUEST: A Distributed Tool for Constructing Summaries of High-Dimensional Discrete-Attributed Datasets", accepted for SIAM Intl. Conf. on Data Mining (SDM 2004), 2004. pdf ps (Application in distributed data mining)
+
+    * M. Koyuturk and A. Grama, "PROXIMUS: A Framework for Analyzing Very High Dimensional Discrete-Attributed Datasets", Proc. Ninth ACM SIGKDD Intl. Conf. on Knowledge Discovery and Data Mining (KDD 2003), pp. 147-156, 2003. pdf ps (Application in association rule mining)
+
+    * M. Koyuturk, A. Grama, and W. Szpankowski, "Algorithms for Bounded-Error Correlation of High Dimensional Data in Microarray Experiments", IEEE Computational Systems Bioinformatics Conf. Proc. (CSB 2003), pp.575-580, 2003. pdf ps (Application in discovery of regulation patterns in gene expression data)
+
+    * M. Koyuturk, A. Grama and N. Ramakrishnan, "Algebraic Techniques for Analysis of Large Discrete-Valued Datasets", Proc. 6th European Conf. on Principles of Data Mining and Knowledge Discovery (PKDD 2002), pp.311-324,2002. pdf ps
+
+Credits
+This software was developed by Mehmet Koyuturk and Ananth Grama at the Parallel & Distributed Systems Lab of Purdue University Computer Science Department.
+
+Errors & Bugs
+Please direct any questions and report any errors and bugs that you discover to koyuturk@cs.purdue.edu. We will also appreciate if you share with us any improvement you make on this code or any application you use it in.

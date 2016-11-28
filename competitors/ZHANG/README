@@ -1,0 +1,5 @@
+Download Nimfa Python package using PIP
+sudo pip install nimfa
+
+See exaamples in http://nimfa.biolab.si/
+

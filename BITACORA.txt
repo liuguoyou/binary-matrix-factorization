@@ -1,0 +1,37 @@
+- Anda muy bien, al parecer, todo lo que es manipulacion y algebra con matrices binarias
+- Falta por completo la famosa B-SVD, me colgué con compresión basada en templates
+- Probé 6 versiones hasta ahora de la compresión, los algoritmos correspondientes son los siguientes:
+
+ALGORITMO 1
+Basado en patches pasados
+
+1 Para el patch Xn,
+2 Buscar el patch pasado Xk que mas se le parece,
+3 Restarlo a Xn
+4 Codificar el patch diferenciado,
+  usando Golomb para la cantidad de 1s 
+  y enumerativo para el patron de bits
+  Se agrega el costo de describir k, con ceil(log2(n)) 
+  Largo Lk
+5 Codificar el patch no diferenciado,
+  misma codificacion, pero no incluye describir k
+  Largo L0
+6 Elegir entre el menor de Lk y L0, se agrega un bit 
+ para indicar esta elección.
+
+ALGORITMO 2
+Basado en diccionario no adaptivo
+
+1 Para el patch Xn,
+2 Buscar el patch pasado Xk que mas se le parece,
+3 Restarlo a Xn
+4 Codificar el patch diferenciado,
+  usando Golomb para la cantidad de 1s 
+  y enumerativo para el patron de bits
+  Se agrega el costo de describir k, con ceil(log2(n)) 
+  Largo Lk
+5 Codificar el patch no diferenciado,
+  misma codificacion, pero no incluye describir k
+  Largo L0
+6 Elegir entre el menor de Lk y L0, se agrega un bit 
+ para indicar esta elección.

@@ -1,0 +1,32 @@
+
+    1) Update U:
+       begin with the gradient and hessian:
+       Gu = 0 = UVV'-XV + lu subG||U||_0
+       Hu = VV'
+
+       we approximate
+
+       subG( ||U||_0 ) ~ U
+       Hu ~ diag(VV')
+       XV  as is
+       Gu ~ UVV'-XV + lu U 
+       we get a direction 
+       
+       d = (1/VV')(UVV'-XV + lu U)
+
+       the directions in this way do have an intuitive interpretation;
+       the last term, lu U, just weights the sparsity of U directly, pushing it to be 0
+       
+       ignoring the last term, the rest just tells us that we should turn on an element of 1
+       if the number of 1's in X in the corresponding row that are treating as 0
+       is larger than the number of 0's in the same row that we are currently taking as 1.
+       
+       in this sense, the update tends to drive the hamming weight of X-UV' as close to 0 as possible.
+       the normalization by 1/diag(VV') acts as a normalization term, counting the number of
+       columns where v_i is non-zero, which is where we will look for the errors of the corresponding vector u_i. 
+
+       Man, I must explain this better!
+
+       going back to lu U, this just biases the decision so that we get sparser Us ... 
+       the direction itself is binarized so that any absolute value below 1/2 is treated as 0,
+       and any absolute value above 1/2 is treated as either -1 or 1 (its sign)

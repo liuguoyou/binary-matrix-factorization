@@ -1,0 +1,14 @@
+#!/bin/bash
+make
+mkdir res
+mkdir res/mnist
+src/bsvd_test -l 4 -k 10 -m 1 data/mnist_data.pbm
+mv *pbm res/mnist
+
+mkdir res/usps
+src/bsvd_test -l 4 -k 10 -m 1 data/usps_data.pbm
+mv *pbm res/usps/
+
+mkdir res/einstein
+src/bsvd_test -l 4 -k 20 -I 1 data/einstein.pbm
+mv *pbm res/einstein/
