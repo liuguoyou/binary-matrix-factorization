@@ -15,7 +15,7 @@ X = UV^T + E.
 \label{eq:mf}
 \end{equation}
 
-\paragraph{Matrix Factorization} This is an important problem that has been addressed using various methods from different fields. Two such fields are Signal Processing and Machine Learning under the so-called "Matrix Factorization" (MF) methods, (with non-negative matrix factorization (NMF) a very popular particular case,) which is very mature and has been developed largely for the case of real matrices.
+\paragraph{Matrix Factorization} The problem \refeq{eq:mf}  has been addressed using various methods from different fields for over a hundred years. Two such fields are Signal Processing and Machine Learning under the so-called "Matrix Factorization" (MF) methods, (with non-negative matrix factorization (NMF) a very popular particular case,) which is very mature and has been developed largely for the case of real matrices.
 
 \paragraph{Dictionary Learning} A particular case of MF is the so-called ``Dictionary Learning'' problem which is particularly useful when $m \gg n$. In this case, contrary to the more general MF approach, the roles of $U$ and $V$ are quite different and, accordingly, both are estimated in quite different ways. More specifically, $U$ is called a dictionary (and usually assigned the letter $D$), whereas $V^T=A$ is a matrix of ``linear combination coefficients''. The columns of the matrix $D$ are called ``atoms'' and are supposed to embody typical patterns observed throughout the columns of $X$, while the columns of $A$, usually assumed sparse, specify the linear combination of columns of $D$ that better approximates the corresponding columns of $X$.
 
@@ -28,9 +28,16 @@ X = UV^T + E.
 
 \section{General Dictionary Learning framework}
 
-All 
+The problem \refeq{eq:mf} is generally non-convex. There are very special cases in which it can be solved exactly, or it reduces to a tractable convex problem under particular conditions. Most DL approaches fall into the general setting where \refeq{eq:mf} is NP-hard and only local convergence (to a stationary point) can be guaranteed. This is usually achieved through alternate (block) minimization on $D$ and $A$,
 
+\begin{eqnarray}
+A\iter{k+1} =& \arg\min_{A} \{ f(D\iter{k}-A) + g(A) \} \\
+D\iter{k+1} =& \arg\min_{D} \{ f(D-A\iter{k+1}) + g(A\iter{k+1}) \},
+\label{eq:dl}
+\end{eqnarray}
+where $f(\cdot)$ and $g(\cdot)$ are \emph{fitting} and \emph{regularization} functions respectively. The first one is typically the squared $\ell_2$ norm, $\|\cdot\|^2$, and the second one is an $\ell_p$ norm such as $\|\cdot\|_1$, with $0 \leq p \leq 2$ (when $p < 1$ it is not a norm).
 
+ 
 \cite{ksvd}
 
 \bibliographystyle{plain}
