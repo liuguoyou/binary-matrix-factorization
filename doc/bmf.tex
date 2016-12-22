@@ -1,0 +1,39 @@
+\documentclass[a4paper,11pt]{report}
+\input{notation.inc}
+\title{Binary Matrix Factorization}
+\author{Ignacio Ram\'{i}rez}
+\begin{document}
+
+\maketitle
+
+\section*{introduction}
+
+We consider the problem of approximating a binary matrix $X \in \{0,1\}^{m{\times}n}$ as the product of two other binary matrices $U \in \{0,1\}^{m{\times}k}$ and $V \in \{0,1\}^{n{\times}k}$ plus a small residual,
+
+\begin{equation}
+X = UV^T + E.
+\label{eq:mf}
+\end{equation}
+
+\paragraph{Matrix Factorization} This is an important problem that has been addressed using various methods from different fields. Two such fields are Signal Processing and Machine Learning under the so-called "Matrix Factorization" (MF) methods, (with non-negative matrix factorization (NMF) a very popular particular case,) which is very mature and has been developed largely for the case of real matrices.
+
+\paragraph{Dictionary Learning} A particular case of MF is the so-called ``Dictionary Learning'' problem which is particularly useful when $m \gg n$. In this case, contrary to the more general MF approach, the roles of $U$ and $V$ are quite different and, accordingly, both are estimated in quite different ways. More specifically, $U$ is called a dictionary (and usually assigned the letter $D$), whereas $V^T=A$ is a matrix of ``linear combination coefficients''. The columns of the matrix $D$ are called ``atoms'' and are supposed to embody typical patterns observed throughout the columns of $X$, while the columns of $A$, usually assumed sparse, specify the linear combination of columns of $D$ that better approximates the corresponding columns of $X$.
+
+\paragraph{Data Mining} On the other hand, there is a large body of work from the Data Mining community on the subject of extracting general ``patterns'' from large matrices, in particular binary matrices. Some of those works are based on matrix factorization concepts, for example the Proximus algorithm~\cite{proximus},although most of them are quite heuristic.
+
+\paragraph{Other ideas} Initially I was interested in connecting the above techniques with other learning frameworks aimed at binary data. In particular, the Bi-directional Auto-associative Memory (BAM) model~\cite{bam} was an early binary recurrent neural network.
+
+
+\paragraph{Our approach} The idea here is very simple: to apply a Dictionary Learning approach to the problem of binary matrix factorization for those cases where the matrix $X$ is significantly ``fat'' $m \gg n$ (or, naturally, apply it to $X^T$ when it is ``tall'', $m \ll n$). 
+
+\section{General Dictionary Learning framework}
+
+All 
+
+
+\cite{ksvd}
+
+\bibliographystyle{plain}
+\bibliography{bmf}
+
+\end{document}
