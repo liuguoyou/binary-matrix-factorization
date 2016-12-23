@@ -90,7 +90,7 @@ void learn_model_setup(int mi_algo, int cu_algo, int du_algo, int lm_algo, int l
   update_dictionary = du_algorithm_catalog[du_algo];
   std::cout << "Using " << du_algorithm_names[du_algo] << std::endl;
   learn_model = learn_model_algorithm_catalog[lm_algo];
-  std::cout << "Using " << lm_algorithm_names[lm_algo] << std::endl;
+  std::cout << "Using " << lm_algorithm_names[lm_algo] << " for outer learning loop." << std::endl;
   learn_model_inner = learn_model_algorithm_catalog[lmi_algo];
   std::cout << "Using " << lm_algorithm_names[lmi_algo] << " for inner learning." << std::endl;
 }
