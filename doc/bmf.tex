@@ -1,4 +1,4 @@
-\documentclass[a4paper,11pt]{report}
+\documentclass[a4paper,11pt]{article}
 \input{notation.inc}
 \title{Binary Matrix Factorization}
 \author{Ignacio Ram\'{i}rez}
@@ -6,9 +6,9 @@
 
 \maketitle
 
-\section*{introduction}
+\section{introduction}
 
-We consider the problem of approximating a binary matrix $X \in \{0,1\}^{m{\times}n}$ as the product of two other binary matrices $U \in \{0,1\}^{m{\times}k}$ and $V \in \{0,1\}^{n{\times}k}$ plus a small residual,
+We consider the problem of approximating a binary matrix $X \in \{0,1\}^{m{\times}n}$ as the product of two other binary matrices $U \in \{0,1\}^{m{\times}k}$ and $V \in \{0,1\}^{n{\times}p}$ plus a small residual,
 
 \begin{equation}
 X = UV^T + E.
@@ -26,19 +26,51 @@ X = UV^T + E.
 
 \paragraph{Our approach} The idea here is very simple: to apply a Dictionary Learning approach to the problem of binary matrix factorization for those cases where the matrix $X$ is significantly ``fat'' $m \gg n$ (or, naturally, apply it to $X^T$ when it is ``tall'', $m \ll n$). 
 
-\section{General Dictionary Learning framework}
+\section{The Dictionary Learning approach}
 
-The problem \refeq{eq:mf} is generally non-convex. There are very special cases in which it can be solved exactly, or it reduces to a tractable convex problem under particular conditions. Most DL approaches fall into the general setting where \refeq{eq:mf} is NP-hard and only local convergence (to a stationary point) can be guaranteed. This is usually achieved through alternate (block) minimization on $D$ and $A$,
+The problem \refeq{eq:mf} is generally non-convex. There are very special cases in which it can be solved exactly, or it reduces to a tractable convex problem under particular conditions. Most DL approaches fall into the general setting where \refeq{eq:mf} is NP-hard and only local convergence (to a stationary point) can be guaranteed. This is usually achieved through \emph{alternate (block) minimization} on $D$ and $A$,
 
 \begin{eqnarray}
 A\iter{k+1} =& \arg\min_{A} \{ f(D\iter{k}-A) + g(A) \} \\
 D\iter{k+1} =& \arg\min_{D} \{ f(D-A\iter{k+1}) + g(A\iter{k+1}) \},
 \label{eq:dl}
 \end{eqnarray}
-where $f(\cdot)$ and $g(\cdot)$ are \emph{fitting} and \emph{regularization} functions respectively. The first one is typically the squared $\ell_2$ norm, $\|\cdot\|^2$, and the second one is an $\ell_p$ norm such as $\|\cdot\|_1$, with $0 \leq p \leq 2$ (when $p < 1$ it is not a norm).
 
- 
-\cite{ksvd}
+where $f(\cdot)$ and $g(\cdot)$ are \emph{fitting} and \emph{regularization} functions respectively. The first one is typically the squared $\ell_2$ norm, $\|\cdot\|^2$, and the second one is an $\ell_p$ norm such as $\|\cdot\|_1$, with $0 \leq p \leq 2$ (when $p < 1$ it is not a norm). For that case, this algorithm is known as \emph{Method of Directions} or MOD~\cite{mod}:
+
+\begin{eqnarray}
+A_j\iter{k+1} =& \arg\min_{a \in \reals^p} \{ \|x_j - D\iter{k}a \|_2^2 + \|a\|_1,  \; j=1,\ldots,n \} \\
+D_r\iter{k+1} =& u_j/\|u_j\|_2,\;u_j = X(A\iter{k+1})^T\left(A\iter{k+1}(A\iter{k+1})^T\right)^-1 \}, 
+\label{eq:mod}
+\end{eqnarray}
+where $A_j$ and $D_r$ are the $j$-th and $r$-th columns of $A$ and $D$ respectively. The first step corresponds to an $\ell_1$-regularized least squares regression problem on each column of $A$, also known as LASSO~\cite{lasso}.
+In the second step, each atom in the dictionary corresponds to a normalized down version of the least squares solution $u$; note that here it is customary as well to apply some sort of regularization so that $AA^T$ is invertible (non-singular).
+
+\paragraph{K-SVD} Another popular approach to the dictionary learning problem is the  K-SVD method~\cite{ksvd}. In this case, $g(\cdot)$ corresponds to the $\ell_0$ pseudo-norm, which counts the number of non-zeros in a vector. The updates on $A$ are similar to MOD, but use a greedy method known as OMP (Orthogonal Matching Pursuit)~\cite{omp} to obtain an approximate solution.
+The seconds stage, instead of being a block descent on $D$, updates both $D$ and $A$ (again) using rank-one updates as follows. For each atom $D_j$ to be updated, a residual is first computed which does not take the contribution of $D_j$ into account:
+
+\begin{equation}
+E_j\iter{k+1} = X - DA + D_jA^j,
+\label{eq:ksvd2}
+\end{equation}
+where $A^j$ is the $j$-th \emph{row} of $A$. Then, both $D_j$ and $A^j$ are updated using the first pair of left and right eigenvectors of the SVD decomposition of $E_j\iter{k+1}$. 
+\begin{equation}
+D_j = U_1,\quad A^j=V^1,\quad E_j\iter{k+1} = U\Sigma V,
+\label{eq:ksvd3}
+\end{equation}
+
+The K-SVD dictionary step is significantly more costly than that of MOD, but usually requires significantly less iterations. MOD, however, is better suited for online dictionary adaptation, as fast approximations of the statistics $AA^T$ (which can be thought of as the Hessian associated to minimizing $D$)  and $XA^T$ can be efficiently updated on a sample to sample basis.
+
+\section{Binary Dictionary Learning}
+
+The straightforward approach here is to adapt methods such as MOD or K-SVD to the case of binary matrices. One possibility is to simply use those methods as they are, possibly imposing constraints that enforce the entries in the results to be between $0$ and $1$.
+An alternative, more akin to works such as those done in Data Mining with the PROXIMUS algorithn, is to work directly on binary operands, using binary operations. 
+
+\subsection{Coefficients update}
+
+First of all, the $\ell_0$ norm and the $\ell_1$ norms are the same for binary vectors, so both dictionary update methods from MOD and K-SVD can be treated together. (Actually, the $\ell_0$ norm is nothing else than the \emph{Hamming weight} or simply \emph{weight} of a binary vector $h(x)$, so we may call it by that name hereafter). 
+We thus consider the problem of minimizing $h(x_j - Da_j)$. Following the OMP 
+
 
 \bibliographystyle{plain}
 \bibliography{bmf}
