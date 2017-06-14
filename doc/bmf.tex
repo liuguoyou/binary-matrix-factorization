@@ -171,6 +171,38 @@ The above algorithms, which I will now call BDL and K-PROX (this is not a defini
 
 I implemented several variants of the above algorithms, most of them just change the order in which some updates are made. I'll describe them later.
 
+\section{Applications}
+
+Here we describe some classical applications from the Dictionary Learning literature, with some references to some of the best results in each case.
+
+\subsection{Denoising}
+
+\paragraph{Main reference} \cite{ksvd}\\
+
+Denoising is a special case of the more general \emph{signal restoration} problem (other examples are zooming, deblurring, or inpainting -- a.k.a. filling erased regions). Here we assume that we want to recover a signal sample $x \in \reals^{m}$ from a noisy observation $z \in \reals^{m}$, both related by
+\[
+z = x + n,
+\]
+where $n \in \reals^m$ is a vector of i.i.d. samples from some known distribution, e.g. Gaussian or Poisson. For instance, in the context of Image Processing, $z$ and $x$ are usually vectorized versions of square $\sqrt{m}\times\sqrt{m}$ patches of an image, and what one desires to recover is the whole image $I$ from its corresponding noisy version $J$.
+
+The method used for denoising an image in the Dictionary Learning framework usually proceeds as follows:
+\begin{itemize}
+\item An initial dictionary $D_0 \in \reals^{m{\times}p}$ is available; this dictionary is learned to efficiently represent a \emph{large} set of patches taken from some public dataset of natural images, usually comprising thousands of images.
+\item The image to be denoised, $J \in \reals{M{\times}N}$, is decomposed into $n=(M-\sqrt{m}+1){\times}(N-\sqrt{m}+1)$ overlapping patches $(z_j : j = 1,\ldots,n)$ that we will arrange for convenience as columns in a matrix $Z \in \reals{m{\times}n}$
+\item The samples $Z$ are used to further adapt the initial dictionary and the accompanying sparse coefficients $A \in \reals^{p{\times}n}$; the sparse coding variant during the coefficient update step of this dictionary learning process is the \emph{denoising} formulation, given by
+\[
+a\iter{t+1}_j = \arg\min_a \|a\|_r \st \|z_j - D\iter{t}a \|_2 \leq C\sigma, 
+\]
+where $\sigma$ is the variance of the noise $C$ is a positive constant usually close to $1$ and $0 \leq r \leq 1$ is a sparsity-inducing (pseudo)-norm. The dictionary update is the same as described before in \refeq{nosedonde}
+\item Upon convergence, the \emph{clean image patches $x_j$} are estimated from the solution $(D\opt,A\opt)$ as $$x_j = D\opt a\opt_j.$$
+\item Finally, the estimated clean image is obtained by stitching back the estimated clean patches $x_j$ into their respective locations, averaging pixels where intersections between patches occur.
+\end{itemize}
+
+ 
+\subsection{Classification}
+
+Here again we discuss the case of image patches classification, including the special case where the patches are not part of a larger image but pre-cropped and aligned handwritten characters taken from the public datasets MNIST~\cite{mnist} and USPS~\cite{mnist} typically used in character recognition benchmarks.
+
 \bibliographystyle{plain}
 \bibliography{bmf}
 
