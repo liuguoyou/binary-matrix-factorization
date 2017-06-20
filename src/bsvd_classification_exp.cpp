@@ -18,7 +18,8 @@ idx_t K = 512;
 bool image_mode = false;
 bool force_mosaic = true;
 bool force_residual_mosaic = true;
-const char* iname = "data/test.pbm";
+const char* Xname = "data/mnist_data.pbm";
+const char* Lname = "data/mnist_labels.ascii";
 
 void parse_args(int argc, char **argv) {
   for (int i = 0; i < argc; ++i) {		       
@@ -44,7 +45,8 @@ void parse_args(int argc, char **argv) {
       }
       i++;
     } else {
-      iname = argv[i];
+      Xname = argv[i];
+      Lname = argv[i+1];
     }
   }
 }
@@ -56,54 +58,36 @@ void parse_args(int argc, char **argv) {
 int main(int argc, char **argv) {   
   idx_t rows,cols;
   int res;
-  FILE* fimg;
+  FILE* fX, *fL;
   parse_args(argc,argv);
   learn_model_setup(mi_algo,cu_algo,du_algo,lm_algo,lmi_algo);
-  fimg = fopen(iname,"r");
+  fX = fopen(Xname,"r");
   set_grid_width(W);
-  if (!fimg) return -1;
-  res = read_pbm_header(fimg,rows,cols);
+  if (!fX) return -1;
+  res = read_pbm_header(fX,rows,cols);
   std::cout << "rows=" << rows << " cols=" << cols << std::endl;
 
   //
   // input data
   // 
-  binary_matrix I(rows,cols);
-  read_pbm_data(fimg,I);
+  binary_matrix X(rows,cols);
+  read_pbm_data(fX,X);
   if (res !=PBM_OK) { std::cerr << "Error " << res << " reading image."  << std::endl; std::exit(1); }
-  fclose(fimg);
+  fclose(fX);
+  char* L = new char[cols];
+  int l;
+  unsigned i = 0;
+  fL = fopen(Lname,"r");
+  if (!fL) { std::cerr << "Error  reading labels file " << Lname << std::endl; std::exit(1); }
+  while (fscanf(fL,"%d ",&l)) {
+    L[i++];
+  } 
+  fclose(fL);
 
   idx_t M,N;
-  binary_matrix X;
-  if (image_mode) {
-    std::cout << "==== DATA TREATED AS IMAGE, VECTORS ARE PATCHES =====\n" << std::endl;
-    idx_t Ny = (W-1+rows)/W;
-    idx_t Nx = (W-1+cols)/W;
-    M = W*W;
-    std::cout << "Nx=" << Nx << " Ny=" << Ny << std::endl;
-    N = Nx*Ny;
-    X.allocate(N,M);
-    //
-    // Initialize data
-    //
-    idx_t li = 0;
-    binary_matrix P(W,W),V(1,W*W);
-    for (idx_t i = 0; i < Ny; i++) {
-      for (idx_t j = 0; j < Nx; j++,li++) {
-	I.copy_submatrix_to(i*W,(i+1)*W,j*W,(j+1)*W,P);
-	P.copy_vectorized_to(V);
-	X.set_row(li,V);
-      }
-    }
-    N = li;
-    P.destroy();
-    V.destroy();
-  } else {
-    std::cout << "==== DATA TREATED AS MATRIX, VECTORS ARE ROWS =====\n" << std::endl;
-    X = I.get_copy();
-    M = I.get_cols();
-    N = I.get_rows();
-  }
+  std::cout << "==== DATA TREATED AS MATRIX, VECTORS ARE ROWS =====\n" << std::endl;
+  M = X.get_cols();
+  N = X.get_rows();
   binary_matrix D(K,M);
   binary_matrix A(N,K);
   std::cout << "M=" << M << " N=" << N << " K=" << K << std::endl;
@@ -123,40 +107,18 @@ int main(int argc, char **argv) {
   write_pbm(D,"dictionary.pbm");
   write_pbm(A,"coefficients.pbm");
   write_pbm(E,"residual.pbm");
-  if (image_mode) {
-    render_mosaic(D,"atoms_mosaic.pbm");
-    idx_t Ny = (W-1+rows)/W;
-    idx_t Nx = (W-1+cols)/W;
-    idx_t li = 0;
-    binary_matrix P(W,W),V(1,W*W);
-    for (idx_t i = 0; i < Ny; i++) {
-      for (idx_t j = 0; j < Nx; j++,li++) {
-	//     std::cout << "n=" << li << std::endl;
-	E.copy_row_to(li,V);
-	P.set_vectorized(V);
-	I.set_submatrix(i*W,j*W,P);
-      }
-    }  
-    P.destroy();
-    V.destroy();
-    fimg = fopen("residual.pbm","w");
-    if (!fimg) return -2;
-    write_pbm(I,fimg);
-    fclose(fimg);
-  } else {
-    if (force_mosaic)
+  if (force_mosaic)
       render_mosaic(D,"atoms_mosaic.pbm");
-  }
-  if (force_residual_mosaic) {
+  if (force_residual_mosaic) 
     render_mosaic(E,"residual_mosaic.pbm");
-  }
+  
   mul(A,false,D,false,E);
   add(E,X,E);
   std::cout << "|E|" << E.weight() << std::endl;
   A.destroy();
-  I.destroy();
   E.destroy();
   D.destroy();
   X.destroy();
+  delete[] L;
   return 0;
 }
