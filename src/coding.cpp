@@ -1,5 +1,6 @@
 #include "gsl/gsl_sf_gamma.h"
 #include "coding.h"
+#include <cmath>
 
 void bilinear_predictor(const binary_matrix& P, binary_matrix& pP) {
   // can be very quickly implemented at block level using binary operators,

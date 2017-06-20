@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
   idx_t rows,cols;
   int res;
   FILE* fimg;
-  fimg = fopen(argc > 1 ? argv[1]: "data/marvelt.pbm","r");
+  fimg = fopen(argc > 1 ? argv[1]: "data/usps_data.pbm","r");
   if (!fimg) return -1;
   res = read_pbm_header(fimg,rows,cols);
   std::cout << "N=" << rows << " M=" << cols << std::endl;

@@ -2,7 +2,7 @@
 #define CODING_H
 
 #include "binmat.h"
-#include "GolombCoder.h"
+//#include "GolombCoder.h"
 
 #define COSMOS_2E	5.436563656918090181591196596855297684669
 #define COSMOS_2PI	6.283185307179586231995926937088370323181
