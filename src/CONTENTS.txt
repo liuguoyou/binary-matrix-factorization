@@ -1,0 +1,41 @@
+CONTENTS ................. This file
+Makefile ................. GNU Makefile file
+TODO ..................... What to do next
+
+CORE BINARY MATRIX HANDLING
+binmat.cpp ............... Efficient binary matrix implementation
+binmat.h ................. Headers for binmat library
+binmat_test.cpp .......... Test functions for binmat library
+
+B-SVD
+bsvd.cpp ................. B-SVD non-multiprocessor implementation
+bsvd.h ................... B-SVD headers
+bsvd_omp.h ............... B-SVD multiprocessor-enabled implementation (works!)
+bsvd_test.cpp ............ Main dictionary learning routine, frontend to all variants
+
+SUPPORT FILES
+coding.cpp ............... Coding support routines
+coding.h ................. Coding support routines
+pbm.cpp .................. PBM library implementation
+pbm.h .................... PBM library headers
+util.cpp ................. Misc. utilities implementation
+util.h ................... Misc. utilities interface
+
+TOOLS
+bitplane_tool.cpp ........ Tool to separate an n-bit image into n bitplanes
+plane2pgm_tool.cpp ....... Combines n bitplanes into one n-bit grayscale images
+
+TESTS
+pbm_test.cpp ............. Test functions for PBM library
+patch2_test.cpp .......... Test image patch handling functions
+patch_test.cpp ........... Test image patch handling functions
+
+USEFUL IN THE FUTURE
+pnm.cpp .................. PNM file handling; not used for now
+pnm.h .................... PNM file handling; not used for now
+pred.cpp ................. Various fixed predictors. Not used for now
+galois.c ................. Finite field algebra library. Not used for now, may be useful later
+galois.h ................. Finite field algebra library. Not used for now, may be useful later 
+
+NOT EVEN SURE IF USEFUL
+with_refs ................ Some version which I don't know if it works; forget it
