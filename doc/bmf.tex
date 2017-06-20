@@ -188,7 +188,7 @@ where $n \in \reals^m$ is a vector of i.i.d. samples from some known distributio
 The method used for denoising an image in the Dictionary Learning framework usually proceeds as follows:
 \begin{itemize}
 \item An initial dictionary $D_0 \in \reals^{m{\times}p}$ is available; this dictionary is learned to efficiently represent a \emph{large} set of patches taken from some public dataset of natural images, usually comprising thousands of images.
-\item The image to be denoised, $J \in \reals{M{\times}N}$, is decomposed into $n=(M-\sqrt{m}+1){\times}(N-\sqrt{m}+1)$ overlapping patches $(z_j : j = 1,\ldots,n)$ that we will arrange for convenience as columns in a matrix $Z \in \reals{m{\times}n}$
+\item The image to be denoised, $J \in \reals^{M{\times}N}$, is decomposed into $n=(M-\sqrt{m}+1){\times}(N-\sqrt{m}+1)$ overlapping patches $(z_j : j = 1,\ldots,n)$ that we will arrange for convenience as columns in a matrix $Z \in \reals^{m{\times}n}$
 \item The samples $Z$ are used to further adapt the initial dictionary and the accompanying sparse coefficients $A \in \reals^{p{\times}n}$; the sparse coding variant during the coefficient update step of this dictionary learning process is the \emph{denoising} formulation, given by
 \[
 a\iter{t+1}_j = \arg\min_a \|a\|_r \st \|z_j - D\iter{t}a \|_2 \leq C\sigma, 
@@ -201,9 +201,26 @@ where $\sigma$ is the variance of the noise $C$ is a positive constant usually c
  
 \subsection{Classification}
 
-Here again we discuss the case of image patches classification, including the special case where the patches are not part of a larger image but pre-cropped and aligned handwritten characters taken from the public datasets MNIST~\cite{mnist} and USPS~\cite{mnist} typically used in character recognition benchmarks.
+Here again we discuss the case of image patches classification, including the special case where the patches are not part of a larger image but pre-cropped and aligned handwritten characters taken from the public datasets MNIST and USPS typically used in character recognition benchmarks.
+
+There are several variants in this case. The one we'll mention here~\cite{ramirez10cvpr}, which seems quite natural, is a generative one where a dictionary $D_c$ is  adapted to efficiently represent samples from each class $c  \ in \mathcal{C}$. A new sample is then classified into class $c'$ if its representation under the dictionary $D_{c'}$ is better in some sense than that obtained using the dictionaries trained for the other classes. The method  can be summarized as follows:
+
+\begin{itemize}
+\item A  dictionary $D_c$ is adapted to a set of samples $X_c$ known to belong to class $c$ using some known method; this is done for each $c \in \mathcal{C}$. 
+\item In order  to classifiy a new sample $x$, it is sparsely encoded using each of the dictionaries $D_c, c \in \mathcal{C}$, and the corresponding optimum coding cost is used as a score $l_c$. Any sparse coding variant could be used in principle, but typical choices here are the ``basis pursuit'' variant,
+\[
+l_c(x) = \min_a \|z_j - D\iter{t}a \|_2 \st  \|a\|_r \leq \tau, 
+\]
+and the Lagrangian variant,
+\[
+l_c(x) = \min_a \|z_j - D\iter{t}a \|_2 + \tau  \|a\|_r. 
+\]
+\item The sample $x$ is then declared to belong to the class $c$ so that  $l_c$ is the smallest. 
+More so than in denoising, the success in this application depends largely  on the (critical) parameters $\tau$,  the $r$-norm  to be used, and the size of the dictionary $p$. These critical issues are treated in \cite{ramirez12tsp}.
+\end{itemize}
+
 
 \bibliographystyle{plain}
-\bibliography{bmf}
+\bibliography{bmf,sparse}
 
 \end{document}

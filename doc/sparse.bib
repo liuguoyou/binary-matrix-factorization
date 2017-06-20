@@ -35,7 +35,9 @@
 
 @STRING{SIGGRAPH = {Proc. SIGGRAPH}}
 
-@STRING{j_asa = {JASA}}
+@STRING{ANNALS_STAT = {Annals of Statistics}}
+
+@STRING{j_asa = {Journal Am. Stat. Assoc.}}
 
 @INPROCEEDINGS{elad06a,
   author = {M. Elad and M. Aharon},
@@ -178,7 +180,7 @@
 }
 
 @BOOK{bernardo94,
-  title = {Bayesian Theory},
+  title = {{Bayesian} {Theory}},
   publisher = {Wiley},
   year = {1994},
   author = {J. Bernardo and A. Smith},
@@ -342,7 +344,7 @@
   author = {E. Candes and D. L. Donoho},
   title = {Recovering Edges in Ill-Posed Inverse Problems: Optimality of Curvelet
 	Frames},
-  journal = {Annals of statistics},
+  journal = annals_stat,
   year = {2002},
   volume = {30},
   pages = {784-842},
@@ -502,7 +504,7 @@
 }
 
 @BOOK{cover06,
-  title = {Elements of information theory},
+  title = {Elements of Information Theory},
   publisher = {John Wiley and Sons, Inc.},
   year = {2006},
   author = {T. Cover and J. Thomas},
@@ -673,7 +675,7 @@
 
 @ARTICLE{dobigeon09,
   author = {N. Dobigeon and A. Hero and J.-Y. Tourneret},
-  title = {Hierarchical bayesian sparse image reconstruction with applications
+  title = {Hierarchical {Bayesian} sparse image reconstruction with applications
 	to {MRFM}},
   journal = ieee_j_ip,
   year = {2009},
@@ -745,7 +747,7 @@
 @ARTICLE{donoho98,
   author = {D. L. Donoho},
   title = {Wedgelets: Nearly minimax estimation of edges},
-  journal = {Annals of statistics},
+  journal = annals_stat,
   year = {1998},
   volume = {27},
   pages = {859--897},
@@ -858,6 +860,29 @@
   timestamp = {2010.08.04}
 }
 
+@article{cover73,
+  author = {T. M. Cover},
+  title = {Enumerative Source Encoding},
+  journal = ieee_j_it,
+  volume = {19},
+  number = {1},
+  pages = {73--77},
+  year = {1973}
+}
+
+@article{tseng01,
+  author = {P. Tseng},
+title = {Convergence of a Block Coordinate Descent
+Method for Nondifferentiable Minimization},
+  journal = {Journal of Opt. Theory and App.},
+  volume = {109},
+  number = {3},
+  pages = {475--494},
+  month = {June},
+  year = {2001}
+}
+
+
 @UNPUBLISHED{esser09,
   author = {E. Esser},
   title = {Applciations of Lagrangian-Based Alternating direction Methods and
@@ -867,6 +892,14 @@
   year = {2009},
   owner = {nacho},
   timestamp = {2010.08.06}
+}
+
+@UNPUBLISHED{ramirez10tip,
+  author = {I. Ram\'{i}rez and G. Sapiro},
+  title ={Universal Regularizers For Robust Sparse Coding and Modeling},
+  note = {Submitted. Preprint available in \href{http://arxiv.org/abs/1003.2941}{arXiv:1003.2941v2 [cs.IT]}},
+  month = {August},
+  year = {2010},
 }
 
 @MISC{pascal,
@@ -976,24 +1009,21 @@
 @ARTICLE{friedman07,
   author = {J. Friedman and T. Hastie and H. H\"olfling and R. Tibshirani},
   title = {Pathwise coordinate optimization},
-  journal = {Annals of statistics},
+  journal = annals_stat,
   year = {2007},
   volume = {1},
   pages = {302-332},
   number = {2}
 }
 
-@ARTICLE{hastie09,
-  author = {T. Hastie and friends},
-  title = {Coordinate Descent thingy},
-  journal = {Annals of statistics},
-  year = {2009},
-  volume = {1},
-  pages = {1-1},
-  number = {1}
+@article{friedman08,
+  author = {J. Friedman and  H. Hastie and R. Tibshirani},
+  title = { Regularized Paths for Generalized Linear Models via Coordinate Descent},
+  journal = {Journal of Stat. Soft.}, 
+  volume = {33},
+  number = {1},
+  year = {2008}
 }
-
-
 
 @ARTICLE{fu,
   author = {W. J. Fu},
@@ -1013,7 +1043,7 @@
   volume = {21},
   pages = {32-40},
   number = {1},
-  month = {January}
+  month = {Jan.}
 }
 
 @ARTICLE{gasso09,
@@ -1111,13 +1141,13 @@
   url = {citeseer.ist.psu.edu/hansen98model.html}
 }
 
-@BOOK{hastie08,
+@BOOK{hastie09,
   title = {The Elements of Statistical Learning: Data Mining, Inference and
 	Prediction},
   publisher = {Springer},
   year = {2009},
   author = {T. Hastie and R. Tibshirani and J. Friedman},
-  edition = {2},
+  edition = {2nd},
   month = {Feb.},
   owner = {nacho},
   timestamp = {2010.08.04}
@@ -1189,7 +1219,7 @@
 
 @ARTICLE{ji09,
   author = {S. Ji and Y. Xue and L. Carin},
-  title = {Bayesian Compressive Sensing},
+  title = {{Bayesian} {Compressive} {Sensing}},
   journal = ieee_j_sp,
   year = {2008},
   volume = {56},
@@ -1197,6 +1227,43 @@
   number = {6},
   owner = {nacho},
   timestamp = {2010.08.04}
+}
+
+@ARTICLE{akaike74,
+   author = {H. Akaike},
+    title = {A New Look at the Statistical Model Identification},
+  journal = {IEEE Transactions on Automatic Control},
+ keywords = {MAXIMUM ENTROPY, POWER SPECTRA},
+     year = 1974,
+   volume = 19,
+    pages = {716-723},
+   adsurl = {http://adsabs.harvard.edu/abs/1974ITAC...19..716A},
+  adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+
+
+@Comment http://www.ece.duke.edu/~lcarin/BPFAImage_Journal_8.pdf}
+
+@unpublished{carin11,
+  author = {M. Zhou and H. Chen and J. Paisley and L. Ren and L. Li and Z. Xing and D. Dunson and G. Sapiro and L. Carin}, 
+  title = {Nonparametric {Bayesian} Dictionary Learning for Analysis of Noisy and Incomplete Images}, 
+  note ={submitted to IEEE Trans. Image Processing},
+  year = {2011}
+}
+
+@inproceedings{carin09,
+  author={M. Zhou and H. Chen and J. Paisley and L. Ren and G. Sapiro and L. Carin}, 
+  title={Non-Parametric {Bayesian} Dictionary Learning for Sparse Image Representations},
+ booktitle= {NIPS},
+ year={2009}
+}
+
+@inproceedings{carin10,
+  title={NONPARAMETRIC IMAGE INTERPOLATION AND DICTIONARY LEARNING USING SPATIALLY-DEPENDENT {Dirichlet} AND BETA PROCESS PRIORS},
+  author={J. Paisley and M. Zhou and G. Sapiro and L. Carin},
+  booktitle= {IEEE ICIP}, 
+  month={Sept.},
+  year={ 2010}
 }
 
 @INPROCEEDINGS{jojic,
@@ -1532,7 +1599,7 @@
   volume = {17},
   pages = {53-69},
   number = {1},
-  month = {January}
+  month = {Jan.}
 }
 
 @INPROCEEDINGS{mairal08d,
@@ -1632,7 +1699,7 @@
   year = {2004},
   volume = {26},
   number = {1},
-  month = {january},
+  month = {Jan.},
   owner = {nacho},
   timestamp = {2008.11.13}
 }
@@ -1659,20 +1726,32 @@
   timestamp = {2008.11.13}
 }
 
-@TECHREPORT{ramirez10dude,
-  author = { G. Motta and E. Ordentlich and I. Ramirez and G. Seroussi and M.
-	Weinberger},
-  title = {The {DUDE} Framework for Grayscale Image Denoising},
-  institution = {{HP} laboratories},
-  year = {2009},
-  note = {http://www.hpl.hp.com/techreports/2009/HPL-2009-252.html},
-  owner = {nacho},
-  timestamp = {2010.08.04}
+@article{ramirez10dude,
+  author = {G. Motta and E. Ordentlich and I. Ramirez and G. Seroussi and M. Weinberger},
+  title={ The {iDUDE} Framework for Grayscale Image Denoising},
+  year = {2011},
+  month = {Jan.},
+  journal = ieee_j_ip,
+  volume = {20},
+  number  = {1},
+  pages  = {1--21}
 }
+@ARTICLE{weissman05dude,
+author={Weissman, T. and Ordentlich, E. and Seroussi, G. and Verdu, S. and Weinberger, M.J.},
+journal={Information Theory, IEEE Transactions on}, title={Universal discrete denoising: known channel},
+year={2005},
+month={Jan. },
+volume={51},
+number={1},
+pages={5--28},
+keywords={DMC;channel noise;discrete denoising algorithm;discrete filtering;discrete memoryless channel;individual sequence;input sequence distribution;linear number;optimum denoiser;register-level operation;semistochastic setting;single-letter fidelity criterion;statistical property;sublinear working storage;universal algorithm;channel estimation;combined source-channel coding;discrete systems;memoryless systems;optimisation;signal denoising;stochastic processes;},
+doi={10.1109/TIT.2004.839518},
+ISSN={0018-9448},}
+
 
 @INPROCEEDINGS{moulin96,
   author = {P. Moulin},
-  title = {Signal estimation using adapted tree-structured bases and the MDL
+  title = {Signal estimation using adapted tree-structured bases and the {MDL}
 	principle},
   booktitle = {IEEE Signal Processing Symposium on Time-Frequency and Time-Scale
 	Analysis},
@@ -1693,7 +1772,7 @@
 
 @ARTICLE{moulin99,
   author = {P. Moulin and J. Liu},
-  title = {Analysis of multiresolution image denoising schemes using generalized-Gaussian
+  title = {Analysis of multiresolution image denoising schemes using generalized-{Gaussian}
 	and complexity priors},
   journal = IEEE_J_IT,
   year = {1999},
@@ -1952,7 +2031,7 @@
   timestamp = {2010.08.04}
 }
 
-@INPROCEEDINGS{ramirez10a,
+@INPROCEEDINGS{ramirez10cvpr,
   author = {I. Ram\'{i}rez and P. Sprechmann and G. Sapiro},
   title = {Classification and clustering via dictionary learning with structured
 	incoherence and shared features},
@@ -2054,15 +2133,17 @@
 
 @ARTICLE{rissanen84,
   author = {J. Rissanen},
-  title = {Universal coding, information, prediction and estimation},
+  title = {Universal coding, information, prediction, and estimation},
   journal = ieee_j_it,
   year = {1984},
   volume = {30},
   number = {4},
-  month = {July},
+  pages={629--636},
   owner = {nacho},
   timestamp = {2010.08.04}
 }
+@Comment  month = {July},
+
 
 @ARTICLE{rodriguez,
   author = {F. Rodriguez and G. Sapiro},
@@ -2297,6 +2378,15 @@
   month = {february}
 }
 
+@article{huber64,
+  author = {P. J. Huber}, 
+  title = {Robust Estimation of a Location Parameter},
+  journal = annals_stat,
+  volume  = {53},
+  pages = {73--101},
+  year = {1964}
+}
+
 @ARTICLE{tibshirani96,
   author = {R. Tibshirani},
   title = {Regression Shrinkage and Selection via the {LASSO}},
@@ -2312,7 +2402,7 @@
 
 @ARTICLE{tipping01,
   author = {M. Tipping},
-  title = {Sparse Bayesian Learning and the Relevance Vector Machine},
+  title = {Sparse {Bayesian} Learning and the Relevance Vector Machine},
   journal = jmlr,
   year = {2001},
   volume = {1},
@@ -2504,7 +2594,7 @@
 
 @INPROCEEDINGS{wipf03,
   author = {D. Wipf and J. Palmer and B. Rao},
-  title = {Perspectives on Sparse Bayesian Learning},
+  title = {Perspectives on Sparse {Bayesian} Learning},
   booktitle = nips,
   year = {2003},
   month = {Dec.},
@@ -2517,7 +2607,7 @@
 
 @ARTICLE{wipf07,
   author = {D. Wipf and B. Rao},
-  title = {An Empirical Bayesian Strategy for Solving the Simultaneous Sparse
+  title = {An Empirical {Bayesian} Strategy for Solving the Simultaneous Sparse
 	Approximation Problem},
   journal = ieee_j_ip,
   year = {2007},
@@ -2543,7 +2633,7 @@
 }
 
 @ARTICLE{wright09siam,
-  author = {J. Wright and Y. Tao and Z. Lin and Yi Ma and H.-Y. Shum},
+  author = {J. Wright and Y. Tao and Z. Lin and Y. Ma and H.-Y. Shum},
   title = {Classification via {Minimum Incremental Coding Length (MICL)}},
   journal = {SIAM Journal on Scientific Computing},
   year = {2009},
@@ -2636,7 +2726,7 @@
   volume = {36},
   pages = {1509--1533},
   number = {4},
-  optnote = {DOI: 10.1214/009053607000000802},
+  note = {DOI: 10.1214/009053607000000802},
   owner = {nacho},
   timestamp = {2010.08.04}
 }
@@ -2653,3 +2743,282 @@
   timestamp = {2010.08.04}
 }
 
+
+@article{roos09,
+  author  = {T. Roos and P. Myllym\"{a}ki and J. Rissanen},
+  year    = {2009},
+  title   = {{MDL} denoising revisited},
+  journal =  IEEE_J_SP,
+  pages   =  {3347--3360},
+  volume  = {57},
+  number  = {9}
+}
+
+@article{ishwaran05,
+  title = {Spike and slab variable selection: {Frequentist} and {Bayesian} strategies},
+  author = {H. Ishwaran and J. S. Rao},
+  journal = annals_stat,
+  volume = {33},
+  number = {2},
+  year = {2005},
+  pages = {730--773},
+}
+
+
+@article{rissanen78,
+author={J.~Rissanen}, 
+title={Modeling by shortest data description},
+journal={Automatica},
+volume=14,
+year=1978,
+pages={465--471}
+}
+
+@article{rissanen00,
+author={J.Rissanen}, 
+title={{MDL} Denoising},
+journal=ieee_j_it,
+volume=46,
+year=2000,
+number=7,
+pages={2537--2543}
+}
+
+@article{krichevsky81,
+  author={R.~E.~Krichevsky and V.~K.~Trofimov},
+  title={The Performance of Universal Encoding}, 
+  journal=ieee_j_it,
+  vol={27},
+  number={2},
+  pages={199--207},
+  year={1981}
+}
+
+@article{beck09siam,
+  author={A. Beck and M. Teboulle},
+  title={A Fast Iterative Shrinkage-Thresholding Algorithm for Linear Inverse Problems},
+  journal = {SIAM Journal on Imaging Sciences},
+  volume=2,
+  number=1,
+  pages={183--202},
+  year={2009}
+}
+
+@inproceedings{mairal09icml,
+  author={J. Mairal and F. Bach and J. Ponce and G. Sapiro},
+  title={Online Dictionary Learning for Sparse Coding},
+  booktitle={ICML 2009, Montreal, Canada}, 
+  year={2009}
+}
+
+@INPROCEEDINGS{outex,
+ author = {T. Ojala  and T. M\"{a}enp\"{a}\"{a} and M. Pietik\"{a}inen  and J. Viertola  and J. Kyll\"{o}nen and S. Huovinen},
+ title = {Outex-- New framework for empirical evaluation of texture analysis algorithms.},
+ year = 	{2002},
+ booktitle = {Proc. 16th International Conference on Pattern Recognition, Quebec, Canada},
+ pages={701--706}
+}
+
+@inproceedings{omp,
+  author={Y.~C.~Pati and R.~Rezaiifar and P.~S.~Krishnaprasad},
+  title={{Orthogonal} {Matching} {Pursuit}: Recursive function approximation with applications to wavelet decomposition},
+  booktitle={Proc. 27th Ann. Asilomar Conf. Signals, Systems, and Computers},
+  year={1993},
+  month={Nov.}
+}
+
+@ARTICLE{rubinstein10ieee,
+author={Rubinstein, R. and Bruckstein, A. and Elad, M.},
+journal={Proceedings of the IEEE}, 
+title={Dictionaries for Sparse Representation Modeling},
+year={2010},
+month={June},
+volume={98},
+number={6},
+pages={1045--1057},
+keywords={dictionary learning;mathematical data model;redundant signal representation modeling;signal sampling;sparse signal representation modeling;training set;signal representation;signal sampling;wavelet transforms;},
+doi={10.1109/JPROC.2010.2040551},
+ISSN={0018-9219},}
+
+
+@ARTICLE{wright10ieee,
+author={Wright, J. and Y. Ma and Mairal, J. and Sapiro, G. and Huang, T. and Yan, S.},
+journal={Proceedings of the IEEE}, 
+title={Sparse Representation for Computer Vision and Pattern Recognition},
+year={2010},
+month={June},
+volume={98},
+number={6},
+pages={1031--1044},
+keywords={algorithmic techniques;analytical techniques;computer vision;pattern recognition;semantic information;sparse signal representation;state-of-the-art results;training samples;unconventional dictionaries;computer vision;signal representation;},
+doi={10.1109/JPROC.2010.2044470},
+ISSN={0018-9219},}
+
+
+
+@article{candes11acm,
+  title={Robust Principal Component Analysis?},
+  author={E. Cand\`{e}s and X. Li and Y. Ma and J. Wright},
+  journal={Journal of the ACM}, 
+  volume={58},
+  number={3},
+  year={2011},
+  month={May}
+}
+
+@unpublished{lin09arxiv,
+  title={The {Augmented} {Lagrange} {Multiplier} {Method} for Exact Recovery of Corrupted Low-Rank Matrices},
+  author={Z. Lin and M. Chen and Y. Ma},
+  note={http://arxiv.org/abs/1009.5055}
+}
+
+@inproceedings{wright09nips,
+  title={Robust Principal Component Analysis: Exact Recovery of Corrupted Low-Rank Matrices by
+Convex Optimization},
+  author={J. Wright and A. Ganesh and S. Rao and Y. Peng and Y. Ma},
+  booktitle=NIPS,
+  year={2009},
+  month={Dec.}
+}
+
+@article{li04tip,
+  author={L. Li and W. Huang and I. Gu and Q. Tian},
+  year={2004},
+  title={Statistical modeling of complex backgrounds for foreground object detection},
+  journal=ieee_j_ip,
+  volume = {13},
+  number = {11},
+  pages = {1459--1472}
+}
+
+@book{markovsky12,
+title={Low Rank Approximation: Algorithms, Implementation, Applications},
+author={I.~Markovsky},
+edition={1st},
+year={2012},
+note={ISBN 978-1-4471-2226-5},
+series={Communications and Control Engineering},
+publisher={Springer}
+}
+
+@inproceedings{ramirez11icassp,
+  title={Sparse coding and dictionary learning based on the {MDL} principle},
+  author={I.~Ram\'{i}rez and G.~Sapiro},
+  booktitle={Proc. of {ICASSP} 2011, Prague, Czech. Republic},
+  year={2011},
+  month={May}
+}
+
+@unpublished{ramirez12icassp,
+  author={I.~Ram\'{i}rez and G.~Sapiro},
+  title={Low-rank data modeling via the {M}inimum {D}escription {L}ength principle}, 
+  note={to appear in {ICASSP} 2012. Preprint \href{http://arxiv.org/abs/1109.6297v1}{arXiv:1109.6297v1}},
+  year={2011}
+}
+
+@article{li2011ajms,
+  author={S. Li},
+  year={2011},
+  title={Concise Formulas for the Area and Volume of a Hyperspherical Cap}, 
+  journal={Asian J. Math. Stat.},
+  volume={4},
+  pages={66--70}
+}
+
+
+@unpublished{wu2011pami,
+  title={Convex Optimization Based Low-Rank Matrix Completion and Recovery for Photometric Stereo and Factor Classification},
+  author={L. Wu and A. Ganesh, and B. Shi and Y. Matsushita and Y. Wang and Y. Ma},
+  note={Submitted to IEEE Transactions on Pattern Analysis and Machine Intelligence (PAMI), August 2011}
+}
+
+
+@unpublished{zhang11ijcv,
+  title = {{TILT: Transform Invariant Low-rank Textures}},
+  author= {Z. Zhang and A. Ganesh and X. Liang and Y. Ma},
+  note  = {Submitted to International Journal of Computer Vision (IJCV), December 2010. Preprint arxiv:1012.3216}
+}
+
+
+
+@INPROCEEDINGS{mairal09iccv,
+author={Mairal, J. and Bach, F. and Ponce, J. and Sapiro, G. and Zisserman, A.},
+booktitle={ICCV}, 
+title={Non-local sparse models for image restoration},
+year={2009},
+month={Oct.},
+pages={2272--2279},
+keywords={digital cameras;image classification;image demosaicking;image denoising;image reconstruction;image restoration;learned dictionary;nonlocal sparse models;simultaneous sparse coding;sparse signal descriptions;image classification;image coding;image denoising;image reconstruction;image restoration;},
+doi={10.1109/ICCV.2009.5459452},
+ISSN={1550-5499},}
+
+@article{rissanen83,
+  author={J.~Rissanen}, 
+  title={A Universal prior for integers and estimation by minimum description length},
+  journal= annals_stat,
+  volume=11,
+  year=1983,
+  number=2, 
+  pages={416--431}
+}
+
+@inproceedings{zhou11aistats,
+  author={M. Zhou and H. Yang and G. Sapiro and D. Dunson and L. Carin}, 
+  title={Dependent Hierarchical Beta Process for Image Interpolation and Denoising}, 
+  booktitle={AISTATS}, 
+  year={2011}
+}
+
+@article{mairal10jmlr,
+  author={J. Mairal and F. Bach and J. Ponce and G. Sapiro},
+  title={Online Learning for Matrix Factorization and Sparse Coding},
+  journal={Journal of Machine Learning Research}, 
+  volume=11,
+   pages={19--60},
+  year={2010}
+}
+
+@ARTICLE{nadler10tsp,
+author={Nadler, B.},
+journal={Signal Processing, IEEE Transactions on},
+title={Nonparametric Detection of Signals by Information Theoretic Criteria: Performance Analysis and an Improved Estimator},
+year={2010},
+month={may },
+volume={58},
+number={5},
+pages={2746 -2756},
+keywords={AIC estimator;Akaike information criterion;information theoretic criteria;minimum description length;random matrix theory;signal nonparametric detection;matrix algebra;signal detection;},
+doi={10.1109/TSP.2010.2042481},
+ISSN={1053-587X},}
+
+@ARTICLE{kritchman09tsp,
+author={Kritchman, S. and Nadler, B.},
+journal={Signal Processing, IEEE Transactions on},
+title={Non-Parametric Detection of the Number of Signals: Hypothesis Testing and Random Matrix Theory},
+year={2009},
+month={oct. },
+volume={57},
+number={10},
+pages={3930 -3941},
+keywords={hypothesis testing;minimum description length based estimator;nonparametric signal detection;random matrix theory;signal array processing;signal strength;simulation;statistical analysis;array signal processing;matrix algebra;signal detection;statistical analysis;},
+doi={10.1109/TSP.2009.2022897},
+ISSN={1053-587X},}
+
+
+@unpublished{ramirez12tsp,
+  author={I. Ram\'irez and G. Sapiro},
+  title={An {MDL} framework for sparse coding and dictionary learning},
+  note={To appear in IEEE Transactions on Signal Processing},
+}
+
+@ARTICLE{sprechmann11tsp,
+author={Sprechmann, P. and Ramirez, I. and Sapiro, G. and Eldar, Y.C.},
+journal={Signal Processing, IEEE Transactions on}, title={C-HiLasso: A Collaborative Hierarchical Sparse Modeling Framework},
+year={2011},
+month={Sept.},
+volume={59},
+number={9},
+pages={4183 -4198},
+keywords={C-HiLasso;Lasso pursuit;active set;basis pursuit;block-sparsity property;collaborative HiLasso model;collaborative hierarchical sparse modeling framework;convergence;data analysis;data processing;encoding;hierarchical Lasso;optimization procedure;regularized linear regression problem;simultaneously coded signals;source identification;source separation;sparsity pattern;sparsity-inducing property;convergence;encoding;optimisation;regression analysis;source separation;},
+doi={10.1109/TSP.2011.2157912},
+ISSN={1053-587X},}
