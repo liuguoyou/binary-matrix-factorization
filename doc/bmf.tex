@@ -167,7 +167,7 @@ The above algorithms, which I will now call BDL and K-PROX (this is not a defini
 \item[random samples] $D$ is initialized using random saples, or a sum of a few random samples, from the set.
 \end{description}
 
-\section{Variants}
+\section{Learning variants}
 
 I implemented several variants of the above algorithms, most of them just change the order in which some updates are made, or switch the roles of dictionary and coefficients alternatively, so that the method can be used on a broader class of data.
  
@@ -177,9 +177,19 @@ I implemented several variants of the above algorithms, most of them just change
 \item Role-switching I: at each iteration, the role of A and D are switched
 \item Role-switched learning II: after local convergence (the same as in the first case), the role of A and D are switched and the traditional model is applied again
 \item Role switched learning III: like type I but only the dictionary update step is applied (for use with Proximus)
-\item MDL/forward selection
-\item MDL/backward selection
-\item MDL/full search     
+\end{enumerate}
+
+\section{Model selection-powered learning variants}
+
+The following two methods are actually meant to choose the best from an ensemble of candidate dictionaries learned using one of the previous four methods (referred to as ``inner learning method'' in the implementation). MDL stands for Minimum Description Length, and is a criterion for model selection (that is, choosing the best model out of a set of competing models for describing some particular data) where the criterion used is, essentially, ``which of the models produces a more succint description of the data''; in other words, which model compresses the most.
+ 
+\begin{enumerate}
+\item MDL/forward selection:  Here begin with an initial dictionary size $K_0$, train a dictionary, add a few more atoms to obtain $K_1$, and keep doing this until no further improvement is obtained, that is, until the overall codelength does not decrease by adding new atoms to the dictionary.
+ 
+\item MDL/backward selection: We begin with a maximum dictionary size $K_0$, train the dictionary, and then remove the worst atom using some criterion (for example, remove one atom at a time and drop the one  which results in the largest decrease in the overall codelength). If removing an atom does not result in a better overall codelength, the method stops. 
+
+\item MDL/full search: in both forward and backward selection, all or a part of the dictionary used in one iteration is kept and re-adapted after adding or removing atoms from it. In this case, for a range of values of $K$, a whole new dictionary is trained, and the best one is chosen among them. This method is much slower than the previous two ones (the fastest is forward selection), but tends to provide better results; This tradeoff is open for research.
+
 \end{enumerate}
 
 
@@ -210,7 +220,19 @@ where $\sigma$ is the variance of the noise $C$ is a positive constant usually c
 \item Finally, the estimated clean image is obtained by stitching back the estimated clean patches $x_j$ into their respective locations, averaging pixels where intersections between patches occur.
 \end{itemize}
 
- 
+\subsection{Inpainting -- missing data}
+
+Here the task is to fill in missing samples. As we only have binary matrices around, we need an auxiliary mask matrix $H \in \reals^{m{\times}n}$ which will tell us which samples are to be considered missing (value $0$) in the data matrix $X$, regardless of their value in $X$. The known values in $X$ are indicated with a $1$ in the corresponding place in $H$. The task is to fill in the missing values.
+
+If we have a dictionary $D$ trained to samples similar to $X$, the idea is the following:
+
+\begin{itemize}
+\item For each sample $x$ with missing samples specified in a corresponding mask sample $h$,
+\item Take the subset of rows from $D$ and $x$, $D_{h}$ and  $x_{h}$ for which the corresponding row in $h$ is $1$.
+\item Encode $x_{h}$ using $D_{h}$ using the usual encoding scheme (that is, add atoms until no further decrease in the error is obtained); we obtain a vector of coefficients $a$
+\item Fill in the subvector of missing values, $x_{\bar h}$ ($\bar h = 1 - h$) as, $$x_{\bar h} = D_{\bar h}a$$
+\end{itemize}
+
 \subsection{Classification}
 
 Here again we discuss the case of image patches classification, including the special case where the patches are not part of a larger image but pre-cropped and aligned handwritten characters taken from the public datasets MNIST and USPS typically used in character recognition benchmarks.
