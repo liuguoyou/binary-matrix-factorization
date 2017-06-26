@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
   //
   // Initialize dictionary
   //
-  initialize_model(X,D,A);
+  initialize_dictionary(X,D,A);
   binary_matrix E(N,M);
   //
   //  2. learn model
