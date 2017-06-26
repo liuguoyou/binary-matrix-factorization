@@ -169,7 +169,20 @@ The above algorithms, which I will now call BDL and K-PROX (this is not a defini
 
 \section{Variants}
 
-I implemented several variants of the above algorithms, most of them just change the order in which some updates are made. I'll describe them later.
+I implemented several variants of the above algorithms, most of them just change the order in which some updates are made, or switch the roles of dictionary and coefficients alternatively, so that the method can be used on a broader class of data.
+ 
+
+\begin{enumerate}
+\item Traditional: traditional alternate descent until local convergence
+\item Role-switching I: at each iteration, the role of A and D are switched
+\item Role-switched learning II: after local convergence (the same as in the first case), the role of A and D are switched and the traditional model is applied again
+\item Role switched learning III: like type I but only update_dictionary is applied (for use with Proximus)
+\item MDL/forward selection:
+\item MDL/backward selection:
+\item MDL/full search: 
+
+\end{itemize}
+
 
 \section{Applications}
 

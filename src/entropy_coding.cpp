@@ -1,5 +1,5 @@
 #include "gsl/gsl_sf_gamma.h"
-#include "coding.h"
+#include "entropy_coding.h"
 #include <cmath>
 
 void bilinear_predictor(const binary_matrix& P, binary_matrix& pP) {
@@ -29,4 +29,29 @@ double universal_codelength(const unsigned n, const unsigned r) {
   } else {
     return 0.5*log2(n);
   }
+}
+
+idx_t model_codelength(const binary_matrix& E, 
+		       const binary_matrix& D, 
+		       const binary_matrix& A) {
+
+  const idx_t M = E.get_cols();
+  const idx_t N = E.get_rows();
+  const idx_t K = D.get_rows();
+
+
+  binary_matrix Dk(1,M);
+  binary_matrix Ak(1,N);
+
+  idx_t LE = universal_codelength(E.get_rows()*E.get_cols(),E.weight());
+  idx_t LD = 0, LA = 0;
+  for (idx_t k = 0; k < K; k++) {
+    D.copy_row_to(k,Dk);
+    A.copy_col_to(k,Ak);
+    LD += universal_codelength(M,Dk.weight());
+    LA += universal_codelength(N,Ak.weight());
+  }
+  Dk.destroy();
+  Ak.destroy();
+  return LE+LD+LA;
 }

@@ -15,4 +15,9 @@ double enumerative_codelength(const unsigned n,
 			      const unsigned r);
 double universal_codelength(const unsigned n,
 			      const unsigned r);
+
+idx_t model_codelength(const binary_matrix& E, 
+		       const binary_matrix& D, 
+		       const binary_matrix& A);
+           
 #endif

@@ -5,6 +5,7 @@
 #include "update_dictionary.h"
 #include "initialize_dictionary.h"
 #include "encode_samples.h"
+#include "entropy_coding.h"
 #include <iomanip>
 #include <cstdlib>
 #include <algorithm>
@@ -309,32 +310,7 @@ idx_t learn_model_alter3(binary_matrix& X,
 return iter;
 }
 
-#include "coding.h"
-
-idx_t model_codelength(const binary_matrix& E, 
-		       const binary_matrix& D, 
-		       const binary_matrix& A) {
-
-  const idx_t M = E.get_cols();
-  const idx_t N = E.get_rows();
-  const idx_t K = D.get_rows();
-
-
-  binary_matrix Dk(1,M);
-  binary_matrix Ak(1,N);
-
-  idx_t LE = universal_codelength(E.get_rows()*E.get_cols(),E.weight());
-  idx_t LD = 0, LA = 0;
-  for (idx_t k = 0; k < K; k++) {
-    D.copy_row_to(k,Dk);
-    A.copy_col_to(k,Ak);
-    LD += universal_codelength(M,Dk.weight());
-    LA += universal_codelength(N,Ak.weight());
-  }
-  Dk.destroy();
-  Ak.destroy();
-  return LE+LD+LA;
-}
+#include "entropy_coding.h"
 
 idx_t learn_model_mdl_forward_selection(binary_matrix& X,
 					binary_matrix& E, 

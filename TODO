@@ -1,10 +1,15 @@
-Matrix completion algorithm & learning with missing data
-Learning generic categorical matrices
-Improve model selection using (possible) several seeds for each candidate dictionary size
-Perform thorough experiment of model selection using different dictionary update methods (proximus or not), different initialization, etc.
-DONE Fix graph flow initialization method; I'm sure its broken
-Apply to medical images, perhaps binarize CT scans
+* Matrix completion algorithm & learning with missing data
 
-Evaluate on datasets:
+* Learn generic categorical matrices
+- using Galois fields
+- using 1 to N mapping
+
+* Improve model selection using (possible) several seeds for each candidate dictionary size
+
+* Perform thorough experiment of model selection using different dictionary update methods (proximus or not), different initialization, etc.
+
+* Apply to medical images, perhaps binarize CT scans
+
+* Evaluate on interestingdatasets:
 - MovieLens (ratings 1-5, tomado de )
 - 
