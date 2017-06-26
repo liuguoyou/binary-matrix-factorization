@@ -1,3 +1,15 @@
+/**
+ * B-SVD denoising experiment
+ * Takes a binary image and an initial wxw image patches dictionary as input
+ * Adds Bernoulli noise to the image of known probability of error p (use GSL RNG functions together with get_rng() defined here in random_number_generation.h)
+ * Split the image into wxw overlapping patches (use binmat functions for this)
+ * Further adapt the initial dictionary using the noisy patches
+ * Obtain clean patch estimates by encoding each noisy sample so that the Hamming error falls below w*w*p
+ * Estimate the clean image as a superposition of the estimated patches; here the reasonable operation for
+ * deciding upon the final value of a pixel is majority vote: use the value that appears most frequently among the estimates for that pixel coming from different
+ * patches to which it belongs (usually w*w patches)
+ */
+ 
 #include "binmat.h"
 #include "pbm.h"
 #include <cstdio>
@@ -90,9 +102,9 @@ int main(int argc, char **argv) {
     binary_matrix P(W,W),V(1,W*W);
     for (idx_t i = 0; i < Ny; i++) {
       for (idx_t j = 0; j < Nx; j++,li++) {
-	I.copy_submatrix_to(i*W,(i+1)*W,j*W,(j+1)*W,P);
-	P.copy_vectorized_to(V);
-	X.set_row(li,V);
+        I.copy_submatrix_to(i*W,(i+1)*W,j*W,(j+1)*W,P);
+        P.copy_vectorized_to(V);
+        X.set_row(li,V);
       }
     }
     N = li;
@@ -132,9 +144,9 @@ int main(int argc, char **argv) {
     for (idx_t i = 0; i < Ny; i++) {
       for (idx_t j = 0; j < Nx; j++,li++) {
 	//     std::cout << "n=" << li << std::endl;
-	E.copy_row_to(li,V);
-	P.set_vectorized(V);
-	I.set_submatrix(i*W,j*W,P);
+        E.copy_row_to(li,V);
+        P.set_vectorized(V);
+        I.set_submatrix(i*W,j*W,P);
       }
     }  
     P.destroy();

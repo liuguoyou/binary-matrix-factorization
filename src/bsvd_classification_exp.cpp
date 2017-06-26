@@ -1,3 +1,12 @@
+/**
+ * Classification experiment.
+ * Input pbm "image" with binary samples as columns and an ASCII space-separated file with class labels as numbers
+ * Procedure:
+ * 1) split dataset into training and testing subsets
+ * 2) learns a dictionary for  the samples of class c=1,...,C within the training subset; this results in C dictionaries
+ * 3) classifies each sample x0 in the testing subset using each of the C dictionaries; this yields a set of scores {l_1,l_2,...,l_C}
+ * 4) declares  sample x0 to belong to class c* if c* = argmin {l_c: c=1,...,C}
+ */
 #include "binmat.h"
 #include "pbm.h"
 #include <cstdio>
@@ -84,40 +93,13 @@ int main(int argc, char **argv) {
   } 
   fclose(fL);
 
-  idx_t M,N;
-  std::cout << "==== DATA TREATED AS MATRIX, VECTORS ARE ROWS =====\n" << std::endl;
-  M = X.get_cols();
-  N = X.get_rows();
-  binary_matrix D(K,M);
-  binary_matrix A(N,K);
-  std::cout << "M=" << M << " N=" << N << " K=" << K << std::endl;
+  //
+  // classify
+  //
 
   //
-  // Initialize dictionary
+  // cleanup
   //
-  initialize_dictionary(X,D,A);
-  binary_matrix E(N,M);
-  //
-  //  2. learn model
-  //
-  learn_model(X,E,D,A);
-  //
-  // 3. write output
-  //
-  write_pbm(D,"dictionary.pbm");
-  write_pbm(A,"coefficients.pbm");
-  write_pbm(E,"residual.pbm");
-  if (force_mosaic)
-      render_mosaic(D,"atoms_mosaic.pbm");
-  if (force_residual_mosaic) 
-    render_mosaic(E,"residual_mosaic.pbm");
-  
-  mul(A,false,D,false,E);
-  add(E,X,E);
-  std::cout << "|E|" << E.weight() << std::endl;
-  A.destroy();
-  E.destroy();
-  D.destroy();
   X.destroy();
   delete[] L;
   return 0;

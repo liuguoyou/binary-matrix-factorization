@@ -1,6 +1,9 @@
-#ifndef CODING_H
-#define CODING_H
-
+#ifndef ENTROPY_CODING_H
+#define ENTROPY_CODING_H
+/**
+ * Functions for computing approximate (ideal) codelenghts for using with
+ * MDL-based model selection methods 
+ */
 #include "binmat.h"
 //#include "GolombCoder.h"
 
