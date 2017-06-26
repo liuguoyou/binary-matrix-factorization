@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include "bsvd.h"
-#include "gsl/gsl_randist.h"
+#include "random_number_generation.h"
 #include <iomanip>
 #include "util.h"
 

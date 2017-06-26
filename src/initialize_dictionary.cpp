@@ -1,4 +1,7 @@
 #include "initialize_dictionary.h"
+#include "random_number_generation.h"
+#include "util.h"
+//#include <algorithm>
 
 void initialize_dictionary_random_centroids_xor(const binary_matrix& E, 
 					   binary_matrix& D, 

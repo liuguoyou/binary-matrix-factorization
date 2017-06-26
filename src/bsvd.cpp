@@ -1,26 +1,19 @@
-#include <algorithm>
-#include "gsl/gsl_randist.h"
 #include <omp.h>
 #include "util.h"
-#include <iomanip>
 #include "bsvd.h"
-
-static gsl_rng* get_rng() {
-  static gsl_rng* rng = 0;
-  if (rng == 0) { 
-    rng = gsl_rng_alloc (gsl_rng_rand48);
-    gsl_rng_set (rng, random_seed); // set random_seed
-  } 
-  return rng;
-}
+#include "random_number_generation.h"
+#include "update_dictionary.h"
+#include "initialize_dictionary.h"
+#include "encode_samples.h"
+#include <iomanip>
+#include <cstdlib>
+#include <algorithm>
 
 mi_algorithm_t initialize_dictionary = initialize_dictionary_neighbor;
-cu_algorithm_t encode_samples = update_coefficients_omp;
+cu_algorithm_t encode_samples = encode_samples_omp;
 du_algorithm_t update_dictionary = update_dictionary;
 ml_algorithm_t learn_model = learn_model_traditional;
 ml_algorithm_t learn_model_inner = learn_model_traditional;
-
-long random_seed = 34503498;
 
 mi_algorithm_t mi_algorithm_catalog[] = {initialize_dictionary_neighbor,
 					 initialize_dictionary_partition,

@@ -64,7 +64,6 @@ extern const char* cu_algorithm_names[];
 extern const char* du_algorithm_names[];
 extern const char* lm_algorithm_names[];
 
-extern long random_seed;
 
 void learn_model_setup(int mi_algo, int cu_algo, int du_algo, int lm_algo, int lmi_algo);
 

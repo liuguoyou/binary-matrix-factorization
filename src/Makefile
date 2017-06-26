@@ -1,6 +1,6 @@
 SRC=$(wildcard *.cpp)
 HDR=$(wildcard *.h)
-OBJ=bsvd.o binmat.o pbm.o coding.o util.o pnm.o #$(patsubst %.cpp,%.o,$(SRC))
+OBJ=bsvd.o initialize_dictionary.o update_dictionary.o encode_samples.o random_number_generation.o binmat.o pbm.o coding.o util.o pnm.o #$(patsubst %.cpp,%.o,$(SRC))
 # tests
 TESTSRC=$(wildcard *_test.cpp)
 TEST=$(patsubst %.cpp,%,$(TESTSRC))
