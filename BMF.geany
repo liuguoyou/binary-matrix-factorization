@@ -20,20 +20,18 @@ indent_mode=2
 [project]
 name=BMF
 base_path=/home/nacho/workspace/binary-matrix-factorization
+description=
 
 [long line marker]
 long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=4
-FILE_NAME_0=1321;C;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fbsvd.h;0;2
-FILE_NAME_1=85;C;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Finitialize_dictionary.h;0;2
-FILE_NAME_2=77;C;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fupdate_dictionary.h;0;2
-FILE_NAME_3=67;C;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fencode_samples.h;0;2
-FILE_NAME_4=4021;C++;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fbsvd.cpp;0;2
-FILE_NAME_5=30;C++;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Finitialize_model.cpp;0;2
-FILE_NAME_6=48;C++;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fupdate_dictionary.cpp;0;2
+current_page=2
+FILE_NAME_0=189;C;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fentropy_coding.h;0;2
+FILE_NAME_1=3315;C++;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fbsvd_inpainting_exp.cpp;0;2
+FILE_NAME_2=465;C++;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fextract_patches_tool.cpp;0;2
+FILE_NAME_3=1400;C++;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fstitch_patches_tool.cpp;0;2
 
 [VTE]
 last_dir=/home/nacho
