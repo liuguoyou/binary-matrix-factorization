@@ -36,19 +36,18 @@ int main(int argc, char **argv) {
   fimg = fopen(iname,"r");
   if (!fimg) return -1;
   res = read_pbm_header(fimg,rows,cols);
-  std::cout << "rows=" << rows << " cols=" << cols << std::endl;
+  std::cout << "Input: " << iname << " rows=" << rows << " cols=" << cols << std::endl;
   binary_matrix I(rows,cols);
   read_pbm_data(fimg,I);
   if (res !=PBM_OK) { std::cerr << "Error " << res << " reading image."  << std::endl; std::exit(1); }
   fclose(fimg);
 
-  idx_t M,N;
   binary_matrix X;
-  idx_t Ny = (rows-W+1);
-  idx_t Nx = (cols-W+1);
-  M = W*W;
-  std::cout << "Nx=" << Nx << " Ny=" << Ny << std::endl;
-  N = Nx*Ny;
+  const idx_t Ny = (rows-W+1);
+  const idx_t Nx = (cols-W+1);
+  const idx_t M = W*W;
+  const idx_t N = Nx*Ny;
+  std::cout << "Output: " << oname << " M=" << M << "Nx=" << Nx << " Ny=" << Ny << " N=" << N << std::endl;
   X.allocate(N,M);
   //
   // Initialize data
@@ -62,10 +61,10 @@ int main(int argc, char **argv) {
       X.set_row(li,V);
     }
   }
-  N = li;
   P.destroy();
   V.destroy();
   I.destroy();
+  write_pbm(X,oname);
   X.destroy();
   return 0;
 }
