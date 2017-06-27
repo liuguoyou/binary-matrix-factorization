@@ -1,8 +1,7 @@
 \documentclass[a4paper,11pt]{article}
 \usepackage{algorithm2e}
 \input{notation.inc}
-\title{Binary Matrix Factorization}
-\author{Ignacio Ram\'{i}rez}
+\title{Binary Matrix Factorization}\author{Ignacio Ram\'{i}rez}
 \begin{document}
 
 \maketitle
@@ -12,20 +11,20 @@
 We consider the problem of approximating a binary matrix $X \in \{0,1\}^{m{\times}n}$ as the product of two other binary matrices $U \in \{0,1\}^{m{\times}k}$ and $V \in \{0,1\}^{n{\times}p}$ plus a small residual,
 
 \begin{equation}
-X = UV^T + E.
+X = UV\transp + E.
 \label{eq:mf}
 \end{equation}
 
 \paragraph{Matrix Factorization} The problem \refeq{eq:mf}  has been addressed using various methods from different fields for over a hundred years. Two such fields are Signal Processing and Machine Learning under the so-called "Matrix Factorization" (MF) methods, (with non-negative matrix factorization (NMF) a very popular particular case,) which is very mature and has been developed largely for the case of real matrices.
 
-\paragraph{Dictionary Learning} A particular case of MF is the so-called ``Dictionary Learning'' problem which is particularly useful when $m \gg n$. In this case, contrary to the more general MF approach, the roles of $U$ and $V$ are quite different and, accordingly, both are estimated in quite different ways. More specifically, $U$ is called a dictionary (and usually assigned the letter $D$), whereas $V^T=A$ is a matrix of ``linear combination coefficients''. The columns of the matrix $D$ are called ``atoms'' and are supposed to embody typical patterns observed throughout the columns of $X$, while the columns of $A$, usually assumed sparse, specify the linear combination of columns of $D$ that better approximates the corresponding columns of $X$.
+\paragraph{Dictionary Learning} A particular case of MF is the so-called ``Dictionary Learning'' problem which is particularly useful when $m \gg n$. In this case, contrary to the more general MF approach, the roles of $U$ and $V$ are quite different and, accordingly, both are estimated in quite different ways. More specifically, $U$ is called a dictionary (and usually assigned the letter $D$), whereas $V\transp=A$ is a matrix of ``linear combination coefficients''. The columns of the matrix $D$ are called ``atoms'' and are supposed to embody typical patterns observed throughout the columns of $X$, while the columns of $A$, usually assumed sparse, specify the linear combination of columns of $D$ that better approximates the corresponding columns of $X$.
 
 \paragraph{Data Mining} On the other hand, there is a large body of work from the Data Mining community on the subject of extracting general ``patterns'' from large matrices, in particular binary matrices. Some of those works are based on matrix factorization concepts, for example the Proximus algorithm~\cite{proximus},although most of them are quite heuristic.
 
 \paragraph{Other ideas} Initially I was interested in connecting the above techniques with other learning frameworks aimed at binary data. In particular, the Bi-directional Auto-associative Memory (BAM) model~\cite{bam} was an early binary recurrent neural network.
 
 
-\paragraph{Our approach} The idea here is very simple: to apply a Dictionary Learning approach to the problem of binary matrix factorization for those cases where the matrix $X$ is significantly ``fat'' $m \gg n$ (or, naturally, apply it to $X^T$ when it is ``tall'', $m \ll n$). 
+\paragraph{Our approach} The idea here is very simple: to apply a Dictionary Learning approach to the problem of binary matrix factorization for those cases where the matrix $X$ is significantly ``fat'' $m \gg n$ (or, naturally, apply it to $X\transp$ when it is ``tall'', $m \ll n$). 
 
 \section{The Dictionary Learning approach}
 
@@ -41,11 +40,11 @@ where $f(\cdot)$ and $g(\cdot)$ are \emph{fitting} and \emph{regularization} fun
 
 \begin{eqnarray}
 A_j\iter{k+1} =& \arg\min_{a \in \reals^p} \{ \|x_j - D\iter{k}a \|_2^2 + \|a\|_1,  \; j=1,\ldots,n \} \\
-D_r\iter{k+1} =& u_j/\|u_j\|_2,\;u_j = X(A\iter{k+1})^T\left(A\iter{k+1}(A\iter{k+1})^T\right)^{-1} \}, 
+D_r\iter{k+1} =& u_j/\|u_j\|_2,\;u_j = X(A\iter{k+1})\transp\left(A\iter{k+1}(A\iter{k+1})\transp\right)^{-1} \}, 
 \label{eq:mod}
 \end{eqnarray}
 where $A_j$ and $D_r$ are the $j$-th and $r$-th columns of $A$ and $D$ respectively. The first step corresponds to an $\ell_1$-regularized least squares regression problem on each column of $A$, also known as LASSO~\cite{lasso}.
-In the second step, each atom in the dictionary corresponds to a normalized down version of the least squares solution $u$; note that here it is customary as well to apply some sort of regularization so that $AA^T$ is invertible (non-singular).
+In the second step, each atom in the dictionary corresponds to a normalized down version of the least squares solution $u$; note that here it is customary as well to apply some sort of regularization so that $AA\transp$ is invertible (non-singular).
 
 \paragraph{K-SVD} Another popular approach to the dictionary learning problem is the  K-SVD method~\cite{ksvd}. In this case, $g(\cdot)$ corresponds to the $\ell_0$ pseudo-norm, which counts the number of non-zeros in a vector. The updates on $A$ are similar to MOD, but use a greedy method known as OMP (Orthogonal Matching Pursuit)~\cite{omp} to obtain an approximate solution,
 
@@ -55,8 +54,8 @@ In the second step, each atom in the dictionary corresponds to a normalized down
 \KwResult{Optimal coefficients for $x$, $a$}
 Set iteration $k=0$, residual $r\iter{0}=x$, coefficients $a\iter{0}=0$\;
 \While{$\norm{r\iter{k}} \geq \epsilon$}{
-  $i = \arg\max \left\{ D_i^Tr\iter{k} \right\} $ \;
-  $a_i \leftarrow D_i^Tr\iter{k}$ \;
+  $i = \arg\max \left\{ D_i\transp r\iter{k} \right\} $ \;
+  $a_i \leftarrow D_i\transp r\iter{k}$ \;
   $r\iter{k+1} \leftarrow r\iter{k} - a_iD_i $\; 
   $k \leftarrow k+1 $ \;
 }
@@ -77,7 +76,7 @@ D_j = U_1,\quad A^j=V^1,\quad E_j\iter{k+1} = U\Sigma V,
 \label{eq:ksvd3}
 \end{equation}
 
-The K-SVD dictionary step is significantly more costly than that of MOD, but usually requires significantly less iterations. MOD, however, is better suited for online dictionary adaptation, as fast approximations of the statistics $AA^T$ (which can be thought of as the Hessian associated to minimizing $D$)  and $XA^T$ can be efficiently updated on a sample to sample basis.
+The K-SVD dictionary step is significantly more costly than that of MOD, but usually requires significantly less iterations. MOD, however, is better suited for online dictionary adaptation, as fast approximations of the statistics $AA\transp$ (which can be thought of as the Hessian associated to minimizing $D$)  and $XA\transp$ can be efficiently updated on a sample to sample basis.
 
 \section{Binary Dictionary Learning}
 
@@ -139,7 +138,7 @@ This is clearly an optimum solution (note that there could be many optima  when 
 
 In this case, following the K-SVD concept, we want to obtain the best rank-one approximation to the residual $E$ obtained after removing the contribution of $D_r$, 
 \begin{equation}
-(D_r,A_r) = \arg\min_{u,v} h(E \oplus uv^T)
+(D_r,A_r) = \arg\min_{u,v} h(E \oplus uv\transp)
 \label{eq:bsvd1}
 \end{equation}
 where
@@ -149,22 +148,50 @@ E =  X_{J_r} \oplus D\iter{k}A_{J_r}\iter{k} \oplus D_r\iter{k}(A_{J_r}\iter{k})
 \end{equation}
 where $X_{J_r}$ and $A_{J_r}$ contain only the colums in $J_r = \{j: A_{rj} = 1 \}$.
 
-The problem  \refeq{eq:bsvd1} is, again, NP-hard, so an approximate solution must be sought. The idea here is to use alternate updates on $D_r$ and $A_r$, in which case the updates have a simple closed form solution. This is exactly the solution proposed at each step of the PROXIMUS~\cite{proximus} algorithm. Say we want to minimize $h(E \oplus uv^T)$ using alternate updates on $u$ and $v$. For fixed $u$, we have
+The problem  \refeq{eq:bsvd1} is, again, NP-hard, so an approximate solution must be sought. The idea here is to use alternate updates on $D_r$ and $A_r$, in which case the updates have a simple closed form solution. This is exactly the solution proposed at each step of the PROXIMUS~\cite{proximus} algorithm. Say we want to minimize $h(E \oplus uv\transp)$ using alternate updates on $u$ and $v$. For fixed $u$, we have
 $$
-\sum_{i,j} E \oplus uv^T = \sum_{j: v_j = 1} h(E_j \oplus u).
+\sum_{i,j} E \oplus uv\transp = \sum_{j: v_j = 1} h(E_j \oplus u).
 $$
 We can solve this separately for each $v_j$ simply by setting $v_j = 1$ is $h(E_j \oplus u) < h(E_j)$ and $v_j=0$ otherwise. The update on $u$ is identical. In both cases, the objective function can only decrease, the function is bounded and the domain is compact, so that the algorithm must converge to a local minimum. Because the set is finite, convergence is attained in a finite number of iterations. Usually this number is quite small.
 
 
 \section{Initialization}
 
-The above algorithms, which I will now call BDL and K-PROX (this is not a definitive name), are quite quite non-convex and nasty. Therefore, a clever initialization is always welcome. Here are some recipes, a few of them  taken from the PROXIMUS paper~\cite{proximus},
+The above algorithms, which I will now call BDL and K-PROX (this is not a definitive name), are
+quite quite non-convex and nasty. Therefore, a clever initialization is always welcome. Here are
+some recipes, a few of them taken from the PROXIMUS paper~\cite{proximus}. There are issues however
+with the type of data that we are handling here; when the matrix is very fat such as in typical
+dictionary learning methods, things such as \emph{graph grow} don't even make a lot of
+sense\footnote{It would actually be nice to do a serious formal analysis of why such methods fail in
+  this scenario}. Overall, the best seems to be \emph{neighbors} (not to be confused with nearest neighbors), although partition seems to
+work quite well with MNIST (it does much better than with neighbors on the demo included in the root
+directory of the project).
 
 \begin{description}
-\item[neighbors] Pending. see description on bsvd.cpp
-\item[graph grow] Pending. see description on bsvd.cpp
-\item[partition] Pending. see description on bsvd.cpp
-\item[random samples] $D$ is initialized using random saples, or a sum of a few random samples, from the set.
+\item[neighbors] Each atom $d_k$ is initialized using a randomly drawn sample from $X$, $c_k$. Then
+  it $d_k$ is
+  computed as the Hamming average of all samples $x$ so that $c_k\transp x > 0$, that is, so that
+  they have at least one dimension where both $c_k$ and $x$ are $1$. \footnote{This again is a lame method for
+  very fat matrices, as there will be so many of such samples, and if noise is present. Some more
+  intelligent criterion must be devised for the dictionary learning case.}
+\item[graph grow] This is actually a variant of the original graph grow algorithm. Given $K$ as the
+  number of atoms to initialize, the method starts by drawing $K$ initial (different) samples from the
+  data set $X$ and associates a \emph{weight} vector $w$ to it, which is initialized to the value of the
+  corresponding random sample. Then it randomly draws one previously unused sample $x$ from $X$ and adds
+  it to the weight vector $w\opt$ which satisfies
+$$(w\opt)\transp x/\|w\opt\|_1 \geq
+  w\transp x/\|w\|_1.$$ This procedure continues until all data samples in $X$ have been used. The final $k$-th atom is the Hamming average of all the samples added to its corresponding
+  weight vector, that is, $d_k[i] = \lfloor w_k[i] / n_k \rceil$, where $n_k$ is the number of
+  samples from $X$ which were added to $w_k$. This is a \emph{soft} version of the original graph grow algorithm, where the
+  criterion used to assign a sample to a given atom $k$ is based on the Hamming distance between $w$
+  and a sample $x$.
+\item[partition] Works only when $K \leq M$. This implementation ranks the 
+  dimensions of the data matrix $X$ (that is, the number of columns of $X$) in descending weight order. Then, each atom
+  $k$ is initialized as the Hamming average of all samples in $X$ which have a value of $1$ in the $k$-th
+  ranked dimension.
+\item[random samples] $D$. Given a number $K$ of atoms, each data sample is randomly assigned to one
+  atom. The $K$ atoms are then the average (element-wise majority vote) of all the samples to which
+  they were assigned.\footnote{Now that I write this down, I don't think this kind of initialization makes ANY sense!!!!}
 \end{description}
 
 \section{Learning variants}

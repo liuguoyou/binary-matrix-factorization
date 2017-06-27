@@ -12,7 +12,7 @@
 
 
 const char* iname = "data/patches.pbm";
-const char* iname = "res/stitched.pbm";
+const char* oname = "res/stitched.pbm";
 idx_t m,n;
 
 void parse_args(int argc, char **argv) {
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
   FILE* fX;
   parse_args(argc,argv);
   fX = fopen(iname,"r");
-  if (!fimg) return -1;
+  if (!fX) return -1;
   res = read_pbm_header(fX,rows,cols);
   std::cout << "rows=" << rows << " cols=" << cols << std::endl;
   binary_matrix X(rows,cols);
@@ -52,10 +52,10 @@ int main(int argc, char **argv) {
   //
   // finish up
   //
-  fimg = fopen(oname,"w");
-  if (!fimg) return -2;
-  write_pbm(I,fimg);
-  fclose(fimg);
+  fX = fopen(oname,"w");
+  if (!fX) return -2;
+  write_pbm(I,fX);
+  fclose(fX);
   I.destroy();
   X.destroy();
   return 0;

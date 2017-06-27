@@ -95,18 +95,25 @@ void initialize_dictionary_partition(const binary_matrix& E,
   D.clear();
   idx_t s[m];
   aux_t ranking[m];
+  //
+  // sorts the first m columns of the data matrix (that is, the first m dimensions)
+  // according to their weight
+  //
   for (idx_t k = 0; k < m ; k++) {
     ranking[k].first = E.col_weight(k);
     ranking[k].second = k;
   }
   counting_sort(ranking,m);
-
   idx_t u;
   for (idx_t k = 0; (k < p) && (k < m); k++) {
     u = 0;
     std::fill(s,s+m,0);
+    // chose the next heaviest dimension (column) in the data E as 'pivot'
     idx_t pivot = ranking[m-k-1].second;
     //    std::cout << "k=" << k << " pivot=" << pivot << " score=" << ranking[m-k-1].first << std::endl;
+    // compute the k-th atom as the Hamming average (majority)
+    // of all elements in E which contain an 1 on the pivot dimension
+    //
     for (idx_t i = 0; i < n; ++i) {
       if (E.get(i,pivot)) {
 	u++;
@@ -211,7 +218,9 @@ void initialize_dictionary_graph_grow(const binary_matrix& E,
   // initialize p 'subgraphs'. graphs are represented by a counts vector, which adds up 
   // the vectors in the graph.
   //
-  int left = n;
+  // p*10*m is an ad-hoc limit of samples to use; no idea if it is a good choice,
+  // but using all samples is definitely bad and slow
+  int left = n < (p*m) ? n : (p*m);
   for (idx_t k = 0; (left >= 0) && (k < p); ) {
     // pick a random row
     idx_t i;
@@ -244,17 +253,18 @@ void initialize_dictionary_graph_grow(const binary_matrix& E,
       if (left <= 0) 
 	break;
       for (idx_t i = 0; left && (i < n); i++) {
-	if (t[i]) continue;
+	if (t[i]) continue; // already used
+	score = 0;
 	for (idx_t j = 0; j <m; j++) {
 	  //	  if (E.get(i,j)) score += s[k][j];  // NOT BAD< NEED TO TEST
-	  if (E.get(i,j)) score  = 1; // do not accumulate overlapped supports, just support
+	  if (E.get(i,j)) score += 1; // do not accumulate overlapped supports, just support
 	}
 	if (score > maxscore) {
 	  maxscore = score;
 	  maxi = i;
 	}
       }
-      //std::cout << "left=" << left << " maxscore=" << maxscore << " maxi=" << maxi << " k=" << k << std::endl;
+      //      std::cout << "left=" << left << " maxscore=" << maxscore << " maxi=" << maxi << " k=" << k << std::endl;
       if (maxscore == 0) { // reset part!
 	idx_t i;
 	do {

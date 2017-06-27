@@ -76,8 +76,8 @@ int main(int argc, char **argv) {
   if (res !=PBM_OK) { std::cerr << "Error " << res << " reading data."  << std::endl; std::exit(1); }
   fclose(fX);
 
-  const idx_t M = I.get_cols();
-  const idx_t N = I.get_rows();
+  const idx_t M = X.get_cols();
+  const idx_t N = X.get_rows();
 
   binary_matrix D(K,M);
   binary_matrix A(N,K);
@@ -109,15 +109,15 @@ int main(int argc, char **argv) {
 	//     std::cout << "n=" << li << std::endl;
         E.copy_row_to(li,V);
         P.set_vectorized(V);
-        I.set_submatrix(i*W,j*W,P);
+        X.set_submatrix(i*W,j*W,P);
       }
     }  
     P.destroy();
     V.destroy();
-    fimg = fopen("residual.pbm","w");
-    if (!fimg) return -2;
-    write_pbm(I,fimg);
-    fclose(fimg);
+    fX = fopen("residual.pbm","w");
+    if (!fX) return -2;
+    write_pbm(X,fX);
+    fclose(fX);
   } else {
     if (force_mosaic)
       render_mosaic(D,"atoms_mosaic.pbm");
@@ -129,7 +129,6 @@ int main(int argc, char **argv) {
   add(E,X,E);
   std::cout << "|E|" << E.weight() << std::endl;
   A.destroy();
-  I.destroy();
   E.destroy();
   D.destroy();
   X.destroy();
