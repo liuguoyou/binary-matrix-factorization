@@ -125,7 +125,7 @@ void initialize_dictionary_partition(const binary_matrix& E,
       } // Ei had a row       
     }
     for (idx_t j = 0; j < m; ++j) 
-      D.set(k,j,s[j] >= u/2);
+      D.set(k,j,(s[j]<<1) >= u);
   }
   // if p > m, the other atoms are left uninitialized!
   Ei.destroy();
@@ -171,7 +171,7 @@ void initialize_dictionary_neighbor(const binary_matrix& E,
     }
     if (u > 0) { // the chosen has neighbors
       for (idx_t j = 0; j < m; ++j) 
-	D.set(k,j,s[j] >= u/2);
+	D.set(k,j,(s[j]<<1) >= u);
       k++;
     }
   }
@@ -292,7 +292,7 @@ void initialize_dictionary_graph_grow(const binary_matrix& E,
   }
   for (idx_t k = 0; k < p; k++) {
     for (idx_t j = 0; j < m; ++j) 
-      D.set(k,j,s[k][j] >= u[k]/2);
+      D.set(k,j,(s[k][j]<<1) >= u[k]);
   }
   
   Ei.destroy();

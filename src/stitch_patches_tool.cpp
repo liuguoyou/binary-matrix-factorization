@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
   I.allocate(m,n);
   for (idx_t i = 0; i < m ; i++) {
     for (idx_t j = 0; j < n ; j++) {
-      I.set( i, j, R[i*n+j] >= (C[i*n+j]>>1) );
+      I.set( i, j, (R[i*n+j]<<1) >= C[i*n+j] );
     }
   }  
   //
