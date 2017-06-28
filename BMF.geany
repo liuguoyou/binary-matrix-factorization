@@ -29,9 +29,8 @@ long_line_column=72
 [files]
 current_page=2
 FILE_NAME_0=189;C;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fentropy_coding.h;0;2
-FILE_NAME_1=3315;C++;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fbsvd_inpainting_exp.cpp;0;2
-FILE_NAME_2=465;C++;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fextract_patches_tool.cpp;0;2
-FILE_NAME_3=1400;C++;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fstitch_patches_tool.cpp;0;2
+FILE_NAME_1=1203;C++;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fstitch_patches_tool.cpp;0;2
+FILE_NAME_2=1452;C++;0;EUTF-8;0;1;0;%2Fhome%2Fnacho%2Fworkspace%2Fbinary-matrix-factorization%2Fsrc%2Fextract_patches_tool.cpp;0;2
 
 [VTE]
 last_dir=/home/nacho

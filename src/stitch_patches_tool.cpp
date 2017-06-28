@@ -20,9 +20,9 @@ void parse_args(int argc, char **argv) {
     exit(-1); 
   }
   iname = argv[1];
-  m = atoi(argv[2]);
-  n = atoi(argv[3]);
-  oname = argv[1];
+  n = atoi(argv[2]);
+  m = atoi(argv[3]);
+  oname = argv[4];
 }
 
 int main(int argc, char **argv) {   
@@ -60,13 +60,15 @@ int main(int argc, char **argv) {
   // 
   const idx_t Ny = m-W+1;
   const idx_t Nx = n-W+1;
+  const idx_t N = Nx*Ny;
+  std::cout << "N=" << N << std::endl;
   for (idx_t i = 0, li = 0; i < Ny ; i++) {
   for (idx_t j = 0; j < Nx ; j++, li++) {
       X.copy_row_to(li,V);
       for (idx_t i2 = 0; i2 < W; i2++) { 
         for (idx_t j2 = 0; j2 < W; j2++) {
-          R[(i+i2)*m+(j+j2)] += V.get(0,i2*W+j2); 
-          C[(i+i2)*m+(j+j2)]++; 
+          R[(i+i2)*n+(j+j2)] += V.get(0,i2*W+j2); 
+          C[(i+i2)*n+(j+j2)]++; 
         }
       }
     }
@@ -76,11 +78,12 @@ int main(int argc, char **argv) {
   //
   // go back to binary
   //
+  std::cout << "tobin" << std::endl;
   binary_matrix I;
   I.allocate(m,n);
   for (idx_t i = 0; i < m ; i++) {
     for (idx_t j = 0; j < n ; j++) {
-      I.set( i, j, R[i*m+j] >= (C[i*m+j]>>1) );
+      I.set( i, j, R[i*n+j] >= (C[i*n+j]>>1) );
     }
   }  
   //
