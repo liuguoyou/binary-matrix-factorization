@@ -49,30 +49,49 @@ int main(int argc, char **argv) {
   
   // we need to create an auxiliary integer matrix of size m x n 
   // to accumulate the occurences of ones at each pixel
-  binary_matrix I;
-  I.allocate(m,n);
-  binary_matrix P(W,W),V(1,W*W);
+  binary_matrix V(1,W*W);
   int* R = new int[m*n];
+  int* C = new int[m*n];
   std::fill(R,R+m*n,0);
+  std::fill(C,C+m*n,0);
+  //
+  // construct intermediate integer image
+  // as overlapped patches using integer algebra 
+  // 
   const idx_t Ny = m-W+1;
   const idx_t Nx = n-W+1;
   for (idx_t i = 0, li = 0; i < Ny ; i++) {
-    for (idx_t j = 0; j < Ny ; j++,li++) {
-        X.copy_row_to(li,V);
-	for (idx_t i2 = 0; i2 < W; i2++) {
-	}
+  for (idx_t j = 0; j < Nx ; j++, li++) {
+      X.copy_row_to(li,V);
+      for (idx_t i2 = 0; i2 < W; i2++) { 
+        for (idx_t j2 = 0; j2 < W; j2++) {
+          R[(i+i2)*m+(j+j2)] += V.get(0,i2*W+j2); 
+          C[(i+i2)*m+(j+j2)]++; 
+        }
+      }
     }
   }
+  V.destroy();
+  X.destroy();
+  //
+  // go back to binary
+  //
+  binary_matrix I;
+  I.allocate(m,n);
+  for (idx_t i = 0; i < m ; i++) {
+    for (idx_t j = 0; j < n ; j++) {
+      I.set( i, j, R[i*m+j] >= (C[i*m+j]>>1) );
+    }
+  }  
   //
   // finish up
   //
+  delete[] C;
+  delete[] R;
   fX = fopen(oname,"w");
   if (!fX) return -2;
   write_pbm(I,fX);
   fclose(fX);
-  P.destroy();
-  V.destroy();
   I.destroy();
-  X.destroy();
   return 0;
 }
