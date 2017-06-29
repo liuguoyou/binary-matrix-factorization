@@ -124,9 +124,11 @@ int main(int argc, char **argv) {
   //
   learn_model(X,E,D,A);
   //
-  // 3. denoise
+  // 3. denoise: average number of errors in Bernoulli(p) on a
+  //    vector of length M is Mp
   //
-  
+  const idx_t me = M*error_probability;
+  encode_samples(E,D,A,K,me);
   //
   // 3. write output
   //
