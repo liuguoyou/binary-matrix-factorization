@@ -18,7 +18,7 @@
 #include "config.h"
 
 int mi_algo = 0;
-int cu_algo = 0;
+int es_algo = 0;
 int du_algo = 0;
 int lm_algo = 0;
 int lmi_algo = 0;
@@ -41,7 +41,7 @@ void parse_args(int argc, char **argv) {
 //      std::cout << "Parameter " << argv[i] << " value " << val << std::endl;
       switch (argv[i][1]) {
       case 'i': mi_algo = atoi(val); break;
-      case 'c': cu_algo = atoi(val); break;
+      case 'c': es_algo = atoi(val); break;
       case 'd': du_algo = atoi(val); break;
       case 'l': lm_algo = atoi(val); break;
       case 'L': lmi_algo = atoi(val); break;
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
   int res;
   FILE* fX, *fL;
   parse_args(argc,argv);
-  learn_model_setup(mi_algo,cu_algo,du_algo,lm_algo,lmi_algo);
+  learn_model_setup(mi_algo,es_algo,du_algo,lm_algo,lmi_algo);
   fX = fopen(Xname,"r");
   set_grid_width(W);
   if (!fX) return -1;

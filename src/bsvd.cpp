@@ -15,6 +15,9 @@ idx_t learn_model_traditional(binary_matrix& X,
 			      binary_matrix& E, 
 			      binary_matrix& D, 
 			      binary_matrix& A) {
+  const idx_t K = D.get_rows();
+  const idx_t ma  = K;
+  const idx_t me  = 0;
   mul(A,false,D,false,E);
   add(E,X,E);
   //  std::cout << "trad" << std::endl;
@@ -26,7 +29,7 @@ idx_t learn_model_traditional(binary_matrix& X,
 //	    << "\t||A||=" << std::setw(8) << A.weight() << std::endl;
   while (changed > 0) {    
     iter++;
-    idx_t changed_coefs = encode_samples(E,D,A);
+    idx_t changed_coefs = encode_samples(E,D,A,ma,me);
   //  std::cout << "iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << E.weight()
 //	      << "\t||D||=" << std::setw(8) << D.weight()
@@ -51,6 +54,8 @@ idx_t learn_model_alter1(binary_matrix& X,
   const idx_t N = E.get_rows();
   const idx_t M = E.get_cols();
   const idx_t K = D.get_rows();
+  const idx_t ma  = K;
+  const idx_t me  = 0;
 
   mul(A,false,D,false,E);
   add(E,X,E);
@@ -69,7 +74,7 @@ idx_t learn_model_alter1(binary_matrix& X,
 //	    << "\t||A||=" << std::setw(8) << A.weight() << std::endl;
   while (changed > 0) {    
     iter++;
-    idx_t changed_coefs = encode_samples(E,D,A);
+    idx_t changed_coefs = encode_samples(E,D,A,ma,me);
 //    std::cout << "DIRECT: iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << E.weight()
 //	      << "\t||D||=" << std::setw(8) << D.weight()
@@ -86,7 +91,7 @@ idx_t learn_model_alter1(binary_matrix& X,
     D.transpose_to(Dt);
     E.transpose_to(Et);
 
-    changed_coefs = encode_samples(Et,At,Dt);
+    changed_coefs = encode_samples(Et,At,Dt,ma,me);
   //  std::cout << "TRANSP: iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << Et.weight()
 //	      << "\t||D||=" << std::setw(8) << Dt.weight()
@@ -119,6 +124,8 @@ idx_t learn_model_alter2(binary_matrix& X,
   const idx_t N = E.get_rows();
   const idx_t M = E.get_cols();
   const idx_t K = D.get_rows();
+  const idx_t ma  = K;
+  const idx_t me  = 0;
 
   mul(A,false,D,false,E);
   add(E,X,E);
@@ -137,7 +144,7 @@ idx_t learn_model_alter2(binary_matrix& X,
     outer_changed = 0;
     while (changed > 0) {    
       iter++;
-      idx_t changed_coefs = encode_samples(E,D,A);
+      idx_t changed_coefs = encode_samples(E,D,A,ma,me);
 //      std::cout << "DIRECT: iter=" << std::setw(8) << iter 
 //		<< "\t||E||=" << std::setw(8) << E.weight()
 //		<< "\t||D||=" << std::setw(8) << D.weight()
@@ -158,7 +165,7 @@ idx_t learn_model_alter2(binary_matrix& X,
     iter = 0;
     while (changed > 0) {    
       iter++;
-      idx_t changed_coefs = encode_samples(Et,At,Dt);
+      idx_t changed_coefs = encode_samples(Et,At,Dt,ma,me);
 //      std::cout << "TRANSPOSED: iter=" << std::setw(8) << iter 
 //		<< "\t||E||=" << std::setw(8) << Et.weight()
 //		<< "\t||D||=" << std::setw(8) << Dt.weight()
@@ -192,6 +199,8 @@ idx_t learn_model_alter3(binary_matrix& X,
   const idx_t N = E.get_rows();
   const idx_t M = E.get_cols();
   const idx_t K = D.get_rows();
+  const idx_t ma = K;
+  const idx_t me  = 0;
   mul(A,false,D,false,E);
   add(E,X,E);
 

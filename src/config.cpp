@@ -6,7 +6,7 @@
 #include "update_dictionary.h"
 
 mi_algorithm_t initialize_dictionary = initialize_dictionary_neighbor;
-cu_algorithm_t encode_samples = encode_samples_omp;
+es_algorithm_t encode_samples = encode_samples_omp;
 du_algorithm_t update_dictionary = update_dictionary;
 ml_algorithm_t learn_model = learn_model_traditional;
 ml_algorithm_t learn_model_inner = learn_model_traditional;
@@ -25,14 +25,13 @@ const char* mi_algorithm_names[] = {"Neighbor initialization",
 				    "Graph growing initialization",0
 };
 
-cu_algorithm_t cu_algorithm_catalog[] = {encode_samples_omp,
+es_algorithm_t es_algorithm_catalog[] = {encode_samples_omp,
 					 encode_samples,
-					 encode_samples_fast, // broken
 					 0};
 
-const char* cu_algorithm_names[] = {"OpenMP basic coefficients update",
+const char* es_algorithm_names[] = {"OpenMP basic coefficients update",
 				    "Basic coefficients update",
-				    "Fast coefficients update (broken!)",0
+				    0
 };
 
 du_algorithm_t du_algorithm_catalog[] = {update_dictionary_steepest,
@@ -65,17 +64,17 @@ const char* lm_algorithm_names[] = {"Model learning by traditional alternate des
 };
 
 
-void learn_model_setup(int mi_algo, int cu_algo, int du_algo, int lm_algo, int lmi_algo) {
+void learn_model_setup(int mi_algo, int es_algo, int du_algo, int lm_algo, int lmi_algo) {
   if (mi_algo > 4) { std::cerr << "Invalid model initialization algorithm (0-" << 4 << ')' << std::endl; exit(-1); }
-  if (cu_algo > 2) { std::cerr << "Invalid coefficients update algorithm (0-" << 2 << ')' << std::endl; exit(-1); }
+  if (es_algo > 2) { std::cerr << "Invalid coefficients update algorithm (0-" << 2 << ')' << std::endl; exit(-1); }
   if (du_algo > 3) { std::cerr << "Invalid dictionary update algorithm (0-" << 3 << ')' << std::endl; exit(-1); }
   if (lm_algo > 6) { std::cerr << "Invalid model learning algorithm (0-" << 6 << ')' << std::endl; exit(-1); }
   if (lmi_algo > 3) { std::cerr << "Invalid inner model learning algorithm (0-" << 3 << ')' << std::endl; exit(-1); }
 
   initialize_dictionary = mi_algorithm_catalog[mi_algo];
   std::cout << "Using " << mi_algorithm_names[mi_algo] << std::endl;
-  encode_samples = cu_algorithm_catalog[cu_algo];
-  std::cout << "Using " << cu_algorithm_names[cu_algo] << std::endl;
+  encode_samples = es_algorithm_catalog[es_algo];
+  std::cout << "Using " << es_algorithm_names[es_algo] << std::endl;
   update_dictionary = du_algorithm_catalog[du_algo];
   std::cout << "Using " << du_algorithm_names[du_algo] << std::endl;
   learn_model = learn_model_algorithm_catalog[lm_algo];
