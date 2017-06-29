@@ -5,6 +5,7 @@ OBJ=bsvd.o \
 	 update_dictionary.o\
 	 encode_samples.o\
 	 random_number_generation.o\
+	 config.o\
 	 binmat.o\
 	 entropy_coding.o\
 	 util.o\

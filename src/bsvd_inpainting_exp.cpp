@@ -15,6 +15,7 @@
 #include "random_number_generation.h"
 #include <iomanip>
 #include "util.h"
+#include "config.h"
 
 int mi_algo = 0;
 int cu_algo = 0;

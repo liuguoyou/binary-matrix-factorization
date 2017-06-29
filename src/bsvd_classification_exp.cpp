@@ -15,6 +15,7 @@
 #include "random_number_generation.h"
 #include <iomanip>
 #include "util.h"
+#include "config.h"
 
 int mi_algo = 0;
 int cu_algo = 0;
@@ -60,10 +61,6 @@ void parse_args(int argc, char **argv) {
   }
 }
 
-/**
- * KSVD-like binary dictionary learning algorithm applied to
- * image patches.
- */
 int main(int argc, char **argv) {   
   idx_t rows,cols;
   int res;

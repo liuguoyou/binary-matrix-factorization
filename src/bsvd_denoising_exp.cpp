@@ -18,6 +18,7 @@
 #include "random_number_generation.h"
 #include <iomanip>
 #include "util.h"
+#include "config.h"
 
 int mi_algo = 0;
 int cu_algo = 0;
@@ -31,6 +32,8 @@ bool image_mode = false;
 bool force_mosaic = true;
 bool force_residual_mosaic = true;
 const char* iname = "data/test.pbm";
+const char* dname = 0;
+double error_probability = 0.0;
 
 void parse_args(int argc, char **argv) {
   for (int i = 0; i < argc; ++i) {		       
@@ -46,10 +49,10 @@ void parse_args(int argc, char **argv) {
       case 'd': du_algo = atoi(val); break;
       case 'l': lm_algo = atoi(val); break;
       case 'L': lmi_algo = atoi(val); break;
-      case 'w': W = (idx_t) atoi(val); break;
       case 'k': K = (idx_t) atoi(val); break;
+      case 'D': dname = val; break;
+      case 'p': error_probability = atof(val); break;
       case 'r': random_seed = atol(val); break;
-      case 'I': image_mode = (atoi(val) > 0); break;
       case 'm': force_mosaic = (atoi(val) > 0); break;
       case 'M': force_residual_mosaic = (atoi(val) > 0); break;
       default: std::cerr << "Invalid option " << argv[i] << std::endl; exit(-1);
@@ -61,104 +64,77 @@ void parse_args(int argc, char **argv) {
   }
 }
 
-/**
- * KSVD-like binary dictionary learning algorithm applied to
- * image patches.
- */
 int main(int argc, char **argv) {   
-  idx_t rows,cols;
+  idx_t M,N;
   int res;
-  FILE* fimg;
+  FILE* fX;
   parse_args(argc,argv);
   learn_model_setup(mi_algo,cu_algo,du_algo,lm_algo,lmi_algo);
-  fimg = fopen(iname,"r");
-  set_grid_width(W);
-  if (!fimg) return -1;
-  res = read_pbm_header(fimg,rows,cols);
-  std::cout << "rows=" << rows << " cols=" << cols << std::endl;
+  fX = fopen(iname,"r");
+  if (!fX) return -1;
+  res = read_pbm_header(fX,N,M);
+  std::cout << "M=" << M << " N=" << N << std::endl;
 
   //
   // input data
   // 
-  binary_matrix I(rows,cols);
-  read_pbm_data(fimg,I);
-  if (res !=PBM_OK) { std::cerr << "Error " << res << " reading image."  << std::endl; std::exit(1); }
-  fclose(fimg);
-
-  idx_t M,N;
-  binary_matrix X;
-  if (image_mode) {
-    std::cout << "==== DATA TREATED AS IMAGE, VECTORS ARE PATCHES =====\n" << std::endl;
-    idx_t Ny = (W-1+rows)/W;
-    idx_t Nx = (W-1+cols)/W;
-    M = W*W;
-    std::cout << "Nx=" << Nx << " Ny=" << Ny << std::endl;
-    N = Nx*Ny;
-    X.allocate(N,M);
-    //
-    // Initialize data
-    //
-    idx_t li = 0;
-    binary_matrix P(W,W),V(1,W*W);
-    for (idx_t i = 0; i < Ny; i++) {
-      for (idx_t j = 0; j < Nx; j++,li++) {
-        I.copy_submatrix_to(i*W,(i+1)*W,j*W,(j+1)*W,P);
-        P.copy_vectorized_to(V);
-        X.set_row(li,V);
-      }
-    }
-    N = li;
-    P.destroy();
-    V.destroy();
-  } else {
-    std::cout << "==== DATA TREATED AS MATRIX, VECTORS ARE ROWS =====\n" << std::endl;
-    X = I.get_copy();
-    M = I.get_cols();
-    N = I.get_rows();
+  binary_matrix X(M,N);
+  read_pbm_data(fX,X);
+  if (res !=PBM_OK) {
+    std::cerr << "Error " << res << " reading image."  << std::endl; std::exit(1);
+    fclose(fX);
+    exit(-1);
   }
-  binary_matrix D(K,M);
-  binary_matrix A(N,K);
+  fclose(fX);
+  
   std::cout << "M=" << M << " N=" << N << " K=" << K << std::endl;
 
   //
-  // Initialize dictionary
+  // Initial dictionary
   //
-  initialize_dictionary(X,D,A);
+  binary_matrix D,A;
+  if (dname) {
+    fX = fopen(dname,"r");
+    if (!fX) return -1;
+    res = read_pbm_header(fX,N,M);
+    idx_t Md;
+    read_pbm_header(fX,K,Md);
+    if (Md != M) {
+      std::cerr << "Dictionary dimension " << Md << " does not match data dimension " << M << "." << std::endl;
+      fclose(fX);
+      exit(-1);
+    }
+    D.allocate(K,Md);
+    read_pbm_data(fX,D);
+    if (res !=PBM_OK) {
+      std::cerr << "Error " << res << " reading image."  << std::endl; std::exit(1);
+      fclose(fX);
+      exit(-1);
+    }
+    fclose(fX);
+  } else {
+    D.allocate(K,M);
+    A.allocate(N,K);
+    initialize_dictionary(X,D,A);
+  }
+  std::cout << "M=" << M << " N=" << N << std::endl;
   binary_matrix E(N,M);
   //
-  //  2. learn model
+  //  2. further update dictionary
   //
   learn_model(X,E,D,A);
+  //
+  // 3. denoise
+  //
+  
   //
   // 3. write output
   //
   write_pbm(D,"dictionary.pbm");
   write_pbm(A,"coefficients.pbm");
   write_pbm(E,"residual.pbm");
-  if (image_mode) {
+  if (force_mosaic)
     render_mosaic(D,"atoms_mosaic.pbm");
-    idx_t Ny = (W-1+rows)/W;
-    idx_t Nx = (W-1+cols)/W;
-    idx_t li = 0;
-    binary_matrix P(W,W),V(1,W*W);
-    for (idx_t i = 0; i < Ny; i++) {
-      for (idx_t j = 0; j < Nx; j++,li++) {
-	//     std::cout << "n=" << li << std::endl;
-        E.copy_row_to(li,V);
-        P.set_vectorized(V);
-        I.set_submatrix(i*W,j*W,P);
-      }
-    }  
-    P.destroy();
-    V.destroy();
-    fimg = fopen("residual.pbm","w");
-    if (!fimg) return -2;
-    write_pbm(I,fimg);
-    fclose(fimg);
-  } else {
-    if (force_mosaic)
-      render_mosaic(D,"atoms_mosaic.pbm");
-  }
   if (force_residual_mosaic) {
     render_mosaic(E,"residual_mosaic.pbm");
   }
@@ -166,7 +142,6 @@ int main(int argc, char **argv) {
   add(E,X,E);
   std::cout << "|E|" << E.weight() << std::endl;
   A.destroy();
-  I.destroy();
   E.destroy();
   D.destroy();
   X.destroy();
