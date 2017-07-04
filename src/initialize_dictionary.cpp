@@ -17,11 +17,10 @@ void initialize_dictionary_random_centroids_xor(const binary_matrix& E,
   const idx_t p = D.get_rows();
   binary_matrix Dk(1,m);
   binary_matrix Ei(1,m);
-  gsl_rng *rng = get_rng();  // random number generator
   A.clear();
   D.clear();
   for (idx_t i = 0; i < n; ++i) {
-    idx_t k = (idx_t) gsl_rng_uniform_int(rng,p);
+    idx_t k = get_uniform_unsigned_sample(p);
     A.set(i,k);
     D.copy_row_to(k,Dk);
     E.copy_row_to(i,Ei);
@@ -46,7 +45,6 @@ void initialize_dictionary_random_centroids(const binary_matrix& E,
   const idx_t p = D.get_rows();
   binary_matrix Dk(1,m);
   binary_matrix Ei(1,m);
-  gsl_rng *rng = get_rng();  // random number generator
   A.clear();
   D.clear();
   idx_t s[p][m];
@@ -55,7 +53,7 @@ void initialize_dictionary_random_centroids(const binary_matrix& E,
   std::fill(u,u+p,0);
   idx_t S = 0;
   for (idx_t i = 0; i < n; ++i) {
-    idx_t k = (idx_t) gsl_rng_uniform_int(rng,p);
+    idx_t k = get_uniform_unsigned_sample(p);
     A.set(i,k);
     u[k]++;
     E.copy_row_to(i,Ei);
@@ -147,12 +145,11 @@ void initialize_dictionary_neighbor(const binary_matrix& E,
   binary_matrix Dk(1,m);
   binary_matrix Ei(1,m);
   binary_matrix Ej(1,m);
-  gsl_rng *rng = get_rng();  // random number generator
   A.clear();
   D.clear();
   for (idx_t k = 0; k < p; ) {
     // pick a random row
-    idx_t i = gsl_rng_uniform_int(rng,n);
+    idx_t i = get_uniform_unsigned_sample(n);
     E.copy_row_to(i,Ei);
     if (Ei.weight()==0) continue;
     idx_t s[m];
@@ -205,7 +202,6 @@ void initialize_dictionary_graph_grow(const binary_matrix& E,
   const idx_t p = D.get_rows();
   binary_matrix Dk(1,m);
   binary_matrix Ei(1,m);
-  gsl_rng *rng = get_rng();  // random number generator
   A.clear();
   D.clear();
   idx_t s[p][m]; // part representation
@@ -225,7 +221,7 @@ void initialize_dictionary_graph_grow(const binary_matrix& E,
     // pick a random row
     idx_t i;
     do { 
-      i = gsl_rng_uniform_int(rng,n);
+      i = get_uniform_unsigned_sample(n);
     } while (t[i]);
     E.copy_row_to(i,Ei);
     for (idx_t j = 0; j <m; j++) {
@@ -268,7 +264,7 @@ void initialize_dictionary_graph_grow(const binary_matrix& E,
       if (maxscore == 0) { // reset part!
 	idx_t i;
 	do {
-	  i = gsl_rng_uniform_int(rng,n);
+	  i = get_uniform_unsigned_sample(n);
 	} while (t[i]);
 	E.copy_row_to(i,Ei);
 	for (idx_t j = 0; j < m; j++) {
@@ -302,12 +298,11 @@ void initialize_dictionary_graph_grow(const binary_matrix& E,
 void initialize_dictionary_random(const binary_matrix& E, 
 			     binary_matrix& D, 
 			     binary_matrix& A) {
-  gsl_rng *rng = get_rng();  // random number generator
   const idx_t K = D.get_rows();
   const idx_t M = D.get_cols();
   for (idx_t k = 0; k < K; k++) {
     for (idx_t j = 0; j < M; j++) {
-      D.set(k,j,gsl_ran_bernoulli (rng,0.5));
+      D.set(k,j,get_bernoulli_sample(0.5));
     }
   }
   A.clear();

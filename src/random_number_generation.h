@@ -7,4 +7,8 @@ extern long random_seed;
 
 gsl_rng* get_rng();
 
+unsigned long get_uniform_unsigned_sample(unsigned maxval);
+
+bool get_bernoulli_sample(double p);
+
 #endif
