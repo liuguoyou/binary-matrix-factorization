@@ -89,7 +89,6 @@ int main(int argc, char **argv) {
   }
   fclose(fX);
   
-  std::cout << "M=" << M << " N=" << N << " K=" << K << std::endl;
 
   //
   // Initial dictionary
@@ -98,7 +97,6 @@ int main(int argc, char **argv) {
   if (dname) {
     fX = fopen(dname,"r");
     if (!fX) return -1;
-    res = read_pbm_header(fX,N,M);
     idx_t Md;
     read_pbm_header(fX,K,Md);
     if (Md != M) {
@@ -116,9 +114,10 @@ int main(int argc, char **argv) {
     fclose(fX);
   } else {
     D.allocate(K,M);
-    A.allocate(N,K);
     initialize_dictionary(X,D,A);
   }
+  A.allocate(N,K);
+  std::cout << "M=" << M << " N=" << N << " K=" << K << std::endl;
   binary_matrix E(N,M);
   //
   //  2. further update dictionary
