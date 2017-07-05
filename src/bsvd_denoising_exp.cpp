@@ -27,13 +27,14 @@ int lm_algo = 0;
 int lmi_algo = 0;
 
 idx_t W = 16;
-idx_t K = 512;
+idx_t K = 16;
 bool image_mode = false;
 bool force_mosaic = true;
 bool force_residual_mosaic = true;
 const char* iname = "data/test.pbm";
 const char* dname = 0;
-double error_probability = 0.0;
+const char* oname = "denoised.pbm";
+double error_probability = 0.1;
 
 void parse_args(int argc, char **argv) {
   for (int i = 0; i < argc; ++i) {		       
@@ -51,6 +52,7 @@ void parse_args(int argc, char **argv) {
       case 'L': lmi_algo = atoi(val); break;
       case 'k': K = (idx_t) atoi(val); break;
       case 'D': dname = val; break;
+      case 'o': oname = val; break;
       case 'p': error_probability = atof(val); break;
       case 'r': random_seed = atol(val); break;
       case 'm': force_mosaic = (atoi(val) > 0); break;
@@ -78,7 +80,7 @@ int main(int argc, char **argv) {
   //
   // input data
   // 
-  binary_matrix X(M,N);
+  binary_matrix X(N,M);
   read_pbm_data(fX,X);
   if (res !=PBM_OK) {
     std::cerr << "Error " << res << " reading image."  << std::endl; std::exit(1);
@@ -117,7 +119,6 @@ int main(int argc, char **argv) {
     A.allocate(N,K);
     initialize_dictionary(X,D,A);
   }
-  std::cout << "M=" << M << " N=" << N << std::endl;
   binary_matrix E(N,M);
   //
   //  2. further update dictionary
@@ -128,21 +129,20 @@ int main(int argc, char **argv) {
   //    vector of length M is Mp
   //
   const idx_t me = M*error_probability;
-  encode_samples(E,D,A,K,me);
+  encode_samples(X,D,A,K,me);
+  mul(A,false,D,false,X); // estimated denoised signal
   //
   // 3. write output
   //
   write_pbm(D,"dictionary.pbm");
   write_pbm(A,"coefficients.pbm");
   write_pbm(E,"residual.pbm");
+  write_pbm(X,oname);
   if (force_mosaic)
     render_mosaic(D,"atoms_mosaic.pbm");
   if (force_residual_mosaic) {
     render_mosaic(E,"residual_mosaic.pbm");
   }
-  mul(A,false,D,false,E);
-  add(E,X,E);
-  std::cout << "|E|" << E.weight() << std::endl;
   A.destroy();
   E.destroy();
   D.destroy();
