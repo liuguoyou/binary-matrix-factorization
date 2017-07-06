@@ -47,7 +47,7 @@ idx_t encode_samples_basic(binary_matrix& E, const binary_matrix& D,  binary_mat
 	  bestd = dk;
 	  bestk = k;
 	} 
-      }
+      } // for each candidate atom
       //      std::cout << "i=" << i << " w=" << w << " bestk=" << bestk << " bestd=" << bestd << std::endl;
       if (bestd < w) {
 	D.copy_row_to(bestk,Dk);
@@ -59,13 +59,14 @@ idx_t encode_samples_basic(binary_matrix& E, const binary_matrix& D,  binary_mat
 	improved = false;
       }  
       iter++;
-    } // while there is any improvement
+    } // while there is any improvement in the i-th sample residual
     if (ichanged) {
       changed++;
       E.set_row(i,Ei);
       A.set_row(i,Ai);
     }
-  }
+    std::cout << "i=" << i << " changed=" << ichanged << " |Ei|=" << Ei.weight() << "|Ai|=" << Ai.weight() << std::endl;
+  } // for each row in E
   Ei.destroy();
   Ai.destroy();
   Dk.destroy();
@@ -151,6 +152,7 @@ idx_t encode_samples_omp(binary_matrix& E, const binary_matrix& D,  binary_matri
       E.set_row(i,Ei[T]);
       A.set_row(i,Ai[T]);
     }
+    std::cout << "i=" << i << " changed=" << ichanged << " |Ei|=" << Ei[T].weight() << "|Ai|=" << Ai[T].weight() << std::endl;
   }
   for (idx_t T = 0; T < NT; T++) {
     Ei[T].destroy();

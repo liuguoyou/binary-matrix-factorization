@@ -21,8 +21,8 @@ TOOL=$(patsubst %.cpp,%,$(TOOLSRC))
 EXPSRC=$(wildcard *_exp.cpp)
 EXP=$(patsubst %.cpp,%,$(EXPSRC))
 
-#CFLAGS=-O3 -Wall -Wno-unused-variable -Wno-unused-parameter -fopenmp -msse4 -Wextra
-CFLAGS=-O -Wall -g -fopenmp
+CFLAGS=-O3 -fopenmp -msse4 -Wall
+#CFLAGS=-O -Wall -Wextra -g -fopenmp
 
 all: $(OBJ) $(TOOL) $(TEST) $(EXP)
 
