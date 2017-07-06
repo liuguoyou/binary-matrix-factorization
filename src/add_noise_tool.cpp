@@ -15,7 +15,7 @@ const char* ifname;
 const char* ofname;
 
 int main(int argc, char** argv) {
-  idx_t type,rows,cols;
+  idx_t rows,cols;
   FILE* fi, *fo;
   if (argc < 4) {
     std::cerr << "Wrong number of parameters.\n Usage: input.pgm output.pgm p [q]" << std::endl;

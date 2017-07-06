@@ -37,7 +37,7 @@ int main(int argc, char **argv) {
   if (!fX) return -1;
   res = read_pbm_header(fX,rows,cols);
   const idx_t W = (idx_t) sqrt(cols);
-  std::cout << "Input: " << iname << " << rows=" << rows << " cols=" << cols << " patch width=" << W << std::endl;
+  std::cout << "Input: " << iname << " rows=" << rows << " cols=" << cols << " patch width=" << W << std::endl;
   binary_matrix X(rows,cols);
   read_pbm_data(fX,X);
   if (res !=PBM_OK) { std::cerr << "Error " << res << " reading image."  << std::endl; std::exit(1);  }
@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
   //
   // output data: image matrix
   //
-  std::cout << "Output: " << oname << " << rows=" << m << " cols=" << n << std::endl;
+  std::cout << "Output: " << oname << " rows=" << m << " cols=" << n << std::endl;
   
   // we need to create an auxiliary integer matrix of size m x n 
   // to accumulate the occurences of ones at each pixel

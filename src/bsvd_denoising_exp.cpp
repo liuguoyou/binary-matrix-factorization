@@ -128,6 +128,7 @@ int main(int argc, char **argv) {
   //    vector of length M is Mp
   //
   const idx_t me = M*error_probability;
+  std::cout << "Average number of errors per row " << me << std::endl;
   encode_samples(X,D,A,K,me);
   mul(A,false,D,false,X); // estimated denoised signal
   //
