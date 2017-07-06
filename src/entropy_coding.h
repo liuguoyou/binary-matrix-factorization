@@ -14,11 +14,24 @@
 #define COSMOS_LOG2PI	1.651496129472318719066947778628673404455
 #define COSMOS_LOG2EPI	4.0941911703612818840269937936682254076
 
+/**
+ * Approximate codelength of using a two-parts universal enumerative code
+ * for describing a vector of length n with r ones on it.
+ */
 double enumerative_codelength(const unsigned n,
 			      const unsigned r);
+
+/**
+ * Approximate codelength of using a one-part universal codelength 
+ * for describing a vector of length n with r ones on it.
+ */
 double universal_codelength(const unsigned n,
 			      const unsigned r);
 
+/**
+ * Overall codelength of describing the decomposition of a matrix
+ * X in terms of E,D,A: X = E + DA
+ */
 idx_t model_codelength(const binary_matrix& E, 
 		       const binary_matrix& D, 
 		       const binary_matrix& A);

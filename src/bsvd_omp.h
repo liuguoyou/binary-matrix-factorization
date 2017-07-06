@@ -3,10 +3,6 @@
 
 #include "binmat.h"
 
-void initialize_dictionary(const binary_matrix& E, 
-		      binary_matrix& D, 
-		      binary_matrix& A);
-
 /** 
  * Given a current error E = X - AD, dictionary D and coefficients A, update dictionary and error, 
  * so  that the total weight of the error E is reduced.
