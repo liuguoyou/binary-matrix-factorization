@@ -26,8 +26,7 @@ int du_algo = 0;
 int lm_algo = 0;
 int lmi_algo = 0;
 
-idx_t W = 16;
-idx_t K = 16;
+idx_t K = 512;
 bool image_mode = false;
 bool force_mosaic = true;
 bool force_residual_mosaic = true;
@@ -67,82 +66,86 @@ void parse_args(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {   
-  idx_t M,N;
-  int res;
-  FILE* fX;
+  idx_t rows,cols;
+  FILE* file;
   parse_args(argc,argv);
   learn_model_setup(mi_algo,es_algo,du_algo,lm_algo,lmi_algo);
-  fX = fopen(iname,"r");
-  if (!fX) return -1;
-  res = read_pbm_header(fX,N,M);
-  std::cout << "M=" << M << " N=" << N << std::endl;
-
+  file = fopen(iname,"r");
+  if (!file) return -1;
+  int res = read_pbm_header(file,rows,cols);
+  std::cout << "cols=" << cols << " rows=" << rows << std::endl;
+  
   //
   // input data
   // 
-  binary_matrix X(N,M);
-  read_pbm_data(fX,X);
+  binary_matrix X(rows,cols);
+  read_pbm_data(file,X);
   if (res !=PBM_OK) {
     std::cerr << "Error " << res << " reading image."  << std::endl; std::exit(1);
-    fclose(fX);
+    fclose(file);
     exit(-1);
   }
-  fclose(fX);
+  fclose(file);
   
 
   //
-  // Initial dictionary
-  //
+  // Initialize dictionary
+ //
   binary_matrix D,A;
+  binary_matrix H;
   if (dname) {
-    fX = fopen(dname,"r");
-    if (!fX) return -1;
-    idx_t Md;
-    read_pbm_header(fX,K,Md);
-    if (Md != M) {
-      std::cerr << "Dictionary dimension " << Md << " does not match data dimension " << M << "." << std::endl;
-      fclose(fX);
+    file = fopen(dname,"r");
+    if (!file) return -1;
+    idx_t colsd;
+    read_pbm_header(file,K,colsd);
+    if (colsd != cols) {
+      std::cerr << "Dictionary dimension " << colsd << " does not match data dimension " << cols << "." << std::endl;
+      fclose(file);
       exit(-1);
     }
-    D.allocate(K,Md);
-    read_pbm_data(fX,D);
+    D.allocate(K,colsd);
+    read_pbm_data(file,D);
     if (res !=PBM_OK) {
       std::cerr << "Error " << res << " reading image."  << std::endl; std::exit(1);
-      fclose(fX);
+      fclose(file);
       exit(-1);
     }
-    fclose(fX);
+    fclose(file);
   } else {
-    D.allocate(K,M);
-    initialize_dictionary(X,D,A);
+    D.allocate(K,cols);
+    initialize_dictionary(X,H,D,A);
   }
-  A.allocate(N,K);
-  std::cout << "M=" << M << " N=" << N << " K=" << K << std::endl;
-  binary_matrix E(N,M);
+  A.allocate(rows,K);
+  A.clear();
+  std::cout << "cols=" << cols << " rows=" << rows << " K=" << K << std::endl;
+  binary_matrix E(rows,cols);
+  if (force_mosaic)
+    render_mosaic(D,"denoising_initial_dictionary.pbm");
   //
   //  2. further update dictionary
   //
-  learn_model(X,E,D,A);
+  std::cout << "Further adapting dictionary to data." << std::endl;
+  learn_model(X,H,E,D,A);
+  render_mosaic(D,"denoising_adapted_dictionary.pbm");
   //
   // 3. denoise: average number of errors in Bernoulli(p) on a
-  //    vector of length M is Mp
+  //    vector of length M is colsp
   //
-  const idx_t me = M*error_probability;
+  const idx_t me = cols*error_probability;
+  std::cout << "Denoising. <<" << std::endl;
   std::cout << "Average number of errors per row " << me << std::endl;
-  encode_samples(X,D,A,K,me);
-  mul(A,false,D,false,X); // estimated denoised signal
+  A.clear();
+  encode_samples(X,H,D,A,K,me);  
+  X.copy_to(E); // at this point X contains the residual
+  std::cout << "Average residual weight=" << (double)E.weight()/(double)rows << std::endl;
+  std::cout << "Average coefficients weight=" << (double)A.weight()/(double)rows << std::endl;
+  mul(A,false,D,false,X); // now X is the estimated denoised signal
   //
   // 3. write output
   //
   write_pbm(D,"dictionary.pbm");
   write_pbm(A,"coefficients.pbm");
-  write_pbm(E,"residual.pbm");
   write_pbm(X,oname);
-  if (force_mosaic)
-    render_mosaic(D,"atoms_mosaic.pbm");
-  if (force_residual_mosaic) {
-    render_mosaic(E,"residual_mosaic.pbm");
-  }
   A.destroy();
   E.destroy();
   D.destroy();

@@ -3,9 +3,10 @@
 #include "util.h"
 //#include <algorithm>
 
-void initialize_dictionary_random_centroids_xor(const binary_matrix& E, 
-					   binary_matrix& D, 
-					   binary_matrix& A) {
+void initialize_dictionary_random_centroids_xor(const binary_matrix& E,
+						const binary_matrix& H,
+						binary_matrix& D, 
+						binary_matrix& A) {
   //
   // Initialize using random clusters
   //
@@ -32,8 +33,9 @@ void initialize_dictionary_random_centroids_xor(const binary_matrix& E,
 }
 
 void initialize_dictionary_random_centroids(const binary_matrix& E, 
-				       binary_matrix& D, 
-				       binary_matrix& A) {
+					    const binary_matrix& H,
+					    binary_matrix& D, 
+					    binary_matrix& A) {
   //
   // Initialize using random clusters
   //
@@ -76,8 +78,9 @@ void initialize_dictionary_random_centroids(const binary_matrix& E,
  * has ones on its k-th column
  */
 void initialize_dictionary_partition(const binary_matrix& E, 
-				binary_matrix& D, 
-				binary_matrix& A) {
+				     const binary_matrix& H,
+				     binary_matrix& D, 
+				     binary_matrix& A) {
   //
   // Initialize using random clusters
   //
@@ -137,8 +140,9 @@ void initialize_dictionary_partition(const binary_matrix& E,
  * intersection with Ei, that is, such that Ej AND Ei is non-zero. 
  */
 void initialize_dictionary_neighbor(const binary_matrix& E, 
-			       binary_matrix& D, 
-			       binary_matrix& A) {
+				    const binary_matrix& H,
+				    binary_matrix& D, 
+				    binary_matrix& A) {
   const idx_t m = E.get_cols();
   const idx_t n = E.get_rows();
   const idx_t p = D.get_rows();
@@ -195,8 +199,9 @@ idx_t accumulate_to(binary_matrix& v, idx_t* s) {
  * Finally, set Dk as the centroid of all samples in its corresponding part.
  */
 void initialize_dictionary_graph_grow(const binary_matrix& E, 
-				 binary_matrix& D, 
-				 binary_matrix& A) {
+				      const binary_matrix& H,
+				      binary_matrix& D, 
+				      binary_matrix& A) {
   const idx_t m = E.get_cols();
   const idx_t n = E.get_rows();
   const idx_t p = D.get_rows();
@@ -296,8 +301,9 @@ void initialize_dictionary_graph_grow(const binary_matrix& E,
 }
   
 void initialize_dictionary_random(const binary_matrix& E, 
-			     binary_matrix& D, 
-			     binary_matrix& A) {
+				  const binary_matrix& H,
+				  binary_matrix& D, 
+				  binary_matrix& A) {
   const idx_t K = D.get_rows();
   const idx_t M = D.get_cols();
   for (idx_t k = 0; k < K; k++) {

@@ -75,7 +75,7 @@ int main(int argc, char **argv) {
   fclose(fimg);
 
   idx_t M,N;
-  binary_matrix X;
+  binary_matrix X,H;
   if (image_mode) {
     std::cout << "==== DATA TREATED AS IMAGE, VECTORS ARE PATCHES =====\n" << std::endl;
     idx_t Ny = (W-1+rows)/W;
@@ -112,12 +112,12 @@ int main(int argc, char **argv) {
   //
   // Initialize dictionary
   //
-  initialize_dictionary(X,D,A);
+  initialize_dictionary(X,H,D,A);
   binary_matrix E(N,M);
   //
   //  2. learn model
   //
-  learn_model(X,E,D,A);
+  learn_model(X,H,E,D,A);
   //
   // 3. write output
   //

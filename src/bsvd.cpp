@@ -12,7 +12,8 @@
 #include "config.h"
 
 idx_t learn_model_traditional(binary_matrix& X,
-			      binary_matrix& E, 
+			      const binary_matrix& H,
+			      binary_matrix& E,
 			      binary_matrix& D, 
 			      binary_matrix& A) {
   const idx_t K = D.get_rows();
@@ -29,13 +30,13 @@ idx_t learn_model_traditional(binary_matrix& X,
 //	    << "\t||A||=" << std::setw(8) << A.weight() << std::endl;
   while (changed > 0) {    
     iter++;
-    idx_t changed_coefs = encode_samples(E,D,A,ma,me);
+    idx_t changed_coefs = encode_samples(E,H,D,A,ma,me);
   //  std::cout << "iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << E.weight()
 //	      << "\t||D||=" << std::setw(8) << D.weight()
 //	      << "\t||A||=" << std::setw(8) << A.weight()
 //	      << "\tchanged coefs=" << std::setw(8) << changed_coefs << std::endl;
-    changed = changed_coefs + update_dictionary(E,D,A);
+    changed = changed_coefs + update_dictionary(E,H,D,A);
 //    std::cout << "iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << E.weight()
 //	      << "\t||D||=" << std::setw(8) << D.weight()
@@ -47,6 +48,7 @@ idx_t learn_model_traditional(binary_matrix& X,
 
 
 idx_t learn_model_alter1(binary_matrix& X,
+			 const binary_matrix& H,
 			 binary_matrix& E, 
 			 binary_matrix& D, 
 			 binary_matrix& A) {
@@ -62,7 +64,8 @@ idx_t learn_model_alter1(binary_matrix& X,
   binary_matrix Dt(M,K);
   binary_matrix At(K,N);
   binary_matrix Et(M,N);
-
+  binary_matrix Ht(M,N);
+  H.transpose_to(Ht);
   //
   // RUN BSVD
   //
@@ -74,13 +77,13 @@ idx_t learn_model_alter1(binary_matrix& X,
 //	    << "\t||A||=" << std::setw(8) << A.weight() << std::endl;
   while (changed > 0) {    
     iter++;
-    idx_t changed_coefs = encode_samples(E,D,A,ma,me);
+    idx_t changed_coefs = encode_samples(E,H,D,A,ma,me);
 //    std::cout << "DIRECT: iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << E.weight()
 //	      << "\t||D||=" << std::setw(8) << D.weight()
 //	      << "\t||A||=" << std::setw(8) << A.weight()
 //	      << "\tchanged coefs=" << std::setw(8) << changed_coefs << std::endl;
-    changed = changed_coefs + update_dictionary(E,D,A);
+    changed = changed_coefs + update_dictionary(E,H,D,A);
   //  std::cout << "DIRECT: iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << E.weight()
 //	      << "\t||D||=" << std::setw(8) << D.weight()
@@ -91,14 +94,14 @@ idx_t learn_model_alter1(binary_matrix& X,
     D.transpose_to(Dt);
     E.transpose_to(Et);
 
-    changed_coefs = encode_samples(Et,At,Dt,ma,me);
+    changed_coefs = encode_samples(Et,Ht,At,Dt,ma,me);
   //  std::cout << "TRANSP: iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << Et.weight()
 //	      << "\t||D||=" << std::setw(8) << Dt.weight()
 //	      << "\t||A||=" << std::setw(8) << At.weight()
 //	      << "\tchanged coefs=" << std::setw(8) << changed_coefs << std::endl;
 
-    changed = update_dictionary(Et,At,Dt);
+    changed = update_dictionary(Et,Ht,At,Dt);
   //  std::cout << "TRANSP: iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << Et.weight()
 //	      << "\t||D||=" << std::setw(8) << Dt.weight()
@@ -117,6 +120,7 @@ idx_t learn_model_alter1(binary_matrix& X,
 
 
 idx_t learn_model_alter2(binary_matrix& X,
+			 const binary_matrix& H,
 			 binary_matrix& E, 
 			 binary_matrix& D, 
 			 binary_matrix& A) {
@@ -132,6 +136,8 @@ idx_t learn_model_alter2(binary_matrix& X,
   binary_matrix Dt(M,K);
   binary_matrix At(K,N);
   binary_matrix Et(M,N);
+  binary_matrix Ht(M,N);
+  H.transpose_to(Ht);
   idx_t changed = 1;
   idx_t iter = 0;
 //  std::cout << "iter=" << std::setw(8) << iter 
@@ -144,13 +150,13 @@ idx_t learn_model_alter2(binary_matrix& X,
     outer_changed = 0;
     while (changed > 0) {    
       iter++;
-      idx_t changed_coefs = encode_samples(E,D,A,ma,me);
+      idx_t changed_coefs = encode_samples(E,H,D,A,ma,me);
 //      std::cout << "DIRECT: iter=" << std::setw(8) << iter 
 //		<< "\t||E||=" << std::setw(8) << E.weight()
 //		<< "\t||D||=" << std::setw(8) << D.weight()
 //		<< "\t||A||=" << std::setw(8) << A.weight()
 //		<< "\tchanged coefs=" << std::setw(8) << changed_coefs << std::endl;
-      changed = changed_coefs + update_dictionary(E,D,A);
+      changed = changed_coefs + update_dictionary(E,H,D,A);
 //      std::cout << "DIRECT: iter=" << std::setw(8) << iter 
 //		<< "\t||E||=" << std::setw(8) << E.weight()
 //		<< "\t||D||=" << std::setw(8) << D.weight()
@@ -165,14 +171,14 @@ idx_t learn_model_alter2(binary_matrix& X,
     iter = 0;
     while (changed > 0) {    
       iter++;
-      idx_t changed_coefs = encode_samples(Et,At,Dt,ma,me);
+      idx_t changed_coefs = encode_samples(Et,Ht,At,Dt,ma,me);
 //      std::cout << "TRANSPOSED: iter=" << std::setw(8) << iter 
 //		<< "\t||E||=" << std::setw(8) << Et.weight()
 //		<< "\t||D||=" << std::setw(8) << Dt.weight()
 //		<< "\t||A||=" << std::setw(8) << At.weight()
 //		<< "\tchanged coefs=" << std::setw(8) << changed_coefs << std::endl;
 
-      changed = changed_coefs + update_dictionary(Et,At,Dt);
+      changed = changed_coefs + update_dictionary(Et,Ht,At,Dt);
 //      std::cout << "TRANSPOSED: iter=" << std::setw(8) << iter 
 //		<< "\t||E||=" << std::setw(8) << Et.weight()
 //		<< "\t||D||=" << std::setw(8) << Dt.weight()
@@ -192,6 +198,7 @@ idx_t learn_model_alter2(binary_matrix& X,
 
 
 idx_t learn_model_alter3(binary_matrix& X,
+			 const binary_matrix& H,
 			 binary_matrix& E, 
 			 binary_matrix& D, 
 			 binary_matrix& A) {
@@ -207,6 +214,8 @@ idx_t learn_model_alter3(binary_matrix& X,
   binary_matrix Dt(M,K);
   binary_matrix At(K,N);
   binary_matrix Et(M,N);
+  binary_matrix Ht(M,N);
+  H.transpose_to(Ht);
   idx_t changed = K+1;
   idx_t iter = 0;
 //  std::cout << "iter=" << std::setw(8) << iter 
@@ -218,7 +227,7 @@ idx_t learn_model_alter3(binary_matrix& X,
     A.transpose_to(At);
     D.transpose_to(Dt);
     E.transpose_to(Et);
-    changed = update_dictionary(Et,At,Dt);
+    changed = update_dictionary(Et,Ht,At,Dt);
 //    std::cout << "iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << Et.weight()
 //	      << "\t||D||=" << std::setw(8) << Dt.weight()
@@ -228,7 +237,7 @@ idx_t learn_model_alter3(binary_matrix& X,
     At.transpose_to(A);
     Dt.transpose_to(D);
     Et.transpose_to(E);
-    changed = update_dictionary(E,D,A);
+    changed = update_dictionary(E,H,D,A);
 //    std::cout << "iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << E.weight()
 //	      << "\t||D||=" << std::setw(8) << D.weight()
@@ -244,13 +253,14 @@ return iter;
 #include "entropy_coding.h"
 
 idx_t learn_model_mdl_forward_selection(binary_matrix& X,
+					const binary_matrix& H,
 					binary_matrix& E, 
 					binary_matrix& D, 
 					binary_matrix& A) {
   const idx_t M = E.get_cols();
   const idx_t N = E.get_rows();
   idx_t K = D.get_rows();
-  learn_model_inner(X,E,D,A);
+  learn_model_inner(X,H,E,D,A);
   binary_matrix nextAtom(1,M);
   binary_matrix nextCoefs(N,1);
   binary_matrix currD(D),currA(A),currE(E);  
@@ -268,7 +278,7 @@ idx_t learn_model_mdl_forward_selection(binary_matrix& X,
     int dif = int(currL) - int(bestL);
     int dev = allStuck > 0 ? (sumStuck/allStuck) : 0;
     std::cout << "currK=" << K << " currL=" << currL << " bestK=" << bestK << " bestL=" << bestL << " stuck=" << stuck << " dif=" << dif << " dev=" << dev << std::endl;
-    initialize_dictionary(currE,nextAtom,nextCoefs);
+    initialize_dictionary(currE,H,nextAtom,nextCoefs);
     //learn_model_inner(currE,nextE,nextAtom,nextCoefs);
     //std::cout << nextAtom << std::endl;
     //std::cout << nextAtom.weight() << std::endl;
@@ -295,7 +305,7 @@ idx_t learn_model_mdl_forward_selection(binary_matrix& X,
     nextA.copy_to(currA);
     nextA.destroy();
 
-    learn_model_inner(X,currE,currD,currA);
+    learn_model_inner(X,H,currE,currD,currA);
     currL = model_codelength(currE,currD,currA);
     if ((currL + dev) < bestL) {
       stuck = 0;
@@ -329,13 +339,14 @@ idx_t learn_model_mdl_forward_selection(binary_matrix& X,
 }
 
 idx_t learn_model_mdl_backward_selection(binary_matrix& X,
+					 const binary_matrix& H,
 					 binary_matrix& E, 
 					 binary_matrix& D, 
 					 binary_matrix& A) {
   const idx_t M = E.get_cols();
   const idx_t N = E.get_rows();
   idx_t K = D.get_rows();
-  learn_model_inner(X,E,D,A);
+  learn_model_inner(X,H,E,D,A);
   //mul(A,false,D,false,E);
   //add(E,X,E);
   idx_t bestL = model_codelength(E,D,A);
@@ -391,7 +402,7 @@ idx_t learn_model_mdl_backward_selection(binary_matrix& X,
 	currA.copy_col_to(k,Ak);
 	nextA.set_col(k-1,Ak);
       }
-      learn_model_inner(X,nextE,nextD,nextA);
+      learn_model_inner(X,H,nextE,nextD,nextA);
       nextL = model_codelength(nextE,nextD,nextA);
     } else {
       nextL = model_codelength(nextE,nextD,nextA);
@@ -446,6 +457,7 @@ idx_t learn_model_mdl_backward_selection(binary_matrix& X,
 }
 
 idx_t learn_model_mdl_full_search(binary_matrix& X,
+				  const binary_matrix& H,
 				  binary_matrix& E, 
 				  binary_matrix& D, 
 				  binary_matrix& A) {
@@ -459,16 +471,16 @@ idx_t learn_model_mdl_full_search(binary_matrix& X,
   for (idx_t k = 20; k <= K; k+=20) {
   //for (idx_t k = 1; k < K; k++) {
     binary_matrix candD(k,M),candA(N,k);
-    initialize_dictionary(X,candD,candA);
-    learn_model_inner(X,candE,candD,candA);
+    initialize_dictionary(X,H,candD,candA);
+    learn_model_inner(X,H,candE,candD,candA);
 #define REPS 10
 #if 1
     idx_t aux[REPS];
     std::cout << "K=" << k;
     for (idx_t I = 0; I < REPS; I++) {
       random_seed = (random_seed*31 ) % 17;
-      initialize_dictionary(X,candD,candA);
-      learn_model_inner(X,candE,candD,candA);
+      initialize_dictionary(X,H,candD,candA);
+      learn_model_inner(X,H,candE,candD,candA);
       aux[I] = model_codelength(candE,candD,candA);
       std::cout << " " << aux[I];
     }

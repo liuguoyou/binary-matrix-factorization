@@ -2,5 +2,6 @@
 mkdir res/denoise
 src/add_noise_tool data/einstein.pbm res/denoise/einstein_p0.1.pbm 0.1
 src/extract_patches_tool res/denoise/einstein_p0.1.pbm 16 res/denoise/einstein_p0.1_patches.pbm
-src/bsvd_denoising_exp -p 0.1 -o res/denoise/einstein_p0.1_patches_den.pbm res/denoise/einstein_p0.1_patches.pbm
+src/bsvd_denoising_exp -i 5 -p 0.1 -k 512 -o res/denoise/einstein_p0.1_patches_den.pbm res/denoise/einstein_p0.1_patches.pbm
 src/stitch_patches_tool res/denoise/einstein_p0.1_patches_den.pbm 896 1160 res/denoise/einstein_p0.1_den.pbm
+mv *.pbm res/denoise

@@ -3,20 +3,24 @@
 #include "binmat.h"
 
 typedef void (*mi_algorithm_t)(const binary_matrix& E, 
-				binary_matrix& D, 
-				binary_matrix& A);
+			       const binary_matrix& H,
+			       binary_matrix& D, 
+			       binary_matrix& A);
 
 typedef idx_t (*es_algorithm_t)(binary_matrix& E, 
+				const binary_matrix& H,
 				const binary_matrix& D, 
 				binary_matrix& A,
 				const idx_t max_a_weight,
 				const idx_t max_e_weight);
 
 typedef idx_t (*du_algorithm_t)(binary_matrix& E, 
+				const binary_matrix& H,
 				binary_matrix& D, 
 				binary_matrix& A);
 
 typedef idx_t (*ml_algorithm_t)(binary_matrix& X,
+				const binary_matrix& H,
 				binary_matrix& E, 
 				binary_matrix& D, 
 				binary_matrix& A);

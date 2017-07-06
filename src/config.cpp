@@ -16,13 +16,16 @@ mi_algorithm_t mi_algorithm_catalog[] = {initialize_dictionary_neighbor,
 					 initialize_dictionary_random_centroids,
 					 initialize_dictionary_random_centroids_xor,
 					 initialize_dictionary_graph_grow,
+					 initialize_dictionary_random,
 					 0};
 
 const char* mi_algorithm_names[] = {"Neighbor initialization",
 				    "Partition initialization",
 				    "Random centroids initialization",
 				    "Random centroids (in mod-2 algebra) initialization",
-				    "Graph growing initialization",0
+				    "Graph growing initialization",
+				    "purely random dictionary",
+				    0
 };
 
 es_algorithm_t es_algorithm_catalog[] = {encode_samples_omp,
@@ -65,7 +68,7 @@ const char* lm_algorithm_names[] = {"Model learning by traditional alternate des
 
 
 void learn_model_setup(int mi_algo, int es_algo, int du_algo, int lm_algo, int lmi_algo) {
-  if (mi_algo > 4) { std::cerr << "Invalid model initialization algorithm (0-" << 4 << ')' << std::endl; exit(-1); }
+  if (mi_algo > 5) { std::cerr << "Invalid model initialization algorithm (0-" << 5 << ')' << std::endl; exit(-1); }
   if (es_algo > 2) { std::cerr << "Invalid coefficients update algorithm (0-" << 2 << ')' << std::endl; exit(-1); }
   if (du_algo > 3) { std::cerr << "Invalid dictionary update algorithm (0-" << 3 << ')' << std::endl; exit(-1); }
   if (lm_algo > 6) { std::cerr << "Invalid model learning algorithm (0-" << 6 << ')' << std::endl; exit(-1); }

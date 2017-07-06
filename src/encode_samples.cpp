@@ -1,8 +1,14 @@
 #include "encode_samples.h"
 #include <algorithm>
 #include <omp.h>
+#include <iomanip>
 
-idx_t encode_samples_basic(binary_matrix& E, const binary_matrix& D,  binary_matrix& A, const idx_t max_a_weight, const idx_t max_e_weight) 
+idx_t encode_samples_basic(binary_matrix& E,
+			   const binary_matrix& H,
+			   const binary_matrix& D,
+			   binary_matrix& A,
+			   const idx_t max_a_weight,
+			   const idx_t max_e_weight) 
 {
   const idx_t m = E.get_cols();
   const idx_t n = E.get_rows();
@@ -75,7 +81,12 @@ idx_t encode_samples_basic(binary_matrix& E, const binary_matrix& D,  binary_mat
 
 
 
-idx_t encode_samples_omp(binary_matrix& E, const binary_matrix& D,  binary_matrix& A, const idx_t max_a_weight, const idx_t max_e_weight) 
+idx_t encode_samples_omp(binary_matrix& E,
+			 const binary_matrix& H,
+			 const binary_matrix& D,
+			 binary_matrix& A,
+			 const idx_t max_a_weight,
+			 const idx_t max_e_weight) 
 {
   //  std::cout << "cu/omp" << std::endl;
   const idx_t m = E.get_cols();
@@ -114,28 +125,37 @@ idx_t encode_samples_omp(binary_matrix& E, const binary_matrix& D,  binary_matri
     while (improved) {
       idx_t w = Ei[T].weight();
       if (w <= max_e_weight) { // reached maximum error goal
+#ifdef DEBUG
+	std::cout << "STOP: error below maximum allowed error weight. " << std::endl;
+#endif
 	break;
       }
       if (Ai[T].weight() >= max_a_weight) { // reached maximum allowable weight in A
+#ifdef DEBUG
+	std::cout << "STOP: coefficients above maximum allowed  weight. " << std::endl;
+#endif
 	break;
       }
       D.copy_row_to(0,Dk[T]);
       idx_t bestk = 0, bestd = dist(Ei[T],Dk[T]);
       //bool_and(Ei[T],Dk[T],Dk[T]);
-      //     idx_t r = Dk[T].weight();
-      //      std::cout << "\titer=" << iter << " k=" << 0 << " r=" << r << " d=" << bestd << std::endl;
+      //idx_t r = Dk[T].weight();q
+      //std::cout << "\titer=" << iter << " k=" << 0 << " d=" << bestd << std::endl;
       for (idx_t k = 1; k < p; k++) {
 	D.copy_row_to(k,Dk[T]);
 	const idx_t dk = dist(Ei[T],Dk[T]);
 	//bool_and(Ei[T],Dk[T],Dk[T]);
 	//	idx_t r = Dk[T].weight();
-	//	std::cout << "\titer" << iter << " k=" << k << " r=" << r << " d=" << dk << std::endl;
+	//std::cout << "\titer" << iter << " k=" << k << " d=" << dk << std::endl;
 	if (dk < bestd) {
           bestd = dk;
           bestk = k;
 	} 
       }
-      //      std::cout << "i=" << i << " w=" << w << " bestk=" << bestk << " bestd=" << bestd << std::endl;
+#ifdef DEBUG
+      //std::cout << "i=" << std::setw(10) << i << " iter="<< std::setw(4) << iter;
+      //std::cout << " wk=" << std::setw(3) << Dk[T].weight() << " w=" << w << " bestk=" << std::setw(4) << bestk << " bestd=" << std::setw(4) << bestd << std::endl;
+#endif
       if (bestd < w) {
 	D.copy_row_to(bestk,Dk[T]);
 	Ai[T].flip(0,bestk);
@@ -152,7 +172,9 @@ idx_t encode_samples_omp(binary_matrix& E, const binary_matrix& D,  binary_matri
       E.set_row(i,Ei[T]);
       A.set_row(i,Ai[T]);
     }
-    std::cout << "i=" << i << " changed=" << ichanged << " |Ei|=" << Ei[T].weight() << "|Ai|=" << Ai[T].weight() << std::endl;
+#ifdef DEBUG
+    std::cout << "i=" << std::setw(10) << i << " changed=" << std::setw(4) << ichanged << " |Ei|=" << std::setw(4) << Ei[T].weight() << " |Ai|=" << std::setw(4) << Ai[T].weight() << std::endl;
+#endif
   }
   for (idx_t T = 0; T < NT; T++) {
     Ei[T].destroy();

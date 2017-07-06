@@ -13,12 +13,14 @@
  * max_e_weight is the maximum allowed number of ones in any row of E
 */
 idx_t encode_samples_basic(binary_matrix& E,
+			   const binary_matrix& H,
 			   const binary_matrix& D,
 			   binary_matrix& A,
 			   const idx_t max_a_weight,
 			   const idx_t max_e_weight);
 
 idx_t encode_samples_omp(binary_matrix& E,
+			 const binary_matrix& H,
 			 const binary_matrix& D,
 			 binary_matrix& A,
 			 const idx_t max_a_weight,

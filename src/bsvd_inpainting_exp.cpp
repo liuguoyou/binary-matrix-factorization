@@ -23,12 +23,15 @@ int du_algo = 0;
 int lm_algo = 0;
 int lmi_algo = 0;
 
-idx_t W = 16;
 idx_t K = 512;
 bool image_mode = false;
 bool force_mosaic = true;
 bool force_residual_mosaic = true;
-const char* iname = "data/test.pbm";
+const char* iname = "data/einstein.pbm";
+const char* hname = "data/einstein_erasures1.pbm";
+const char* dname = 0;
+const char* oname = "denoised.pbm";
+double error_probability = 0.1;
 
 void parse_args(int argc, char **argv) {
   for (int i = 0; i < argc; ++i) {		       
@@ -44,10 +47,10 @@ void parse_args(int argc, char **argv) {
       case 'd': du_algo = atoi(val); break;
       case 'l': lm_algo = atoi(val); break;
       case 'L': lmi_algo = atoi(val); break;
-      case 'w': W = (idx_t) atoi(val); break;
       case 'k': K = (idx_t) atoi(val); break;
+      case 'D': dname = val; break;
+      case 'o': oname = val; break;
       case 'r': random_seed = atol(val); break;
-      case 'I': image_mode = (atoi(val) > 0); break;
       case 'm': force_mosaic = (atoi(val) > 0); break;
       case 'M': force_residual_mosaic = (atoi(val) > 0); break;
       default: std::cerr << "Invalid option " << argv[i] << std::endl; exit(-1);
@@ -55,6 +58,7 @@ void parse_args(int argc, char **argv) {
       i++;
     } else {
       iname = argv[i];
+      hname = argv[i+1]; // erasure mask name
     }
   }
 }
@@ -63,72 +67,101 @@ int main(int argc, char **argv) {
   idx_t rows,cols;
   parse_args(argc,argv);
   learn_model_setup(mi_algo,es_algo,du_algo,lm_algo,lmi_algo);
+  FILE* file = fopen(iname,"r");
+  if (!file) return -1;
+  int res = read_pbm_header(file,rows,cols);
+  std::cout << "cols=" << cols << " rows=" << rows << std::endl;
+
   //
   // input data
   // 
-  FILE* fX;
-  fX = fopen(iname,"r");
-  if (!fX) return -1;
-  int res;
-  res = read_pbm_header(fX,rows,cols);
-  std::cout << "rows=" << rows << " cols=" << cols << std::endl;
   binary_matrix X(rows,cols);
-  read_pbm_data(fX,X);
-  if (res !=PBM_OK) { std::cerr << "Error " << res << " reading data."  << std::endl; std::exit(1); }
-  fclose(fX);
-
-  const idx_t M = X.get_cols();
-  const idx_t N = X.get_rows();
-
-  binary_matrix D(K,M);
-  binary_matrix A(N,K);
-  std::cout << "M=" << M << " N=" << N << " K=" << K << std::endl;
+  read_pbm_data(file,X);
+  if (res !=PBM_OK) {
+    std::cerr << "Error " << res << " reading data matrix."  << std::endl; std::exit(1);
+    fclose(file);
+    exit(-1);
+  }
+  fclose(file);
+  //
+  // erasure mask
+  //
+  idx_t rows2,cols2;
+  res = read_pbm_header(file,rows2,cols2);
+  std::cout << "cols2=" << cols2 << " rows2=" << rows2 << std::endl;
+  if (cols2 != cols) {
+	std::cerr << "wrong erasure mask columns: " << cols2 << " should be " << cols << std::endl;
+  }
+  if (rows2 != rows) {
+	std::cerr << "wrong erasure mask rows: " << rows2 << " should be " << rows << std::endl;
+  }
+  binary_matrix H(rows,cols);
+  read_pbm_data(file,H);
+  if (res !=PBM_OK) {
+    std::cerr << "Error " << res << " reading erasure mask matrix."  << std::endl; std::exit(1);
+    fclose(file);
+    exit(-1);
+  }
+  fclose(file);
+  
 
   //
   // Initialize dictionary
   //
-  initialize_dictionary(X,D,A);
-  binary_matrix E(N,M);
+  binary_matrix D,A;
+  if (dname) {
+    file = fopen(dname,"r");
+    if (!file) return -1;
+    idx_t colsd;
+    read_pbm_header(file,K,colsd);
+    if (colsd != cols) {
+      std::cerr << "Dictionary dimension " << colsd << " does not match data dimension " << cols << "." << std::endl;
+      fclose(file);
+      exit(-1);
+    }
+    D.allocate(K,colsd);
+    read_pbm_data(file,D);
+    if (res !=PBM_OK) {
+      std::cerr << "Error " << res << " reading image."  << std::endl; std::exit(1);
+      fclose(file);
+      exit(-1);
+    }
+    fclose(file);
+  } else {
+    D.allocate(K,cols);
+    initialize_dictionary(X,H,D,A);
+  }
+  A.allocate(rows,K);
+  A.clear();
+  std::cout << "cols=" << cols << " rows=" << rows << " K=" << K << std::endl;
+  binary_matrix E(rows,cols);
+  if (force_mosaic)
+    render_mosaic(D,"denoising_initial_dictionary.pbm");
   //
-  //  2. learn model
+  //  2. further update dictionary
   //
-  learn_model(X,E,D,A);
+  std::cout << "Further adapting dictionary to data." << std::endl;
+  learn_model(X,H,E,D,A);
+  render_mosaic(D,"denoising_adapted_dictionary.pbm");
+  //
+  // 3. denoise: average number of errors in Bernoulli(p) on a
+  //    vector of length cols is colsp
+  //
+  const idx_t me = cols*error_probability;
+  std::cout << "Denoising. <<" << std::endl;
+  std::cout << "Average number of errors per row " << me << std::endl;
+  A.clear();
+  encode_samples(X,H,D,A,K,me);  
+  X.copy_to(E); // at this point X contains the residual
+  std::cout << "Average residual weight=" << (double)E.weight()/(double)rows << std::endl;
+  std::cout << "Average coefficients weight=" << (double)A.weight()/(double)rows << std::endl;
+  mul(A,false,D,false,X); // now X is the estimated denoised signal
   //
   // 3. write output
   //
   write_pbm(D,"dictionary.pbm");
   write_pbm(A,"coefficients.pbm");
-  write_pbm(E,"residual.pbm");
-  if (image_mode) {
-    render_mosaic(D,"atoms_mosaic.pbm");
-    idx_t Ny = (W-1+rows)/W;
-    idx_t Nx = (W-1+cols)/W;
-    idx_t li = 0;
-    binary_matrix P(W,W),V(1,W*W);
-    for (idx_t i = 0; i < Ny; i++) {
-      for (idx_t j = 0; j < Nx; j++,li++) {
-	//     std::cout << "n=" << li << std::endl;
-        E.copy_row_to(li,V);
-        P.set_vectorized(V);
-        X.set_submatrix(i*W,j*W,P);
-      }
-    }  
-    P.destroy();
-    V.destroy();
-    fX = fopen("residual.pbm","w");
-    if (!fX) return -2;
-    write_pbm(X,fX);
-    fclose(fX);
-  } else {
-    if (force_mosaic)
-      render_mosaic(D,"atoms_mosaic.pbm");
-  }
-  if (force_residual_mosaic) {
-    render_mosaic(E,"residual_mosaic.pbm");
-  }
-  mul(A,false,D,false,E);
-  add(E,X,E);
-  std::cout << "|E|" << E.weight() << std::endl;
+  write_pbm(X,oname);
   A.destroy();
   E.destroy();
   D.destroy();
