@@ -93,6 +93,7 @@ public:
  /** @return the total number of bits of the matrix */
  inline idx_t get_len() const { return len; }
 
+ inline bool empty() const { return get_len() > 0; }
  /**
   * Sets all bits to zero. FIX: will erase whole block!
   */
@@ -177,7 +178,11 @@ public:
 
  void destroy() { delete[] data; memset(this,0,sizeof(binary_matrix)); }
 
+ /** Hamming distance */
  friend idx_t dist(const binary_matrix& A, const binary_matrix& B);
+
+ /** Weighted distance in this context  means take only into account differences when W(i,j)=1 */
+ friend idx_t weighted_dist(const binary_matrix& A, const binary_matrix& B, const binary_matrix& W);
 
  binary_matrix& operator=(const binary_matrix& A);
 

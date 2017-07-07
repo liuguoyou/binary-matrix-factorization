@@ -511,6 +511,23 @@ idx_t dist(const binary_matrix& A, const binary_matrix& B)
   return w;
 }
 
+idx_t weighted_dist(const binary_matrix& A, const binary_matrix& B, const binary_matrix& W) {
+  assert(A.rows == B.rows);
+  assert(A.cols == B.cols);
+  assert(A.rows == W.rows);
+  assert(A.cols == W.cols);
+  
+  const idx_t M = A.rows;
+  const idx_t Nb = A.blocks_per_row;
+  idx_t w = 0;
+  for (idx_t i = 0; i < M; ++i) {      
+    for (idx_t j = 0; j < Nb; ++j) {
+      w += block_weight((A.get_block(i,j) ^ B.get_block(i,j)) & W.get_block(i,j));
+    }
+  } 
+  return w;
+}
+
 
 // C is assumed to have been allocated and have the appropriate dimension
 binary_matrix& mul_AB(const binary_matrix& A, const binary_matrix& B, binary_matrix& C)
