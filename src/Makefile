@@ -24,7 +24,7 @@ EXP=$(patsubst %.cpp,%,$(EXPSRC))
 ifdef DEBUG
 CFLAGS=-DDEBUG -O -Wall -g -fopenmp
 else
-CFLAGS=-O3 -Wall -Wno-unused-variable -Wno-unused-parameter -fopenmp -msse4 -Wextra
+CFLAGS=-O3 -Wall -Wno-unused-variable -Wno-unused-parameter -fopenmp -msse4
 endif
 
 all: $(OBJ) $(TOOL) $(TEST) $(EXP)
