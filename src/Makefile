@@ -40,13 +40,13 @@ tools: $(TOOL)
 	g++ $(CFLAGS) -c -o $@ $<
 
 %_test: %_test.cpp $(HDR) $(OBJ) Makefile
-	g++  $(CFLAGS) -Wall -o $@ $< $(OBJ) -lgsl -lgslcblas -lm
+	g++  $(CFLAGS)  -o $@ $< $(OBJ) -lgsl -lgslcblas -lm
 
 %_exp: %_exp.cpp $(HDR) $(OBJ) Makefile
-	g++  $(CFLAGS) -Wall -o $@ $< $(OBJ) -lgsl -lgslcblas -lm
+	g++  $(CFLAGS)  -o $@ $< $(OBJ) -lgsl -lgslcblas -lm
 
 %_tool: %_tool.cpp $(HDR) $(OBJ) Makefile
-	g++  $(CFLAGS) -Wall -o $@ $< $(OBJ) -lgsl -lgslcblas -lm
+	g++  $(CFLAGS)  -o $@ $< $(OBJ) -lgsl -lgslcblas -lm
 
 clean:
 	rm -f $(TEST) $(TOOL) $(EXP) $(OBJ)

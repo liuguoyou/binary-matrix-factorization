@@ -19,7 +19,7 @@
  * There is a POPCNT CPU extension in intel-base 64 bit processors since 2014,
  * but I don't want to be compiler dependent for now.
  */
-static idx_t block_weight(const block_t& v)
+static idx_t block_weight_gen(const block_t& v)
 {
   static const unsigned char byte_weight_table[256] = 
 {
@@ -37,7 +37,7 @@ static idx_t block_weight(const block_t& v)
 }
 
 /* parity computation, much faster than sum */
-static bool block_sum(const block_t& v) {
+static bool block_sum_gen(const block_t& v) {
   static const bool byte_parity_table[256] = {
 #   define P2(n) n, n^1, n^1, n
 #   define P4(n) P2(n), P2(n^1), P2(n^1), P2(n)

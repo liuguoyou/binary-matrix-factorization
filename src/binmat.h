@@ -10,6 +10,19 @@ typedef unsigned long block_t;
 //typedef unsigned char block_t; // for debugging!
 //typedef unsigned short block_t; // for debugging!
 
+#ifdef __GNUC_
+#define block_weight(a) __builtin_popcountl(a)
+#else
+#define block_weight(a) block_weight_gen(a)
+#endif
+
+
+#ifdef __GNUC_
+#define block_sum(a) __builtin_parityl(a)
+#else
+#define block_sum(a) block_sum_gen(a)
+#endif
+
 #define BITS_PER_BLOCK (sizeof(block_t)*8)
 #define ONES   (~block_t(0))
 #define ZEROES (block_t(0))
@@ -93,7 +106,7 @@ public:
  /** @return the total number of bits of the matrix */
  inline idx_t get_len() const { return len; }
 
- inline bool empty() const { return get_len() > 0; }
+ inline bool empty() const { return get_len() == 0; }
  /**
   * Sets all bits to zero. FIX: will erase whole block!
   */
