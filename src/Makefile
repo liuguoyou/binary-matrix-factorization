@@ -3,6 +3,7 @@ HDR=$(wildcard *.h)
 OBJ=bsvd.o \
 	initialize_dictionary.o\
 	 update_dictionary.o\
+	 update_dictionary_missing_data.o\
 	 encode_samples.o\
 	 random_number_generation.o\
 	 config.o\
@@ -24,7 +25,7 @@ EXP=$(patsubst %.cpp,%,$(EXPSRC))
 ifdef DEBUG
 CFLAGS=-DDEBUG -O -Wall -g -fopenmp
 else
-CFLAGS=-O3 -Wall -Wno-unused-variable -Wno-unused-parameter -fopenmp -msse4
+CFLAGS=-O3 -Wall -Wno-unused-variable -Wno-unused-parameter -fopenmp -msse3
 endif
 
 all: $(OBJ) $(TOOL) $(TEST) $(EXP)

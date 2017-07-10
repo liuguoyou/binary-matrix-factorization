@@ -1,12 +1,11 @@
 #include "update_dictionary.h"
 #include <omp.h>
 
-idx_t update_dictionary_steepest(binary_matrix& E,
-				 const binary_matrix& H,
-				 binary_matrix& D,
-				 binary_matrix& A)
+idx_t update_dictionary_steepest_missing_data(binary_matrix& E,
+					      const binary_matrix& H,
+					      binary_matrix& D,
+					      binary_matrix& A)
 {
-  if (!H.empty()) { return update_dictionary_steepest_missing_data(E,H,D,A); }
   //
   // DICTIONARY UPDATE STEP
   // For each atom,
@@ -72,12 +71,11 @@ idx_t update_dictionary_steepest(binary_matrix& E,
 } // end
 
 
-idx_t update_dictionary_proximus(binary_matrix& E,
-				 const binary_matrix& H,
-				 binary_matrix& D,
-				 binary_matrix& A)
+idx_t update_dictionary_proximus_missing_data(binary_matrix& E,
+					      const binary_matrix& H,
+					      binary_matrix& D,
+					      binary_matrix& A)
 {
-  if (!H.empty()) { return update_dictionary_proximus_missing_data(E,H,D,A); }
   //
   // DICTIONARY UPDATE STEP
   // For each atom dk,
@@ -284,12 +282,11 @@ idx_t update_dictionary_proximus(binary_matrix& E,
 } // end
 
 
-idx_t update_dictionary_steepest_omp(binary_matrix& E,
-				     const binary_matrix& H,
-				     binary_matrix& D,
-				     binary_matrix& A)
+idx_t update_dictionary_steepest_missing_data_omp(binary_matrix& E,
+						  const binary_matrix& H,
+						  binary_matrix& D,
+						  binary_matrix& A)
 {
-  if (!H.empty()) { return update_dictionary_steepest_missing_data_omp(E,H,D,A); }
   //
   // DICTIONARY UPDATE STEP
   // For each atom,
@@ -372,12 +369,11 @@ idx_t update_dictionary_steepest_omp(binary_matrix& E,
 } // end
 
 
-idx_t update_dictionary_proximus_omp(binary_matrix& E,
-				     const binary_matrix& H,
-				     binary_matrix& D,
-				     binary_matrix& A)
+idx_t update_dictionary_proximus_missing_data_omp(binary_matrix& E,
+						  const binary_matrix& H,
+						  binary_matrix& D,
+						  binary_matrix& A)
 {
-  if (!H.empty()) { return update_dictionary_proximus_missing_data_omp(E,H,D,A); }
   //
   // DICTIONARY UPDATE STEP
   // For each atom dk,

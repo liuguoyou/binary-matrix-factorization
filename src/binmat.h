@@ -10,14 +10,14 @@ typedef unsigned long block_t;
 //typedef unsigned char block_t; // for debugging!
 //typedef unsigned short block_t; // for debugging!
 
-#ifdef __GNUC_
+#ifdef __GNUC__
 #define block_weight(a) __builtin_popcountl(a)
 #else
 #define block_weight(a) block_weight_gen(a)
 #endif
 
 
-#ifdef __GNUC_
+#ifdef __GNUC__
 #define block_sum(a) __builtin_parityl(a)
 #else
 #define block_sum(a) block_sum_gen(a)
