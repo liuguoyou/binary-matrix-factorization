@@ -23,9 +23,9 @@ EXPSRC=$(wildcard *_exp.cpp)
 EXP=$(patsubst %.cpp,%,$(EXPSRC))
 
 ifdef DEBUG
-CFLAGS=-DDEBUG -O -Wall -g -fopenmp
+CFLAGS=-DDEBUG -O -Wall -g -fopenmp -march=native -mtune=native
 else
-CFLAGS=-O3 -Wall -Wno-unused-variable -Wno-unused-parameter -fopenmp -msse3
+CFLAGS=-O3 -Wall -Wno-unused-variable -Wno-unused-parameter -fopenmp -msse3 -march=native -mtune=native
 endif
 
 all: $(OBJ) $(TOOL) $(TEST) $(EXP)
