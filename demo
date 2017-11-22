@@ -10,5 +10,5 @@ src/bsvd_learn_exp -i 1 -l 4 -k 10 -m 1 data/usps_data.pbm
 mv *pbm res/usps/
 
 mkdir res/einstein
-src/bsvd_learn_exp -l 4 -k 20 -I 1 data/einstein.pbm
+src/bsvd_learn_exp -i 1 -l 4 -k 20 -I 1 data/einstein.pbm
 mv *pbm res/einstein/
