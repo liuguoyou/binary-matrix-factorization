@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
   // compute mode
   // 
   fmode = fopen("mode.pbm","w");
-  fprintf(fmode,"P4 1 %lu\n",m); 
+  fprintf(fmode,"P4 4 %lu\n",m); 
   if (!fmode)
     return 2;
   modes = (char*) malloc(m*sizeof(char));
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
   r = getline(&line,&len,fin); // skip header
   while (getline(&line,&len,fin) > 0) {
     tok = strtok(line," \n\t\r"); // skip gene name
-    tok = strtok(line," \n\t\r");
+    tok = strtok(NULL," \n\t\r");
     size_t j = 0;
     char cd = 0, cm = 0;
     while (tok) {
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
       tok = strtok(NULL," \n\t\r");
     }
     tmp[j] = 0;
-    puts(line);
+    puts(tmp);
     // now we've got a string of length n with '-','0','1' or '2'
     // we traverse it twice, and write TWO lines  on mask and dist
     // the first row is the 'least significant row'
@@ -297,7 +297,7 @@ int main(int argc, char* argv[]) {
 	break;
       }
       mask >>= 1;
-      if (!mask) {
+      if (mask) {
 	fputc(cd,fdist);
 	fputc(cm,fmask);
 	mask = 0x80;
@@ -315,11 +315,13 @@ int main(int argc, char* argv[]) {
     fputc('\n',fmask);
     fputc('\n',fdist);
   } // third pass loop
+  free(tmp);
   free(modes);
   fclose(fin);
   fclose(fmask);
   fclose(fdist);
   free(line);
+  
   return 0;
 }
   
