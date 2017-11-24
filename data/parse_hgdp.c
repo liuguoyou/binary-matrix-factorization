@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
   FILE* fmode = NULL;
   FILE* fdist = NULL;
   FILE* fmask = NULL;
-
+  FILE* fstat = NULL;
   char* line = NULL;
   char* tmp;
   size_t len;
@@ -79,15 +79,18 @@ int main(int argc, char* argv[]) {
   fprintf(fmode,"P4 4 %lu\n",m); 
   if (!fmode)
     return 2;
+  fstat = fopen("stat.txt","w");
+  if (!fstat)
+    return 2;
   modes = (char*) malloc(m*sizeof(char));
 
   printf("SECOND PASS.\n");
   rewind(fin);
   r = getline(&line,&len,fin); // skip header
   size_t i = 0;
-  int c = 0;
   while ((r = getline(&line,&len,fin)) > 0) {
     size_t ni = 0; 
+    size_t nobs = 0;
     tok = strtok(line," \n\t\r"); // skip gene name
     Af = Tf = Gf = Cf = 0;
     tok = strtok(NULL," \n\t\r");
@@ -95,32 +98,32 @@ int main(int argc, char* argv[]) {
       ni++;
       switch (tok[0])  { // first letter
       case 'A':
-	Af++;
+	Af++; nobs++;
 	break;
-      case 'T':
-	Tf++;
+      case 'T' :
+	Tf++; nobs++;
 	break;
       case 'G':
-	Gf++;
+	Gf++; nobs++;
 	break;
       case 'C':
-	Cf++;
+	Cf++; nobs++;
 	break;
       case '-':
 	break;
       }
       switch (tok[1])  { // first letter
       case 'A':
-	Af++;
+	Af++; nobs++;
 	break;
       case 'T':
-	Tf++;
+	Tf++; nobs++;
 	break;
-      case 'G':
-	Gf++;
+      case 'G': 
+	Gf++; nobs++;
 	break;
       case 'C':
-	Cf++;
+	Cf++; nobs++;
 	break;
       case '-':
 	break;
@@ -134,6 +137,11 @@ int main(int argc, char* argv[]) {
       fprintf(stderr,"Wrong number of colums (%lu should be %lu) at line %lu\n",ni,n,m);
       exit(7);
     }
+    fprintf(fstat,"%15.13f %15.13f %15.13f %15.13f\n",
+	    ((double)Af)/((double)nobs),
+	    ((double)Tf)/((double)nobs),
+	    ((double)Gf)/((double)nobs),
+	    ((double)Cf)/((double)nobs));
     //
     // compute and output mode to mode.pbm
     // A,T,G,C
@@ -155,43 +163,25 @@ int main(int argc, char* argv[]) {
     //
     // write two nibbles to  mode.pbm
     //
-    if (i % 2) {
-      c <<= 4;
-      switch (mode) {
-      case 'A':
-	c |= 0x01;
-	break;
-      case 'T':
-	c |= 0x02;
- 	break;
-      case 'G':
-	c |= 0x04;
-	break;
-      case 'C':
-	c |= 0x08;
-	break;
-      }
-      fputc(c,fmode);
-      c = 0;
-    } else {  
-      switch (mode) {
-      case 'A':
-	c = 0x01;
-	break;
-      case 'T':
-	c = 0x02;
-	break;
-      case 'G':
-	c = 0x04;
-	break;
-      case 'C':
-	c = 0x08;
-	break;
-      }
+    switch (mode) {
+    case 'A':
+      fputc(0x10,fmode);
+      break;
+    case 'T':
+      fputc(0x20,fmode);
+      break;
+    case 'G':
+      fputc(0x40,fmode);
+      break;
+    case 'C':
+      fputc(0x80,fmode);
+      break;
     }
+    printf("line %lu mode %c\n",i,mode);
     i++;
   } // end second pass
   fclose(fmode);
+  fclose(fstat);  
   if (m == 0) {
     fprintf(stderr,"Empty or invalid file: %s\n",argv[1]);
     exit(6);
@@ -219,7 +209,7 @@ int main(int argc, char* argv[]) {
     tok = strtok(line," \n\t\r"); // skip gene name
     tok = strtok(NULL," \n\t\r");
     size_t j = 0;
-    char cd = 0, cm = 0;
+    unsigned char cd = 0, cm = 0;
     while (tok) {
       const char a = tok[0];
       const char b = tok[1];
@@ -244,12 +234,12 @@ int main(int argc, char* argv[]) {
       tok = strtok(NULL," \n\t\r");
     }
     tmp[j] = 0;
-    puts(tmp);
+    //puts(tmp);
     // now we've got a string of length n with '-','0','1' or '2'
     // we traverse it twice, and write TWO lines  on mask and dist
     // the first row is the 'least significant row'
     // and can only be '1' if dist='1'
-    char mask = 0x80;
+    unsigned int mask = 0x80;
     for (j = 0; j < n; j++) {      
       switch (tmp[j]) {
       case '-': // 0
@@ -272,7 +262,6 @@ int main(int argc, char* argv[]) {
 	mask = 0x80;
       }
     }
-    puts("Tail");
     if (mask) { // did not finish byte
       while (mask) {
 	cd <<= 1;
@@ -281,6 +270,7 @@ int main(int argc, char* argv[]) {
       }
       fputc(cd,fdist);
       fputc(cm,fmask);      
+      //printf("Tail mask=%x dist=%x\n",(unsigned int)cd,(unsigned int)cm);
     }
     // second 'most significant' row, can only be '1' if dist='2'
     for (j = 0; j < n; j++) {      
@@ -305,7 +295,7 @@ int main(int argc, char* argv[]) {
 	mask = 0x80;
       }
     }
-    puts("Tail");
+    //puts("Tail");
     if (mask) { // did not finish byte
       while (mask) {
 	cd <<= 1;
@@ -316,16 +306,15 @@ int main(int argc, char* argv[]) {
       fputc(cm,fmask);      
     } 
     i++;
-    fputc('\n',fmask);
-    fputc('\n',fdist);
   } // third pass loop
+  //fputc('\n',fmask);
+  //fputc('\n',fdist);
   free(tmp);
   free(modes);
   fclose(fin);
   fclose(fmask);
   fclose(fdist);
   free(line);
-  
   return 0;
 }
   
