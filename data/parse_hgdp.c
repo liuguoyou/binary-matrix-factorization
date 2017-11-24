@@ -177,7 +177,8 @@ int main(int argc, char* argv[]) {
       fputc(0x80,fmode);
       break;
     }
-    printf("line %lu mode %c\n",i,mode);
+    if (!(i % 10000)) 
+      printf("%10lu/%10lu\b",i,m);
     i++;
   } // end second pass
   fclose(fmode);
@@ -186,13 +187,12 @@ int main(int argc, char* argv[]) {
     fprintf(stderr,"Empty or invalid file: %s\n",argv[1]);
     exit(6);
   }
-  printf("THIRD PASS.\n");
+  printf("\nTHIRD PASS.\n");
 
   tmp = (char*)malloc(n*sizeof(char));
   //
   // third pass: generate dist and mask
   //
-  printf("Input file has %lu rows and %lu columns.\n",m,n);
   
   fdist = fopen("dist.pbm","w");
   if (!fdist) return 3;	 
@@ -260,18 +260,15 @@ int main(int argc, char* argv[]) {
 	fputc(cd,fdist);
 	fputc(cm,fmask);
 	mask = 0x80;
+	cd = cm = 0;
       }
     }
     if (mask) { // did not finish byte
-      while (mask) {
-	cd <<= 1;
-	cm <<= 1;
-	mask >>= 1;
-      }
       fputc(cd,fdist);
       fputc(cm,fmask);      
       //printf("Tail mask=%x dist=%x\n",(unsigned int)cd,(unsigned int)cm);
     }
+    mask = 0x80;
     // second 'most significant' row, can only be '1' if dist='2'
     for (j = 0; j < n; j++) {      
       switch (tmp[j]) {
@@ -293,22 +290,19 @@ int main(int argc, char* argv[]) {
 	fputc(cd,fdist);
 	fputc(cm,fmask);
 	mask = 0x80;
+	cd = cm = 0;
       }
     }
     //puts("Tail");
     if (mask) { // did not finish byte
-      while (mask) {
-	cd <<= 1;
-	cm <<= 1;
-	mask >>= 1;
-      }
       fputc(cd,fdist);
       fputc(cm,fmask);      
     } 
+    if (!(i % 10000)) 
+      printf("%10lu/%10lu\b",i,m);
     i++;
   } // third pass loop
-  //fputc('\n',fmask);
-  //fputc('\n',fdist);
+  printf("\nDONE.\n");
   free(tmp);
   free(modes);
   fclose(fin);
