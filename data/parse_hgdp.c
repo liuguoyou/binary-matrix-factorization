@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 /**
  * This program reads a genome data file formatted as those that can be downloaded from the Human
  * Genome Project, that is, a space separated plain text file where pairs of nucleotides are
@@ -188,7 +189,9 @@ int main(int argc, char* argv[]) {
     exit(6);
   }
   printf("\nTHIRD PASS.\n");
-
+  unsigned nbytes = (unsigned)ceil((double)n/((double)8));
+  printf("Bytes per row: %u\n",nbytes);
+  printf("Total data bytes: %lu\n",nbytes*m*2);
   tmp = (char*)malloc(n*sizeof(char));
   //
   // third pass: generate dist and mask
@@ -198,8 +201,8 @@ int main(int argc, char* argv[]) {
   if (!fdist) return 3;	 
   fmask = fopen("mask.pbm","w");
   if (!fmask) return 4;
-  fprintf(fdist,"P4 %lu %lu 8\n",2*m,n);
-  fprintf(fmask,"P4 %lu %lu\n",2*m,n);
+  fprintf(fdist,"P4 %lu %lu\n",n,2*m);
+  fprintf(fmask,"P4 %lu %lu\n",n,2*m);
   // now parse each line; write to fdist and fmask
   //
   i = 0;  
