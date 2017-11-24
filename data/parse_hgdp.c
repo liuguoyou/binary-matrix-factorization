@@ -272,10 +272,12 @@ int main(int argc, char* argv[]) {
 	mask = 0x80;
       }
     }
+    puts("Tail");
     if (mask) { // did not finish byte
       while (mask) {
 	cd <<= 1;
 	cm <<= 1;
+	mask >>= 1;
       }
       fputc(cd,fdist);
       fputc(cm,fmask);      
@@ -297,16 +299,18 @@ int main(int argc, char* argv[]) {
 	break;
       }
       mask >>= 1;
-      if (mask) {
+      if (!mask) {
 	fputc(cd,fdist);
 	fputc(cm,fmask);
 	mask = 0x80;
       }
     }
+    puts("Tail");
     if (mask) { // did not finish byte
       while (mask) {
 	cd <<= 1;
 	cm <<= 1;
+	mask >>= 1;
       }
       fputc(cd,fdist);
       fputc(cm,fmask);      
