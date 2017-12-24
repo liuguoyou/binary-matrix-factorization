@@ -45,14 +45,20 @@ void initialize_dictionary_random_centroids(const binary_matrix& E,
   const idx_t m = E.get_cols();
   const idx_t n = E.get_rows();
   const idx_t p = D.get_rows();
+  idx_t** s;
+  idx_t* u;
+  s = new idx_t*[p];
+  for (idx_t i = 0; i < p; i++)  {
+    s[i] = new idx_t[m];
+    std::fill(s[i],s[i]+m,0);
+  }
+  u = new idx_t[p];
+  std::fill(u,u+p,0);
   binary_matrix Dk(1,m);
   binary_matrix Ei(1,m);
+  
   A.clear();
   D.clear();
-  idx_t s[p][m];
-  idx_t u[p];
-  std::fill(&s[0][0],&s[0][0]+m*p,0);
-  std::fill(u,u+p,0);
   idx_t S = 0;
   for (idx_t i = 0; i < n; ++i) {
     idx_t k = get_uniform_unsigned_sample(p);
@@ -70,6 +76,9 @@ void initialize_dictionary_random_centroids(const binary_matrix& E,
   }
   Ei.destroy();
   Dk.destroy();
+  delete[] u;
+  for (idx_t i = 0; i < p; i++) delete[] s[i];
+  delete[] s;
 }
 
 /**
@@ -209,10 +218,16 @@ void initialize_dictionary_graph_grow(const binary_matrix& E,
   binary_matrix Ei(1,m);
   A.clear();
   D.clear();
-  idx_t s[p][m]; // part representation
-  idx_t u[p]; // elements in each part
-  bool t[n]; //mark if a given sample was selected
-  std::fill(&s[0][0],&s[0][0]+m*p,0);
+  idx_t** s;
+  idx_t* u;
+  idx_t* t;
+  s = new idx_t*[p];
+  for (idx_t i = 0; i < p; i++)  {
+    s[i] = new idx_t[m];
+    std::fill(s[i],s[i]+m,0);
+  }
+  u = new idx_t[p];
+  t = new idx_t[n];
   std::fill(u,u+p,0);
   std::fill(t,t+n,false);
   //
@@ -295,7 +310,10 @@ void initialize_dictionary_graph_grow(const binary_matrix& E,
     for (idx_t j = 0; j < m; ++j) 
       D.set(k,j,(s[k][j]<<1) >= u[k]);
   }
-  
+  delete[] t;
+  delete[] u;
+  for (idx_t i = 0; i < p; i++) delete[] s[i];
+  delete[] s; 
   Ei.destroy();
   Dk.destroy();
 }

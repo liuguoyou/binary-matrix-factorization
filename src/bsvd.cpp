@@ -137,7 +137,7 @@ idx_t learn_model_alter2(binary_matrix& X,
   binary_matrix At(K,N);
   binary_matrix Et(M,N);
   binary_matrix Ht(M,N);
-  H.transpose_to(Ht);
+  if (!H.empty()) H.transpose_to(Ht);
   idx_t changed = 1;
   idx_t iter = 0;
 //  std::cout << "iter=" << std::setw(8) << iter 
@@ -215,7 +215,7 @@ idx_t learn_model_alter3(binary_matrix& X,
   binary_matrix At(K,N);
   binary_matrix Et(M,N);
   binary_matrix Ht(M,N);
-  H.transpose_to(Ht);
+  if (!H.empty()) H.transpose_to(Ht);
   idx_t changed = K+1;
   idx_t iter = 0;
 //  std::cout << "iter=" << std::setw(8) << iter 
