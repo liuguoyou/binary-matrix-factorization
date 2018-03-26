@@ -14,35 +14,56 @@ We propose a binary matrix factorization method which combines tools from signal
 \section{introduction}
 
 We consider the problem of approximating a binary matrix $X \in \{0,1\}^{m{\times}n}$ as the product of two other binary matrices $U \in \{0,1\}^{m{\times}k}$ and $V \in \{0,1\}^{n{\times}p}$ plus a third \emph{residual} matrix $E$,
-
 \begin{equation}
 X = UV\transp + E.
 \label{eq:mf}
 \end{equation}
-
 The problem \refeq{eq:mf} has been addressed using various methods from different fields for over a hundred years. A famous example is Principal Component Analysis (PCA), pioneered by Pearson~\cite{pearson01}. The PCA method is based on the Singular Value Decomposition (SVD) of a matrix, $X=U{\Sigma}V\transp$ where $U$ and $V$ are matrices of $p=\min\{m,k\}$  orthogonal columns each and $\Sigma$ is a diagonal $p{\times}p$ matrix whose diagonal elements $\sigma_{11} \geq \sigma_{22} \geq \ldots \geq \sigma_{pp} \geq 0$, are the so-called \emph{singular values} of $X$. The PCA method decomposes $X$ by selecting the first $p' \leq p$ columns of $U$, $V$, and upper-left $p'{\times}p'$ submatrix of $\Sigma$ to form an approximation of $X$, $X'=U'\Sigma'(V')\transp$. It can be shown that $X'$ is the rank-$p'$ matrix that best approximates $X$ in Frobenius norm.
 
-Dozens of variants, with different properties, have been developed since PCA was first proposed. Some methods target the robustness of PCA against perturbations in the entries of $X$. These are generally called Robust PCA methods; see~\cite{rpca-review} for a review. Other methods impose additional restrictions on the factors; a popular one is to enforce $U$ and $V$ in \refeq{eq:mf} to be non-negative, resulting in the so called Nonnegative Matrix Factorization (NMF) family of methods~\cite{nmf-review}.
-
-The restriction of non-negativity is often imposed to improve interpretability (all are positive contributions) or because the factors are expected to be non-negative by the nature of the problem to be solved (e.g., they represent natural magnitudes which are non-negative, such as death rates of probabilities). For similar reasons, in different contexts, there are especial methods for matrices whose entries cannot be reasonably assumed to be real numbers. A mild step is to restrict them to be integers or naturals; these still retain all the properties of a full-blown field (as a numebr-theoretic concept): their colums or rows can be considered to lie in a normed space, distances and ordering exist between the elements, etc. In other situations, only a relative order can be established. Finally, the entries may be categories (such as the names of Futbol Teams) for which there is no reasonable relationship  but ``equal'' or ``different''. We call such matrices \emph{categorical}. Binary matrices, which admit only two possible values for their entries (say $0$ and $1$ to fix concepts), are an interesting type which can be considered both categorical and numeric at the same time. Their values may be considered labels, and yet $\{0,1\}$. bha bla bha
+Dozens of variants, with different properties, have been developed since PCA was first proposed. Some methods target the robustness of PCA against perturbations in the entries of $X$. These are generally called Robust PCA methods; see~\cite{rpca-review} for a review. 
 
 
-Finally, there are several methods which are in fact instances of MF although they were not conceived to be so. Two very popular methods which lie at the core of our proposed solution, \emph{dictionary learning} and \emph{tile searching}, come from very different fields. The former was developed in the 2000's~\cite{olshausen97,engan00,elad06} within the field of signal processing; the latter was developed in the 1990's within the field of data mining~\cite{proximus}. 
+Other methods impose additional restrictions on the factors; a popular one is to enforce $U$ and $V$ in \refeq{eq:mf} to be non-negative, resulting in the so called Nonnegative Matrix Factorization (NMF) family of methods~\cite{nmf-review}. The restriction of non-negativity is often imposed to improve interpretability  or because the factors are expected to be non-negative by the nature of the problem to be solved (e.g., probabilities). For similar reasons, in different contexts, some matrices cannot be reasonably assumed to be real numbers. If the matrix entries should be integer (or naturals), the usual approach is to treat them as real (or non-negative) numbers anyway and then truncate the result. In other situations, only a relative order between the values can be established. A  more complicated setting is when the entries are just categories or labels (such as Football Teams) for which there is no reasonable relationship  but ``equal'' or ``different''. We call such matrices \emph{categorical}. Binary matrices, which admit only two possible values for their entries (say $0$ and $1$ to fix concepts), are an interesting type which can be considered both categorical and numeric at the same time: their values may be considered labels, but can also be considered numbers and an algebra may be constructed to operate on them, vector spaces can be defined with its entries, etc. Perhaps because of this, previous works under the \emph{binary matrix factorization} keyword still rely on real-valued matrix factorization methods~\cite{bmf-prev}; for example, constraints can be added so that the factors are within the $[0,1]$ range.
 
-The aim of \emph{Dictionary Learning} methods is (para que se inventó)
-Que particularidades tiene desde el punto de vista de mf
+Finally, there are several methods which are in fact instances of MF although they were not conceived to be so. Two very popular methods which lie at the core of our proposed solution, \emph{dictionary learning} and \emph{tile searching}, come from very different fields. The former was developed in the 2000's~\cite{olshausen97,engan00,elad06} within the field of signal processing; the latter was developed in the 1990's within the field of data mining~\cite{proximus}. We will go into more detail on these two techniques in the next section.
 
+This work proposes a novel method for binary matrix factorization which combines ideas and tools from dictionary learning and tile searching methods while relying entirely on binary algebras which are in turn implemented using the standard bit-wise operators available in any microprocessor, plus the vectorized operations available in most modern processors~\footnote{Of particular impact is the recent addition of the single-instruction \texttt{popcount}~\cite{popcount} operation to Intel processors, which makes summation and inner products even more efficient.}. The result is an extremely fast and scalable method, specially when compared to its real-relaxation counterparts. 
+
+Despite the restriction to binary operations, the convergence guarantees offered by our method are no worse than those of most matrix factorization methods (with the exception of PCA, which can be solved exactly) and, in particular, dictionary learning;  as most MF problems are non-convex, the solutions can be guaranteed to be locally optimal at best, and this carries out to our case as well. Furthermore, being of discrete nature, our method is guaranteed to converge in a finite number of steps. This is also a crucial advantage over generic MF methods in terms of speed and accuracy.
+
+Finally, we show that the results obtained with our method are clearly interpretable in a variety of cases; we also show how to apply them to perform standard restoration tasks such as classification and correcting noisy or corrupt datum (denoising).
+
+The rest of this document is organized as follows: Section~\ref{sec:dictionary-learning} is devoted to describing the basic ideas and methods in dictionary learning. Section~\ref{sec:proximus} describes the ideas behind tile searching and, in particular, the PROXIMUS~\cite{proximus} method, from which some key steps of our algorithm and its properties are derived. Section~\ref{sec:b-svd} describes our proposed method, its properties, discusses some interesting variants and proposes efficient strategies for dealing with the problem of model selection (which in in this case amounts to choosing the rank of the factors). Section~\ref{sec:applications} showcases how to apply the result of our method to the problems of classification and denoising.
+We present and discuss the results obtained on those problems in Section~\ref{sec:results}, and provide concluding remarks in Section~\ref{sec:conclusion}.
+
+\section{Dictionary Learning and K-SVD}
+
+The aim of \emph{Dictionary Learning} methods is to obtain efficient representations of specific types of signals in terms of basis or \emph{frames}~\cite{frame-review} which are adapted to the particularities of the signal type at hand. This is in contrast to the traditional approach where fixed transforms such as the Discrete Fourier Transform (DFT) or any of the wide family of Discrete Wavelet Transforms (DWT) are used to compactly represent the salient data of signals such as audio tracks or natural images.
+
+SEGUIR
 
  problem which is particularly useful when $m \gg n$. In this case, contrary to the more general MF approach, the roles of $U$ and $V$ are quite different and, accordingly, both are estimated in quite different ways. More specifically, $U$ is called a dictionary (and usually assigned the letter $D$), whereas $V\transp=A$ is a matrix of ``linear combination coefficients''. The columns of the matrix $D$ are called ``atoms'' and are supposed to embody typical patterns observed throughout the columns of $X$, while the columns of $A$, usually assumed sparse, specify the linear combination of columns of $D$ that better approximates the corresponding columns of $X$.
 
-\paragraph{Data Mining} On the other hand, there is a large body of work from the Data Mining community on the subject of extracting general ``patterns'' from large matrices, in particular binary matrices. Some of those works are based on matrix factorization concepts, for example the Proximus algorithm~\cite{proximus},although most of them are quite heuristic.
+K-SVD
 
-\paragraph{Other ideas} Initially I was interested in connecting the above techniques with other learning frameworks aimed at binary data. In particular, the Bi-directional Auto-associative Memory (BAM) model~\cite{bam} was an early binary recurrent neural network.
+\section{Tile Searching and Proximus}
 
+Proximus
+Proximus
+Lorem ipsum Proximus
 
-\paragraph{Our approach} The idea here is very simple: to apply a Dictionary Learning approach to the problem of binary matrix factorization for those cases where the matrix $X$ is significantly ``fat'' $m \gg n$ (or, naturally, apply it to $X\transp$ when it is ``tall'', $m \ll n$). 
+%\paragraph{Data Mining} On the other hand, there is a large body of work from the Data Mining community on the subject of extracting general ``patterns'' from large matrices, in particular binary matrices. Some of those works are based on matrix factorization concepts, for example the Proximus algorithm~\cite{proximus},although most of them are quite heuristic.
+%
+%
+%\paragraph{Other ideas} Initially I was interested in connecting the above techniques with other learning frameworks aimed at binary data. In particular, the Bi-directional Auto-associative Memory (BAM) model~\cite{bam} was an early binary recurrent neural network.
+%
+%
+%\paragraph{Our approach} The idea here is very simple: to apply a Dictionary Learning approach to the problem of binary matrix factorization for those cases where the matrix $X$ is significantly ``fat'' $m \gg n$ (or, naturally, apply it to $X\transp$ when it is ``tall'', $m \ll n$). 
 
-\section{The Dictionary Learning approach}
+\section{Proposed Method: K-BVD}
+
+K-Binary Values Decomposition
+
 
 The problem \refeq{eq:mf} is generally non-convex. There are very special cases in which it can be solved exactly, or it reduces to a tractable convex problem under particular conditions. Most DL approaches fall into the general setting where \refeq{eq:mf} is NP-hard and only local convergence (to a stationary point) can be guaranteed. This is usually achieved through \emph{alternate (block) minimization} on $D$ and $A$,
 
@@ -62,7 +83,9 @@ D_r\iter{k+1} =& u_j/\|u_j\|_2,\;u_j = X(A\iter{k+1})\transp\left(A\iter{k+1}(A\
 where $A_j$ and $D_r$ are the $j$-th and $r$-th columns of $A$ and $D$ respectively. The first step corresponds to an $\ell_1$-regularized least squares regression problem on each column of $A$, also known as LASSO~\cite{lasso}.
 In the second step, each atom in the dictionary corresponds to a normalized down version of the least squares solution $u$; note that here it is customary as well to apply some sort of regularization so that $AA\transp$ is invertible (non-singular).
 
-\paragraph{K-SVD} Another popular approach to the dictionary learning problem is the  K-SVD method~\cite{ksvd}. In this case, $g(\cdot)$ corresponds to the $\ell_0$ pseudo-norm, which counts the number of non-zeros in a vector. The updates on $A$ are similar to MOD, but use a greedy method known as OMP (Orthogonal Matching Pursuit)~\cite{omp} to obtain an approximate solution,
+\subsection{K-SVD} 
+
+Another popular approach to the dictionary learning problem is the  K-SVD method~\cite{ksvd}. In this case, $g(\cdot)$ corresponds to the $\ell_0$ pseudo-norm, which counts the number of non-zeros in a vector. The updates on $A$ are similar to MOD, but use a greedy method known as OMP (Orthogonal Matching Pursuit)~\cite{omp} to obtain an approximate solution,
 
 
 \begin{algorithm}[ht]
@@ -94,12 +117,12 @@ D_j = U_1,\quad A^j=V^1,\quad E_j\iter{k+1} = U\Sigma V,
 
 The K-SVD dictionary step is significantly more costly than that of MOD, but usually requires significantly less iterations. MOD, however, is better suited for online dictionary adaptation, as fast approximations of the statistics $AA\transp$ (which can be thought of as the Hessian associated to minimizing $D$)  and $XA\transp$ can be efficiently updated on a sample to sample basis.
 
-\section{Binary Dictionary Learning}
+\subsection{K-BVD}
 
 The straightforward approach here is to adapt methods such as MOD or K-SVD to the case of binary matrices. One possibility is to simply use those methods as they are, possibly imposing constraints that enforce the entries in the results to be between $0$ and $1$.
 An alternative, more akin to works such as those done in Data Mining with the PROXIMUS algorithn, is to work directly on binary operands, using binary operations. 
 
-\subsection{Coefficients update}
+\paragraph{Coefficients update}
 
 First of all, the $\ell_0$ norm and the $\ell_1$ norms are the same for binary vectors, so both dictionary update methods from MOD and K-SVD can be treated together. (Actually, the $\ell_0$ norm is nothing else than the \emph{Hamming weight} or simply \emph{weight} of a binary vector $h(x)$, so we may call it by that name hereafter). 
 We thus consider the problem of minimizing $h(x_j - Da_j)$. Following the OMP idea of removing the closest atom at each iteration. The problem here is that we do not have normalized vectors, so dot product is not a good idea. 
@@ -122,7 +145,7 @@ Set iteration $k=0$, residual $r\iter{0}=x$, coefficients $a\iter{0}=0$\;
 
 Besides the differences mentioned, the algorithm also stops when the Hamming distance between the atom that is closest to the current residual is larger than the Hamming weight of the residual itself, as in such case there is no possible improvement.
  
- \subsection{Dictionary update -- MOD-like case}
+\subsection{Dictionary Update via Binarized MOD}
  
 Here we want to update each atom so that the Hamming weight of the total residual matrix $E = X \oplus DA$ is minimum (note that minus and plus are the same thing in modulo-2 arithmetic). Say we want to update the $r$-th atom at iteration $k$. Clearly, the affected columns will only be those for which the  coefficients in $A$  corresponding to that atom are non-zero, that is $\{j : A_{rj} \neq 0 \}$; let us call this set $J_r$ and $n_r$ its size. What we want is the update $\Delta$ that, when added to $D_r$, minimizes the weight of the residual $E$ in those colums affected by $D_r$,
  \begin{eqnarray}
@@ -150,7 +173,7 @@ From \refeq{eq:bdu3} we cleary obtain
 In other words, the $i$-th element of $D_r$ should be $0$ if most of the elements in the rows of $E$ affected by it are $0$, and $1$ otherwise. 
 This is clearly an optimum solution (note that there could be many optima  when $n_r$ is even, in which case we simply choose one).
 
-\subsection{Dictionary update -- K-SVD-like case}
+\subsection{Dictionary Update via Rank-One Binary Decomposition}
 
 In this case, following the K-SVD concept, we want to obtain the best rank-one approximation to the residual $E$ obtained after removing the contribution of $D_r$, 
 \begin{equation}
@@ -171,7 +194,7 @@ $$
 We can solve this separately for each $v_j$ simply by setting $v_j = 1$ is $h(E_j \oplus u) < h(E_j)$ and $v_j=0$ otherwise. The update on $u$ is identical. In both cases, the objective function can only decrease, the function is bounded and the domain is compact, so that the algorithm must converge to a local minimum. Because the set is finite, convergence is attained in a finite number of iterations. Usually this number is quite small.
 
 
-\section{Initialization}
+\subsection{Initialization}
 
 The above algorithms, which I will now call BDL and K-PROX (this is not a definitive name), are
 quite quite non-convex and nasty. Therefore, a clever initialization is always welcome. Here are
@@ -183,14 +206,13 @@ sense\footnote{It would actually be nice to do a serious formal analysis of why 
 work quite well with MNIST (it does much better than with neighbors on the demo included in the root
 directory of the project).
 
-\begin{description}
-\item[neighbors] Each atom $d_k$ is initialized using a randomly drawn sample from $X$, $c_k$. Then
+\paragraph{neighbors} Each atom $d_k$ is initialized using a randomly drawn sample from $X$, $c_k$. Then
   it $d_k$ is
   computed as the Hamming average of all samples $x$ so that $c_k\transp x > 0$, that is, so that
   they have at least one dimension where both $c_k$ and $x$ are $1$. \footnote{This again is a lame method for
   very fat matrices, as there will be so many of such samples, and if noise is present. Some more
   intelligent criterion must be devised for the dictionary learning case.}
-\item[graph grow] This is actually a variant of the original graph grow algorithm. Given $K$ as the
+\paragraph{graph grow} This is actually a variant of the original graph grow algorithm. Given $K$ as the
   number of atoms to initialize, the method starts by drawing $K$ initial (different) samples from the
   data set $X$ and associates a \emph{weight} vector $w$ to it, which is initialized to the value of the
   corresponding random sample. Then it randomly draws one previously unused sample $x$ from $X$ and adds
@@ -201,16 +223,15 @@ $$(w\opt)\transp x/\|w\opt\|_1 \geq
   samples from $X$ which were added to $w_k$. This is a \emph{soft} version of the original graph grow algorithm, where the
   criterion used to assign a sample to a given atom $k$ is based on the Hamming distance between $w$
   and a sample $x$.
-\item[partition] Works only when $K \leq M$. This implementation ranks the 
+\paragraph{partition} Works only when $K \leq M$. This implementation ranks the 
   dimensions of the data matrix $X$ (that is, the number of columns of $X$) in descending weight order. Then, each atom
   $k$ is initialized as the Hamming average of all samples in $X$ which have a value of $1$ in the $k$-th
   ranked dimension.
-\item[random samples] $D$. Given a number $K$ of atoms, each data sample is randomly assigned to one
+\paragraph{random samples} $D$. Given a number $K$ of atoms, each data sample is randomly assigned to one
   atom. The $K$ atoms are then the average (element-wise majority vote) of all the samples to which
   they were assigned.\footnote{Now that I write this down, I don't think this kind of initialization makes ANY sense!!!!}
-\end{description}
 
-\section{Learning variants}
+\subsection{Learning variants}
 
 I implemented several variants of the above algorithms, most of them just change the order in which some updates are made, or switch the roles of dictionary and coefficients alternatively, so that the method can be used on a broader class of data.
  
@@ -222,7 +243,7 @@ I implemented several variants of the above algorithms, most of them just change
 \item Role switched learning III: like type I but only the dictionary update step is applied (for use with Proximus)
 \end{enumerate}
 
-\section{Model selection-powered learning variants}
+\section{Model selection}
 
 The following two methods are actually meant to choose the best from an ensemble of candidate dictionaries learned using one of the previous four methods (referred to as ``inner learning method'' in the implementation). MDL stands for Minimum Description Length, and is a criterion for model selection (that is, choosing the best model out of a set of competing models for describing some particular data) where the criterion used is, essentially, ``which of the models produces a more succint description of the data''; in other words, which model compresses the most.
  
@@ -296,6 +317,23 @@ l_c(x) = \min_a \|z_j - D\iter{t}a \|_2 + \tau  \|a\|_r.
 More so than in denoising, the success in this application depends largely  on the (critical) parameters $\tau$,  the $r$-norm  to be used, and the size of the dictionary $p$. These critical issues are treated in \cite{ramirez12tsp}.
 \end{itemize}
 
+\section{Results and discussion}
+
+\subsection{Denoising}
+
+FALTA
+
+\subsection{Missing data}
+
+FALTA
+
+\subsection{Classification}
+
+FALTA
+
+\section{Conclusion}
+
+FALTA
 
 \bibliographystyle{plain}
 \bibliography{bmf,sparse}
