@@ -1,16 +1,28 @@
 %\documentclass[a4paper,11pt]{article}
 \documentclass[a4paper]{IEEEtran}
+\usepackage[pdftex]{graphicx}
+\usepackage{amsmath}
+\usepackage{cite}
+\usepackage{array}
 \usepackage{algorithm2e}
+\usepackage{url}
 \input{notation.inc}
 \title{Binary Matrix Factorization}\author{Ignacio Ram\'{i}rez}
+%
+%
+%
 \begin{document}
-
+%
 \maketitle
+%
 \begin{abstract}
 Matrix factorization is a key tool in data analysis; its applications include recommender systems, correlation analysis, signal processing, among others. There are several ways to factorize a matrix: notorious examples include PCA and its robust versions. Binary matrices are of particular interest as they arise naturally in many applications, can be stored   efficiently, and suitable algebras exist for combining their entries; this has led to the development  of a number of techniques which are specific to this case; most of them for the task of data mining.
 We propose a binary matrix factorization method which combines tools from signal processing  and data mining. All operations are binary and carried out using bitwise operators. thus avoiding costly floating point operation and enabling the use of vectorized instructions. Furthermore, the algorithm is shown to converge to a local minimum in a finite number of steps,  thus performing no worse than similar real-valued optimization methods. Finally, our preliminary results show that the proposed method is effective at producing interpretable factorizations of various data types of interest.
-\end{abstract}
-
+\end{abstract}%
+\begin{IEEEkeywords}
+binary matrix factorization, binary dictionary learning, data mining
+\end{IEEEkeywords}
+%
 \section{introduction}
 
 We consider the problem of approximating a binary matrix $X \in \{0,1\}^{m{\times}n}$ as the product of two other binary matrices $U \in \{0,1\}^{m{\times}k}$ and $V \in \{0,1\}^{n{\times}p}$ plus a third \emph{residual} matrix $E$,
@@ -87,7 +99,7 @@ What MP does at each iteration is to project the residual onto the atom that is 
 
 \paragraph{Dictionary update} The second stage, instead of being a block descent on $D$, performs a rank-one update of each atom $D_r$ and the sub-row formed by the non-zero entries of the row $A^r$, which we call $A^r_{nz}$. Let $R = X - D\iter{k}A\iter{k} + D\iter{k}_r(A\iter{k})^r,$ be the residual matrix obtained by removing the contribution of $D\iter{k}_r$ from the current approximation of $X$. The values of $D_r$ and $A_{nz}^r$ are then replaced by the first pair of left and right eigenvectors of the SVD decomposition of $R$, 
 \begin{equation}
-D_r = U_1,\quad A_{nz}^r=V^1,\quad U\Sigma V=R.
+D_r = U_1,\quad A_{nz}^r=V_1,\quad U\Sigma V\transp=R.
 \label{eq:ksvd3}
 \end{equation}
 The above procedure is performed sequentially for each atom, from $r=1$ to $r=p$. Note that, since $A$ is updated as well, more passes could be performed in this fashion. K-SVD however performs this only once, thus finishing the alternate minimization iteration.
@@ -101,9 +113,7 @@ Several methods have been proposed for the BMF task. Some early ones include SDD
 More recent works include the BMF algorithm of~\cite{zhang07} which is based also on a real-valued non-negative matrix factorization optimization method.
 (The work ~\cite{zhang07} discusses other proposed methods as well, which we will not describe here for lack of space). % son BiMax, ISA, SAMBA and BND, de los Proximus guys
 
-Proximus
-Proximus
-Lorem ipsum Proximus
+SEGUIR: DESCRIBIR PROXIMUS EN DETALLE ACA
 
 %\paragraph{Data Mining} On the other hand, there is a large body of work from the Data Mining community on the subject of extracting general ``patterns'' from large matrices, in particular binary matrices. Some of those works are based on matrix factorization concepts, for example the Proximus algorithm~\cite{proximus},although most of them are quite heuristic.
 %
@@ -115,16 +125,15 @@ Lorem ipsum Proximus
 
 
 
-\section{K-BMF}
+\section{Binary Dictionary Learning}
 
-The straightforward approach here is to adapt methods such as MOD or K-SVD to the case of binary matrices. One possibility is to simply use those methods as they are, possibly imposing constraints that enforce the entries in the results to be between $0$ and $1$.
-An alternative, more akin to works such as those done in Data Mining with the PROXIMUS algorithn, is to work directly on binary operands, using binary operations. 
+The straightforward approach here is to adapt methods such as MOD or K-SVD to the case of binary matrices. One possibility, along the line of the SDD method described earlier, is to simply use those methods as they are and squash the resulting values to $\{0,1\}$. An alternative, more akin to the Proximus approach, is to work directly on binary operands, using binary operations. Since speed and scalability is the main focus of our proposed method, we choose the second option. The result is a pair of binary dictionary learning algorithms, which we now present.
 
-\paragraph{Coefficients update}
+\paragraph{Coefficients update via Binary Matching Pursuit (BMP)}
+First of all, as $\ell_0$ norm and the $\ell_1$ norms are the same for binary vectors, we define a coefficients update step that is common to both dictionary learning methods, which will then differ only in the way that the dictionaries are updated.
 
-First of all, the $\ell_0$ norm and the $\ell_1$ norms are the same for binary vectors, so both dictionary update methods from MOD and K-SVD can be treated together. (Actually, the $\ell_0$ norm is nothing else than the \emph{Hamming weight} or simply \emph{weight} of a binary vector $h(x)$, so we may call it by that name hereafter). 
-We thus consider the problem of minimizing $h(x_j - Da_j)$. Following the OMP idea of removing the closest atom at each iteration. The problem here is that we do not have normalized vectors, so dot product is not a good idea. 
-Instead, we simply search for the atom that is closest in Hamming distance, and remove the candidate atom from the residual using modulo-2 arithmetic (we use $\oplus$ to denote modulo-2 or XOR addition). The algorithm goes as follows:
+We define BMP as a binarized variant of MP, that is, we begin with an zero coefficients vector $a=0$ and greedily incorporate, at iteration $k+1$, the atom that is closest to  $r\iter{k} = x - a\iter{k}$ in Hamming distance. (MP uses dot product, which is not a good idea in our case since the vectors are unnormalized). % hamming or Entropy?? 
+The residual is correspondingly  updated by substracting the closest atom from it using modulo-2 algebra (XOR). The algorithm is formalized as follows:
 
 \begin{algorithm}[ht]
 \KwData{vector to encode $x$, dictionary $D$}
@@ -141,37 +150,29 @@ Set iteration $k=0$, residual $r\iter{0}=x$, coefficients $a\iter{0}=0$\;
 \label{alg:bmp}
 \end{algorithm}
 
-Besides the differences mentioned, the algorithm also stops when the Hamming distance between the atom that is closest to the current residual is larger than the Hamming weight of the residual itself, as in such case there is no possible improvement.
+Besides the differences mentioned, the algorithm also stops when the Hamming distance between the atom that is closest to the current residual is larger than the Hamming weight of the residual itself, as in such case there is no possible improvement. % show the number of maximum iterates! 
+In the worst case, a maximum of $m$ steps will be required.
+PENDING: PROVE THIS!
  
-\subsection{Dictionary Update via Binarized MOD}
+\subsection{MOB: Method Of Binary directions}
  
 Here we want to update each atom so that the Hamming weight of the total residual matrix $E = X \oplus DA$ is minimum (note that minus and plus are the same thing in modulo-2 arithmetic). Say we want to update the $r$-th atom at iteration $k$. Clearly, the affected columns will only be those for which the  coefficients in $A$  corresponding to that atom are non-zero, that is $\{j : A_{rj} \neq 0 \}$; let us call this set $J_r$ and $n_r$ its size. What we want is the update $\Delta$ that, when added to $D_r$, minimizes the weight of the residual $E$ in those colums affected by $D_r$,
  \begin{eqnarray}
  \Delta  =& \arg\min_d \sum_{j \in J_r}  h(E\iter{k}_j \oplus d) \\
  =& \arg\min_d \sum_{j \in J_r} (\sum_i E\iter{k}_j + n_r d_i).
-\label{eq:bdu2}
+\label{eq:mob1}
  \end{eqnarray}
 
 (note that the summation symbols are carried on using normal addition). The above objective is trivially separable in the elements of $d$,
  \begin{eqnarray}
  \Delta_i  =& \arg\min_{u \in \{0,1\}} \sum_j E_{ij}\iter{k} \oplus d_i\\
  =& \arg\min_{u \in \{0,1\}} \sum_{j\in J_r} E_{ij}\iter{k} + n_r u.
-\label{eq:bdu3}
+\label{eq:mob2}
  \end{eqnarray}
-From \refeq{eq:bdu3} we cleary obtain 
-\begin{equation}
-\Delta_i = \left\{
-\begin{array}{cl}
-0, n_r \leq  \sum_j E_{ij}\iter{k} \\
-1, n_r > \sum_j E_{ij}\iter{k}
-\end{array}
-\right. 
-\label{eq:bdu4}
-\end{equation}
 In other words, the $i$-th element of $D_r$ should be $0$ if most of the elements in the rows of $E$ affected by it are $0$, and $1$ otherwise. 
 This is clearly an optimum solution (note that there could be many optima  when $n_r$ is even, in which case we simply choose one).
 
-\subsection{Dictionary Update via Rank-One Binary Decomposition}
+\subsection{K-PROX: Dictionary Update via Proximus}
 
 In this case, following the K-SVD concept, we want to obtain the best rank-one approximation to the residual $E$ obtained after removing the contribution of $D_r$, 
 \begin{equation}
@@ -185,7 +186,7 @@ E =  X_{J_r} \oplus D\iter{k}A_{J_r}\iter{k} \oplus D_r\iter{k}(A_{J_r}\iter{k})
 \end{equation}
 where $X_{J_r}$ and $A_{J_r}$ contain only the colums in $J_r = \{j: A_{rj} = 1 \}$.
 
-The problem  \refeq{eq:bsvd1} is, again, NP-hard, so an approximate solution must be sought. The idea here is to use alternate updates on $D_r$ and $A_r$, in which case the updates have a simple closed form solution. This is exactly the solution proposed at each step of the PROXIMUS~\cite{proximus} algorithm. Say we want to minimize $h(E \oplus uv\transp)$ using alternate updates on $u$ and $v$. For fixed $u$, we have
+The problem  \refeq{eq:bsvd1} is, again, NP-hard, so an approximate solution must be sought. The idea here is to use alternate updates on $D_r$ and $A_r$, in which case the updates have a simple closed form solution. This is nothing buth the Proximus algorithm~\cite{proximus}. Say we want to minimize $h(E \oplus uv\transp)$ using alternate updates on $u$ and $v$. For fixed $u$, we have
 $$
 \sum_{i,j} E \oplus uv\transp = \sum_{j: v_j = 1} h(E_j \oplus u).
 $$
@@ -194,9 +195,11 @@ We can solve this separately for each $v_j$ simply by setting $v_j = 1$ is $h(E_
 
 \subsection{Initialization}
 
-The above algorithms, which I will now call BDL and K-PROX (this is not a definitive name), are
-quite quite non-convex and nasty. Therefore, a clever initialization is always welcome. Here are
-some recipes, a few of them taken from the PROXIMUS paper~\cite{proximus}. There are issues however
+The above algorithms, as all dictionary learning algorithnms, are  non-convex and very sensitive to initialization. Here we propose a number of initialization strategies, including and discussing the ones proposed for the Proximus method.
+
+PENDIENTE: meter esta discusion mejor
+ 
+There are issues however
 with the type of data that we are handling here; when the matrix is very fat such as in typical
 dictionary learning methods, things such as \emph{graph grow} don't even make a lot of
 sense\footnote{It would actually be nice to do a serious formal analysis of why such methods fail in
