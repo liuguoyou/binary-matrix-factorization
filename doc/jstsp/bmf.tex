@@ -2,6 +2,7 @@
 \documentclass[a4paper]{IEEEtran}
 \usepackage[pdftex]{graphicx}
 \usepackage{amsmath}
+\usepackage{amsthm}
 \usepackage{cite}
 \usepackage{array}
 \usepackage{algorithm2e}
@@ -113,8 +114,32 @@ Several methods have been proposed for the BMF task. Some early ones include SDD
 More recent works include the BMF algorithm of~\cite{zhang07} which is based also on a real-valued non-negative matrix factorization optimization method.
 (The work ~\cite{zhang07} discusses other proposed methods as well, which we will not describe here for lack of space). % son BiMax, ISA, SAMBA and BND, de los Proximus guys
 
-SEGUIR: DESCRIBIR PROXIMUS EN DETALLE ACA
 
+Let the indicator function $\mathbb{1}(\cdot)$ be defined so that $\mathbb{1}(cond)=1$ if $cond$ is true, and $0$ otherwise. The basic Proximus algorithm~\cite{proximus} provides an approximation to the rank-one matrix $uv\transp$ that is closest to the given matrix $X$ in Hamming distance,
+\def\bool{\mathrm{bool}}
+\begin{algorithm}
+\KwData{matrix $X \in \{0,1\}^{m{\times}n}$, $u\iter{0} \in \{0,1\}^m$, $v\iter{0} \in \{0,1\}^n$ }
+\KwResult{Vectors $u$, $v$ so that $X \approx uv\transp$}
+Set iteration $k=0$\;
+\Repeat {$u\iter{k}(v\iter{k})\transp = u\iter{k-1}(v\iter{k-1})\transp$} {
+  $s\iter{k} \leftarrow Av\iter{k} $;\, $w\iter{k} \leftarrow \|v\iter{k}\|_0$  \;
+  $u\iter{k+1}_i \leftarrow \bool(s\iter{k}_i > w\iter{k}/2),\;\forall\,i$ \;
+  $t\iter{k+1} \leftarrow A\transp{u\iter{k+1}} $;\, $z\iter{k+1} \leftarrow \|u\iter{k+1}\|_0$  \;
+  $v\iter{k+1}_j \leftarrow \bool(t\iter{k+1}_j > z\iter{k+1}/2),\;\forall\,j $ \;
+  $k \leftarrow k+1 $ \;
+}
+\label{alg:proximus}
+\end{algorithm}
+
+\begin{proposition}
+The output $(u,v)$ of the Proximus Algorithm~\ref{alg:proximus} is a local optimum of the problem $\min \|X - uv\transp\|_0$.
+\end{proposition}
+\begin{proof}
+ Given $v\iter{k}$, it is easy to check that the update $u\iter{k+1}$ in Algorithm~\ref{alg:proximus} is the value of $u$ that \emph{globally} minimizes $\|X \oplus uv\iter{k+1} \|$ (if $ s\iter{k}_i = w\iter{k}/2$, both $0$ and $1$ are equally optima). The same happens with the update $v\iter{k+1}$ given $u\iter{k+1}$. Therefore, $h\iter{k}=\|X \oplus u\iter{k}(v\iter{k})\transp \|$ cannot increase with $k$. As $h\iter{k} \geq 0$ is bounded from below 
+\end{proof}
+CHECK PROOF
+
+ 
 %\paragraph{Data Mining} On the other hand, there is a large body of work from the Data Mining community on the subject of extracting general ``patterns'' from large matrices, in particular binary matrices. Some of those works are based on matrix factorization concepts, for example the Proximus algorithm~\cite{proximus},although most of them are quite heuristic.
 %
 %
