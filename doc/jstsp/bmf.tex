@@ -114,40 +114,62 @@ Several methods have been proposed for the BMF task. Some early ones include SDD
 More recent works include the BMF algorithm of~\cite{zhang07} which is based also on a real-valued non-negative matrix factorization optimization method.
 (The work ~\cite{zhang07} discusses other proposed methods as well, which we will not describe here for lack of space). % son BiMax, ISA, SAMBA and BND, de los Proximus guys
 
-
-Let the indicator function $\mathbb{1}(\cdot)$ be defined so that $\mathbb{1}(cond)=1$ if $cond$ is true, and $0$ otherwise. The basic Proximus algorithm~\cite{proximus} provides an approximation to the rank-one matrix $uv\transp$ that is closest to the given matrix $X$ in Hamming distance,
+\def\indicator{\mathbf{1}}
+Let the indicator function $\indicator(\cdot)$ be defined so that $\indicator(cond)=1$ if $cond$ is true, and $0$ otherwise. The basic Proximus algorithm~\cite{proximus} provides an approximation to the rank-one matrix $uv\transp$ that is closest to the given matrix $X$ in Hamming distance,
 \def\bool{\mathrm{bool}}
 \begin{algorithm}
 \KwData{matrix $X \in \{0,1\}^{m{\times}n}$, $u\iter{0} \in \{0,1\}^m$, $v\iter{0} \in \{0,1\}^n$ }
 \KwResult{Vectors $u$, $v$ so that $X \approx uv\transp$}
 Set iteration $k=0$\;
 \Repeat {$u\iter{k}(v\iter{k})\transp = u\iter{k-1}(v\iter{k-1})\transp$} {
-  $s\iter{k} \leftarrow Av\iter{k} $;\, $w\iter{k} \leftarrow \|v\iter{k}\|_0$  \;
-  $u\iter{k+1}_i \leftarrow \bool(s\iter{k}_i > w\iter{k}/2),\;\forall\,i$ \;
-  $t\iter{k+1} \leftarrow A\transp{u\iter{k+1}} $;\, $z\iter{k+1} \leftarrow \|u\iter{k+1}\|_0$  \;
-  $v\iter{k+1}_j \leftarrow \bool(t\iter{k+1}_j > z\iter{k+1}/2),\;\forall\,j $ \;
+  $u\iter{k+1}_i\!\! \leftarrow \indicator \left( A^i v\iter{k} > \|v\iter{k}\|_0/2 \right),\;i=1,\ldots,m$ \;
+  $v\iter{k+1}_j\!\! \leftarrow \indicator\left(A_j\transp{u\iter{k+1}}\!>\!\|u\iter{k+1}\|_0/2 \right),j=1,\ldots,n$ \;
   $k \leftarrow k+1 $ \;
 }
 \label{alg:proximus}
 \end{algorithm}
 
 \begin{proposition}
-The output $(u,v)$ of the Proximus Algorithm~\ref{alg:proximus} is a local optimum of the problem $\min \|X - uv\transp\|_0$.
+The output $(u,v)$ of the Proximus Algorithm~\ref{alg:proximus} is a local optimum of the problem $\min \|X - uv\transp\|_0$. 
 \end{proposition}
 \begin{proof}
- Given $v\iter{k}$, it is easy to check that the update $u\iter{k+1}$ in Algorithm~\ref{alg:proximus} is the value of $u$ that \emph{globally} minimizes $\|X \oplus uv\iter{k+1} \|$ (if $ s\iter{k}_i = w\iter{k}/2$, both $0$ and $1$ are equally optima). The same happens with the update $v\iter{k+1}$ given $u\iter{k+1}$. Therefore, $h\iter{k}=\|X \oplus u\iter{k}(v\iter{k})\transp \|$ cannot increase with $k$. As $h\iter{k} \geq 0$ is bounded from below 
+ Given $v\iter{k}$, it is easy to check that the update $u\iter{k+1}$ in Algorithm~\ref{alg:proximus} is the value of $u$ that \emph{globally} minimizes $\|X \oplus uv\iter{k+1} \|$ (if $ s\iter{k}_i = w\iter{k}/2$, both $0$ and $1$ are equally optima; in such case, we default to $0$). The same happens with the update $v\iter{k+1}$ given $u\iter{k+1}$. Therefore, $h\iter{k}=\|X \oplus u\iter{k}(v\iter{k})\transp \|_0$ cannot increase with $k$. As $h\iter{k} \geq 0$ is bounded, non-increasing, and the iterates can take on a finite number of values, the sequence $h\iter{k}$ must converge  after a finite number of steps. Let $(u,v)$ be the arguments at which the stopping condition is satisfied. By definition of the algorithm, no change in $u$ or $v$ decreases the objective. This guarantees that $(u,v)$ is a local minimum in a Hamming ball of radius at least $1$.\footnote{notice that we cannot guarantee that a simultaneous change in a single coordinate of $u$ and a single coordinate of $v$ will not decreasae the cost function!.} 
 \end{proof}
-CHECK PROOF
 
- 
-%\paragraph{Data Mining} On the other hand, there is a large body of work from the Data Mining community on the subject of extracting general ``patterns'' from large matrices, in particular binary matrices. Some of those works are based on matrix factorization concepts, for example the Proximus algorithm~\cite{proximus},although most of them are quite heuristic.
-%
-%
-%\paragraph{Other ideas} Initially I was interested in connecting the above techniques with other learning frameworks aimed at binary data. In particular, the Bi-directional Auto-associative Memory (BAM) model~\cite{bam} was an early binary recurrent neural network.
-%
-%
-%\paragraph{Our approach} The idea here is very simple: to apply a Dictionary Learning approach to the problem of binary matrix factorization for those cases where the matrix $X$ is significantly ``fat'' $m \gg n$ (or, naturally, apply it to $X\transp$ when it is ``tall'', $m \ll n$). 
+\subsection{Recursive Proximus}
 
+The authors of~\cite{proximus} also propose a method for further analyzing $X$. Although both are treated as equals by the Proximus algorithm, the authors assign different roles to $u$ and $v$. The former is called the \emph{presence} vector, and the latter is called the \emph{patter} vector. In other words, the interpretation given is that $v$ represents a dominant pattern in $X$ and a $1$ in $u$ indicates a row in which that pattern is present. With this rationale in mind, the authors propose to split $X$ in two matrices: one, $X_1$, in which $v$ is present, and another, $X_1$, in which it is not. As the rank-one approximation $(u,v)$ so far does not explain $X_0$, the Proximus algorithm is applied again on $X_0$ in order to find a new rank-one model that does. 
+FALTA: detalle de como se tratan
+
+Another possibility, not discussed in the paper, is to split the matrix in \emph{four}: the submatrices corresponding to indexes for which $(u_i,v_j)$ are $(0,0)$, $(0,1)$, $(1,0)$ and $(1,1)$. This would allow for a rank-k approximation of $X$ to be computed recursively using Proximus as well. We call this Q-Proximus (Q for \emph{quad}).
+
+\subsection{Initialization}
+
+Initialization is always a serious issue in non-convex problems, particularly in dictionary learning methods. The binary case is no exception. The authors of Proximus propose a number of initialization methods, namely: 
+
+%\paragraph{partition} Works only when $K \leq M$. This implementation ranks the   dimensions of the data matrix $X$ (that is, the number of columns of $X$) in descending %weight order. Then, each atom  $k$ is initialized as the Hamming average of all samples in $X$ which have a value of $1$ in the $k$-th  ranked dimension.
+\paragraph{partition} The authors propose to choose one \emph{separator} column (they do not specify how) and then use that column, along with the Hamming centroid of the rows for which the corresponding value in the separator column is $1$.
+\paragraph{greedy graph growing} Let $P$ be a subset of rows whose only initial element is a randomly select row. Then, recursively add all rows which share a non-zero location with \emph{any} row currently in $P$ until no additional rows can be added. The initial pattern vector $v$ is the Hamming centroid of the rows in $P$.
+\paragraph{neighbor} Similar to greedy graph growing, but less greedy, this one chooses a pivot row at random and initializes the pattern vector to the Hamming centroid of all the rows that share at least one non-zero location with the pivot row.
+
+%\paragraph{neighbor} Each atom $d_k$ is initialized using a randomly drawn sample from $X$, $c_k$. Then
+%  it $d_k$ is
+%  computed as the Hamming average of all samples $x$ so that $c_k\transp x > 0$, that is, so that
+%  they have at least one dimension where both $c_k$ and $x$ are $1$. \footnote{This again is a lame method for
+%  very fat matrices, as there will be so many of such samples, and if noise is present. Some more
+%  intelligent criterion must be devised for the dictionary learning case.}
+%\paragraph{graph grow} This is actually a variant of the original graph grow algorithm. Given $K$ as the
+%  number of atoms to initialize, the method starts by drawing $K$ initial (different) samples from the
+%  data set $X$ and associates a \emph{weight} vector $w$ to it, which is initialized to the value of the
+%  corresponding random sample. Then it randomly draws one previously unused sample $x$ from $X$ and adds
+%  it to the weight vector $w\opt$ which satisfies
+%$$(w\opt)\transp x/\|w\opt\|_1 \geq
+%  w\transp x/\|w\|_1.$$ This procedure continues until all data samples in $X$ have been used. The final $k$-th atom is the Hamming average of all the samples added to its corresponding
+%  weight vector, that is, $d_k[i] = \lfloor w_k[i] / n_k \rceil$, where $n_k$ is the number of
+%  samples from $X$ which were added to $w_k$. This is a \emph{soft} version of the original graph grow algorithm, where the
+%  criterion used to assign a sample to a given atom $k$ is based on the Hamming distance between $w$
+%  and a sample $x$.
+The above initialization heuristics are not claimed to be good in any sense; they just embody some principles and practices usually seen in Data Mining applications. A careful analysis of each method is beyond this paper. However, it is important to shed some intuition as to how these methods would perform in the $n \gg m$ setting found in dictionary learning problems. We will discuss this in the context of the proposed methods, which are described in the next section.
 
 
 \section{Binary Dictionary Learning}
@@ -217,45 +239,14 @@ $$
 $$
 We can solve this separately for each $v_j$ simply by setting $v_j = 1$ is $h(E_j \oplus u) < h(E_j)$ and $v_j=0$ otherwise. The update on $u$ is identical. In both cases, the objective function can only decrease, the function is bounded and the domain is compact, so that the algorithm must converge to a local minimum. Because the set is finite, convergence is attained in a finite number of iterations. Usually this number is quite small.
 
-
 \subsection{Initialization}
 
-The above algorithms, as all dictionary learning algorithnms, are  non-convex and very sensitive to initialization. Here we propose a number of initialization strategies, including and discussing the ones proposed for the Proximus method.
+First of all, if we are to apply these methods to the dictionary learning case, an important observation is that the \emph{pattern} vector $v$ is conceptually much closer to the concept of a dictionary atom, that is, a \emph{column} of $D$ in the decomposition $X=DA+E$, rather than a row of the coefficients matrix $A$. Therefore, when updating a given dictionary atom $D_k$ and its corresponding row of coefficients $A^k$ using proximus
 
-PENDIENTE: meter esta discusion mejor
- 
-There are issues however
-with the type of data that we are handling here; when the matrix is very fat such as in typical
-dictionary learning methods, things such as \emph{graph grow} don't even make a lot of
-sense\footnote{It would actually be nice to do a serious formal analysis of why such methods fail in
-  this scenario}. Overall, the best seems to be \emph{neighbors} (not to be confused with nearest neighbors), although partition seems to
-work quite well with MNIST (it does much better than with neighbors on the demo included in the root
-directory of the project).
+The \emph{partition}...
 
-\paragraph{neighbors} Each atom $d_k$ is initialized using a randomly drawn sample from $X$, $c_k$. Then
-  it $d_k$ is
-  computed as the Hamming average of all samples $x$ so that $c_k\transp x > 0$, that is, so that
-  they have at least one dimension where both $c_k$ and $x$ are $1$. \footnote{This again is a lame method for
-  very fat matrices, as there will be so many of such samples, and if noise is present. Some more
-  intelligent criterion must be devised for the dictionary learning case.}
-\paragraph{graph grow} This is actually a variant of the original graph grow algorithm. Given $K$ as the
-  number of atoms to initialize, the method starts by drawing $K$ initial (different) samples from the
-  data set $X$ and associates a \emph{weight} vector $w$ to it, which is initialized to the value of the
-  corresponding random sample. Then it randomly draws one previously unused sample $x$ from $X$ and adds
-  it to the weight vector $w\opt$ which satisfies
-$$(w\opt)\transp x/\|w\opt\|_1 \geq
-  w\transp x/\|w\|_1.$$ This procedure continues until all data samples in $X$ have been used. The final $k$-th atom is the Hamming average of all the samples added to its corresponding
-  weight vector, that is, $d_k[i] = \lfloor w_k[i] / n_k \rceil$, where $n_k$ is the number of
-  samples from $X$ which were added to $w_k$. This is a \emph{soft} version of the original graph grow algorithm, where the
-  criterion used to assign a sample to a given atom $k$ is based on the Hamming distance between $w$
-  and a sample $x$.
-\paragraph{partition} Works only when $K \leq M$. This implementation ranks the 
-  dimensions of the data matrix $X$ (that is, the number of columns of $X$) in descending weight order. Then, each atom
-  $k$ is initialized as the Hamming average of all samples in $X$ which have a value of $1$ in the $k$-th
-  ranked dimension.
-\paragraph{random samples} $D$. Given a number $K$ of atoms, each data sample is randomly assigned to one
-  atom. The $K$ atoms are then the average (element-wise majority vote) of all the samples to which
-  they were assigned.\footnote{Now that I write this down, I don't think this kind of initialization makes ANY sense!!!!}
+SEGUIR
+
 
 \subsection{Learning variants}
 
