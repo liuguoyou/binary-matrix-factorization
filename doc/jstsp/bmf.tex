@@ -110,12 +110,12 @@ The K-SVD dictionary step is significantly more costly than that of MOD, but usu
 
 \section{Binary Matrix Factorization and Proximus}
 
-Several methods have been proposed for the BMF task. Some early ones include SDD~\cite{sdd}, where $U$ and $V$ are the sign $\{-1,0,+1\}$ of the corresponding matrices in the SVD decomposition of $X$, which although ternary forms the basis for Proximus~\cite{proximus} and serves as a simple example of adapting a real-valued method (which for very large datasets can be very slow to compute) to the problem of discrete matrix approximation.
+Several methods have been proposed for the BMF task. Some early ones include SDD~\cite{sdd}, where $U$ and $V$ are the sign $\{-1,0,+1\}$ of the corresponding matrices in the SVD decomposition of $X$. Although SDD is ternary, it forms the basis for the Proximus~\cite{proximus} algorithm which in turn is the basis of one of our proposed methods, and serves as a simple example of adapting a real-valued method (which for very large datasets can be very slow to compute) to the problem of discrete matrix approximation.
 More recent works include the BMF algorithm of~\cite{zhang07} which is based also on a real-valued non-negative matrix factorization optimization method.
 (The work ~\cite{zhang07} discusses other proposed methods as well, which we will not describe here for lack of space). % son BiMax, ISA, SAMBA and BND, de los Proximus guys
 
 \def\indicator{\mathbf{1}}
-Let the indicator function $\indicator(\cdot)$ be defined so that $\indicator(cond)=1$ if $cond$ is true, and $0$ otherwise. The basic Proximus algorithm~\cite{proximus} provides an approximation to the rank-one matrix $uv\transp$ that is closest to the given matrix $X$ in Hamming distance,
+Let the indicator function $\indicator(\cdot)$ be defined so that $\indicator(cond)=1$ if $cond$ is true, and $0$ otherwise. Also, let $a \oplus b$ denote modulo-2 addition, also known as eXclusive OR (XOR). The basic Proximus algorithm~\cite{proximus} provides an approximation to the rank-one matrix $uv\transp$ that is closest to the given matrix $X$ in Hamming distance,
 \def\bool{\mathrm{bool}}
 \begin{algorithm}
 \KwData{matrix $X \in \{0,1\}^{m{\times}n}$, $u\iter{0} \in \{0,1\}^m$, $v\iter{0} \in \{0,1\}^n$ }
@@ -170,6 +170,10 @@ Initialization is always a serious issue in non-convex problems, particularly in
 %  criterion used to assign a sample to a given atom $k$ is based on the Hamming distance between $w$
 %  and a sample $x$.
 The above initialization heuristics are not claimed to be good in any sense; they just embody some principles and practices usually seen in Data Mining applications. A careful analysis of each method is beyond this paper. However, it is important to shed some intuition as to how these methods would perform in the $n \gg m$ setting found in dictionary learning problems. We will discuss this in the context of the proposed methods, which are described in the next section.
+
+\subsection{Binary factorizations beyond rank one}
+
+For rank one, it is easy to interpret the product $\hat{X}=uv\transp$; the element $\hat{x}_{ij}$ will be $1$ only $u_i$ and $v_j$ are $1$, that is, if we denote the AND operation by $\odot$,  $\hat{x}_{ij} = u_i \odot v_j$. Furthermore, this product coincides with the \emph{standard} product for binary operators. If a rank-k, $k>1$ model is sought, even with binary factors, there are several ways in which the ranks can be combined to produce a result. One is to use modulo-2 arithmetic, that is, $\hat{X} = u_1v_1\transp \oplus u_2v_2\transp \oplus \ldots \oplus u_kv_k\transp$. 
 
 
 \section{Binary Dictionary Learning}
