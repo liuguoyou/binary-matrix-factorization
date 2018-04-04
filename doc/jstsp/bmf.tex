@@ -55,7 +55,7 @@ We present and discuss the results obtained on those problems in Section~\ref{se
 \section{Dictionary Learning and sparsity}
 
 The aim of \emph{Dictionary Learning} methods is to obtain efficient representations of specific types of signals in terms of basis or \emph{frames}~\cite{frame-review} which are adapted to the particularities of the signal type at hand. This is in contrast to the traditional approach where fixed transforms such as the Discrete Fourier Transform (DFT) or any of the wide family of Discrete Wavelet Transforms (DWT) are used to compactly represent the salient data of signals such as audio tracks or natural images. In this setting, the columns of $X$ are data samples, for example short audio segments or pixel values from patches of natural images. The dimension $m$ of the data samples is usually much smaller than the number of samples $n$. In the more general context of matrix factorizations, we say that these are extremely \emph{fat matrices}; this is an important aspect to consider in MF algorithms, as we will see later.
-For sufficiently large $n$, we can tailor a \emph{dictionary} $D \in \reals{m{\times}p}$ such that each sample in $X$ can be compactly represented in terms of a few columns of $D$; by compact we mean that we can represent $X=DA+E$ with $\|E_i\| \ll \|X_i\|$ and $\|A_i\|_0 \ll p$ for most values of $i$; here $\|A_i\|_0$ is the pseudo-norm which counts the non-zeros of the vector $A_i$, in other words, the Hamming weight of $A_i$. 
+For sufficiently large $n$, we can tailor a \emph{dictionary} $D \in \reals{m{\times}p}$ such that each sample in $X$ can be compactly represented in terms of a few columns of $D$; by compact we mean that we can represent $X=DA+E$ with $\|E_i\| \ll \|X_i\|$ and a coefficients column $A_i\|$ which has a few non-zero values. Depending on the context, we will use two equivalent notations to denote the number of non-zeros in a vector $v$: one is the  $\ell_0$ pseudo-norm, $\|A_i\|_0$, and the other is the Hamming weight, $h(v)$; $h(v)=\|v\|_0=|\{i:A_i \neq 0\}|$, where $|G|$ denotes the number of elements in the set G.
 
 As we can see from the previous discussion, contrary to the more general MF approach where the factors $U$ and $V$ have similar roles, those of $D$ and $A$ are quite different. The columns of the matrix $D$ are called ``atoms'' and are supposed to embody typical patterns observed throughout the columns of $X$, while the columns of $A$ specify the linear combination of columns of $D$ that better approximates the corresponding columns of $X$.
 
@@ -133,15 +133,15 @@ Set iteration $k=0$\;
 The output $(u,v)$ of the Proximus Algorithm~\ref{alg:proximus} is a local optimum of the problem $\min \|X - uv\transp\|_0$. 
 \end{proposition}
 \begin{proof}
- Given $v\iter{k}$, it is easy to check that the update $u\iter{k+1}$ in Algorithm~\ref{alg:proximus} is the value of $u$ that \emph{globally} minimizes $\|X \oplus uv\iter{k+1} \|$ (if $ s\iter{k}_i = w\iter{k}/2$, both $0$ and $1$ are equally optima; in such case, we default to $0$). The same happens with the update $v\iter{k+1}$ given $u\iter{k+1}$. Therefore, $h\iter{k}=\|X \oplus u\iter{k}(v\iter{k})\transp \|_0$ cannot increase with $k$. As $h\iter{k} \geq 0$ is bounded, non-increasing, and the iterates can take on a finite number of values, the sequence $h\iter{k}$ must converge  after a finite number of steps. Let $(u,v)$ be the arguments at which the stopping condition is satisfied. By definition of the algorithm, no change in $u$ or $v$ decreases the objective. This guarantees that $(u,v)$ is a local minimum in a Hamming ball of radius at least $1$.\footnote{notice that we cannot guarantee that a simultaneous change in a single coordinate of $u$ and a single coordinate of $v$ will not decreasae the cost function!.} 
+ Given $v\iter{k}$, it is easy to check that the update $u\iter{k+1}$ in Algorithm~\ref{alg:proximus} is the value of $u$ that \emph{globally} minimizes $\|X \oplus uv\iter{k+1} \|$ (if $ s\iter{k}_i = w\iter{k}/2$, both $0$ and $1$ are equally optima; in such case, we default to $0$). The same happens with the update $v\iter{k+1}$ given $u\iter{k+1}$. Therefore, $h(E\iter{k})=h(X \oplus u\iter{k}(v\iter{k})\transp)$ cannot increase with $k$. As $h(E\iter{k}) \geq 0$ is bounded, non-increasing, and the iterates can take on a finite number of values, the sequence $h(E\iter{k})$ must converge  after a finite number of steps. Let $(u,v)$ be the arguments at which the stopping condition is satisfied. By definition of the algorithm, no change in $u$ or $v$ decreases the objective. This guarantees that $(u,v)$ is a local minimum in a Hamming ball of radius at least $1$.\footnote{notice that we cannot guarantee that a simultaneous change in a single coordinate of $u$ and a single coordinate of $v$ will not decreasae the cost function!.} 
 \end{proof}
 
-\subsection{Recursive Proximus}
-
-The authors of~\cite{proximus} also propose a method for further analyzing $X$. Although both are treated as equals by the Proximus algorithm, the authors assign different roles to $u$ and $v$. The former is called the \emph{presence} vector, and the latter is called the \emph{patter} vector. In other words, the interpretation given is that $v$ represents a dominant pattern in $X$ and a $1$ in $u$ indicates a row in which that pattern is present. With this rationale in mind, the authors propose to split $X$ in two matrices: one, $X_1$, in which $v$ is present, and another, $X_1$, in which it is not. As the rank-one approximation $(u,v)$ so far does not explain $X_0$, the Proximus algorithm is applied again on $X_0$ in order to find a new rank-one model that does. 
-FALTA: detalle de como se tratan
-
-Another possibility, not discussed in the paper, is to split the matrix in \emph{four}: the submatrices corresponding to indexes for which $(u_i,v_j)$ are $(0,0)$, $(0,1)$, $(1,0)$ and $(1,1)$. This would allow for a rank-k approximation of $X$ to be computed recursively using Proximus as well. We call this Q-Proximus (Q for \emph{quad}).
+%\subsection{Recursive Proximus}
+%
+%The authors of~\cite{proximus} also propose a method for further analyzing $X$. Although both are treated as equals by the Proximus algorithm, the authors assign different roles to $u$ and $v$. The former is called the \emph{presence} vector, and the latter is called the \emph{patter} vector. In other words, the interpretation given is that $v$ represents a dominant pattern in $X$ and a $1$ in $u$ indicates a row in which that pattern is present. With this rationale in mind, the authors propose to split $X$ in two matrices: one, $X_1$, in which $v$ is present, and another, $X_1$, in which it is not. As the rank-one approximation $(u,v)$ so far does not explain $X_0$, the Proximus algorithm is applied again on $X_0$ in order to find a new rank-one model that does. 
+%FALTA: detalle de como se tratan
+%
+%Another possibility, not discussed in the paper, is to split the matrix in \emph{four}: the submatrices corresponding to indexes for which $(u_i,v_j)$ are $(0,0)$, $(0,1)$, $(1,0)$ and $(1,1)$. This would allow for a rank-k approximation of $X$ to be computed recursively using Proximus as well. We call this Q-Proximus (Q for \emph{quad}).
 
 \subsection{Initialization}
 
@@ -152,7 +152,8 @@ Initialization is always a serious issue in non-convex problems, particularly in
 \paragraph{greedy graph growing} Let $P$ be a subset of rows whose only initial element is a randomly select row. Then, recursively add all rows which share a non-zero location with \emph{any} row currently in $P$ until no additional rows can be added. The initial pattern vector $v$ is the Hamming centroid of the rows in $P$.
 \paragraph{neighbor} Similar to greedy graph growing, but less greedy, this one chooses a pivot row at random and initializes the pattern vector to the Hamming centroid of all the rows that share at least one non-zero location with the pivot row.
 
-The above initialization heuristics are not claimed to be good in any sense; they just embody some principles and practices usually seen in Data Mining applications. A careful analysis of each method is beyond this paper. However, it is important to shed some intuition as to how these methods would perform in the $n \gg m$ setting found in dictionary learning problems. We will discuss this in the context of the proposed methods, which are described in the next section.
+The above initialization heuristics are not claimed to be good in any sense; they just embody some principles and practices usually seen in Data Mining applications. A careful analysis of each method is beyond this paper. However, it is important to shed some intuition as to how these methods would perform in the $n \gg m$ setting found in dictionary learning problems.
+Also, it is important to consider that these initialization methods are designed for a rank-one decomposition and might be unsuitable or require modifications to work for rank-k factorizations. We will discuss these issues in the context of the proposed methods, which are described in the next section.
 
 \subsection{Binary factorizations beyond rank one}
 
@@ -162,14 +163,13 @@ Let us now formalize the notation used for binary operations hereafter. We use $
  
 Now we return to our previous discussion. For rank one, it is easy to interpret the product $\hat{X}=uv\transp$; the element $\hat{x}_{ij}$ will be $1$ only $u_i$ and $v_j$ are $1$, that is, if we denote the AND operation by $\land$,  $\hat{x}_{ij} = u_i \odot v_j$. Furthermore, this product coincides with the \emph{standard} product for binary operators. If a rank-k, $k>1$ model is sought, even with binary factors, there are several ways in which the ranks can be combined to produce a result. One is to use modulo-2 arithmetic, that is, $\hat{X} = u_1v_1\transp \oplus u_2v_2\transp \oplus \ldots \oplus u_kv_k\transp$. Other is to use Boolean algebra, where addition is mapped to the OR operator, and we have $\hat{X} = u_1v_1\transp \lor u_2v_2\transp \lor \ldots \lor u_kv_k\transp$. Finally, we can use standard addition and then let the result be defined by some threshold, for example,
 $\hat{X} = \indicator\left(\sum_{r=1}^k u_kv_k\transp \geq k/2 \right)$.
-Which one is better will ultimately depend on the task and the prior information available about $X$.
+Which one is better will ultimately depend on the task and the prior information available about $X$. We choose to work with modulo-2 algebra as it enables the set $\{0,1\}$ to be treated as a numeric Field, featuring neutral sum, neutral product, inverse and negative elements. An immediate practical consequence is the possibility to \emph{substract}, that is $-1=1$ and $1 - 1 = 1 + 1 = 1 \oplus 1 = 0$, which in turn enables higher ranks to correct systematic approximation errors due to lower rank models. (Note that this is not possible with, for example, Boolean algebra, as $1+1=1\lor 1$ and $1-1$ is undefined, so a $1$ cannot be turned back to $0$.)
 
 \section{Binary Dictionary Learning}
 
-This work proposes two methods for Binary Matrix Factorization which are essentially binary adaptations of the two Dictionary Learning methods discussed before, MOD and K-SVD. Correspondingly, we call these methods MOB (Method Of Binary directions) and K-PROX. As described in Section~\ref{sec:dictionary-learning}, the iterations of Dictionary Learning methods consist of an alternate minimization between the coefficients matrix $A$ and the dictionary matrix $D$. We now describe the coefficients update step, which is common to both methods.
+This work proposes two methods for Binary Matrix Factorization which are essentially binary adaptations of the two Dictionary Learning methods discussed before, MOD and K-SVD. Correspondingly, we call these methods MOB (Method Of Binary directions) and K-PROX. As described in Section~\ref{sec:dictionary-learning}, most Dictionary Learning methods consist of an alternate minimization between the coefficients matrix $A$ and the dictionary matrix $D$; MOD and K-SVD are no exception. We now describe the coefficients update step, which is common to both methods.
 
-\paragraph{Coefficients update via Binary Matching Pursuit (BMP)}
-First of all, as $\ell_0$ norm and the $\ell_1$ norms are the same for binary vectors, we define a coefficients update step that is common to both dictionary learning methods, which will then differ only in the way that the dictionaries are updated.
+\paragraph{Coefficients update/Binary Matching Pursuit (BMP)}
 
 We define BMP as a binarized variant of MP, that is, we begin with an zero coefficients vector $a=0$ and greedily incorporate, at iteration $k+1$, the atom that is closest to  $r\iter{k} = x - a\iter{k}$ in Hamming distance. (MP uses dot product, which is not a good idea in our case since the vectors are unnormalized). % hamming or Entropy?? 
 The residual is correspondingly  updated by substracting the closest atom from it using modulo-2 algebra (XOR). The algorithm is formalized as follows:
@@ -179,7 +179,7 @@ The residual is correspondingly  updated by substracting the closest atom from i
 \KwResult{Optimal coefficients for $x$, $a$}
 Set iteration $k=0$, residual $r\iter{0}=x$, coefficients $a\iter{0}=0$\;
 \While{$h{r\iter{k}} \geq \epsilon$}{
-  $h_{\min} \leftarrow \leftarrow \min h(D_i,r\iter{k}) $ \;
+  $h_{\min} \leftarrow \min h(D_i,r\iter{k}) $ \;
   \If{$h_{\min} > h(r\iter{k})$} { break }  
   $i \leftarrow \arg\min h(D_i,r\iter{k}) $ \;
   $a_i  \leftarrow  {a}_i  \oplus 1 $ \;
@@ -189,12 +189,11 @@ Set iteration $k=0$, residual $r\iter{0}=x$, coefficients $a\iter{0}=0$\;
 \label{alg:bmp}
 \end{algorithm}
 
-Besides the differences mentioned, the algorithm also stops when the Hamming distance between the atom that is closest to the current residual is larger than the Hamming weight of the residual itself, as in such case there is no possible improvement. % show the number of maximum iterates! 
+FALTA: this algorithm might not make any sense! It is easy and cheap to use plain old correlation here too!!
 
-In the worst case, a maximum of $m$ steps will be required.
-PENDING: PROVE THIS!
+%The main issue with this method, contrary to MP, is that there is no fast way to update the 
 
-The main issue with this method, contrary to MP, is that there is no fast way to update the  
+
 \subsection{MOB: Method Of Binary directions}
  
 Here we want to update each atom so that the Hamming weight of the total residual matrix $E = X \oplus DA$ is minimum (note that minus and plus are the same thing in modulo-2 arithmetic). Say we want to update the $r$-th atom at iteration $k$. Clearly, the affected columns will only be those for which the  coefficients in $A$  corresponding to that atom are non-zero, that is $\{j : A_{rj} \neq 0 \}$; let us call this set $J_r$ and $n_r$ its size. What we want is the update $\Delta$ that, when added to $D_r$, minimizes the weight of the residual $E$ in those colums affected by $D_r$,
@@ -215,29 +214,24 @@ This is clearly an optimum solution (note that there could be many optima  when 
 
 \subsection{K-PROX: Dictionary Update via Proximus}
 
-In this case, following the K-SVD concept, we want to obtain the best rank-one approximation to the residual $E$ obtained after removing the contribution of $D_r$, 
+In this case, following the K-SVD concept, we want to obtain the best rank-one approximation to the residual $E$ obtained after removing the contribution of $D_r$. Let $J_r = \{j: A_{rj} \neq 0 \}$ and $X_{J_r}$ and $A_{J_r}$ the submatrices formed by the columns of $X$ and $A$ indexed by $J_r$ and $E_{J_r}=DA_{J_r} \oplus E_{J_r}$. We then have the following update:
 \begin{equation}
-(D_r,A_r) = \arg\min_{u,v} h(E \oplus uv\transp)
+(D_r\iter{k+1},A_{J_r}\iter{k+1}) = \arg\min_{u,v} h\left( E_{J_r}\iter{k} \oplus uv\transp \right).
 \label{eq:bsvd1}
 \end{equation}
-where
-\begin{equation}
-E =  X_{J_r} \oplus D\iter{k}A_{J_r}\iter{k} \oplus D_r\iter{k}(A_{J_r}\iter{k})^r,
-\label{eq:bsvd2}
-\end{equation}
-where $X_{J_r}$ and $A_{J_r}$ contain only the colums in $J_r = \{j: A_{rj} = 1 \}$.
-
-The problem  \refeq{eq:bsvd1} is, again, NP-hard, so an approximate solution must be sought. The idea here is to use alternate updates on $D_r$ and $A_r$, in which case the updates have a simple closed form solution. This is nothing buth the Proximus algorithm~\cite{proximus}. Say we want to minimize $h(E \oplus uv\transp)$ using alternate updates on $u$ and $v$. For fixed $u$, we have
-$$
-\sum_{i,j} E \oplus uv\transp = \sum_{j: v_j = 1} h(E_j \oplus u).
-$$
-We can solve this separately for each $v_j$ simply by setting $v_j = 1$ is $h(E_j \oplus u) < h(E_j)$ and $v_j=0$ otherwise. The update on $u$ is identical. In both cases, the objective function can only decrease, the function is bounded and the domain is compact, so that the algorithm must converge to a local minimum. Because the set is finite, convergence is attained in a finite number of iterations. Usually this number is quite small.
+As the name K-PROX implies, we seek an approximation to the NP-hard problem \refeq{eq:bsvd1} using the Proximus algorithm defined in Section~\ref{sec:proximus}.
 
 \subsection{Initialization}
 
 First of all, if we are to apply these methods to the dictionary learning case, an important observation is that the \emph{pattern} vector $v$ is conceptually much closer to the concept of a dictionary atom, that is, a \emph{column} of $D$ in the decomposition $X=DA+E$, rather than a row of the coefficients matrix $A$. Therefore, when updating a given dictionary atom $D_k$ and its corresponding row of coefficients $A^k$ using proximus
 
 The \emph{partition}...
+
+The \emph{graph grow} ...
+
+The \emph{neighbor} ...
+
+Other variants...
 
 SEGUIR
 
