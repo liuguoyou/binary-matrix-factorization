@@ -152,33 +152,21 @@ Initialization is always a serious issue in non-convex problems, particularly in
 \paragraph{greedy graph growing} Let $P$ be a subset of rows whose only initial element is a randomly select row. Then, recursively add all rows which share a non-zero location with \emph{any} row currently in $P$ until no additional rows can be added. The initial pattern vector $v$ is the Hamming centroid of the rows in $P$.
 \paragraph{neighbor} Similar to greedy graph growing, but less greedy, this one chooses a pivot row at random and initializes the pattern vector to the Hamming centroid of all the rows that share at least one non-zero location with the pivot row.
 
-%\paragraph{neighbor} Each atom $d_k$ is initialized using a randomly drawn sample from $X$, $c_k$. Then
-%  it $d_k$ is
-%  computed as the Hamming average of all samples $x$ so that $c_k\transp x > 0$, that is, so that
-%  they have at least one dimension where both $c_k$ and $x$ are $1$. \footnote{This again is a lame method for
-%  very fat matrices, as there will be so many of such samples, and if noise is present. Some more
-%  intelligent criterion must be devised for the dictionary learning case.}
-%\paragraph{graph grow} This is actually a variant of the original graph grow algorithm. Given $K$ as the
-%  number of atoms to initialize, the method starts by drawing $K$ initial (different) samples from the
-%  data set $X$ and associates a \emph{weight} vector $w$ to it, which is initialized to the value of the
-%  corresponding random sample. Then it randomly draws one previously unused sample $x$ from $X$ and adds
-%  it to the weight vector $w\opt$ which satisfies
-%$$(w\opt)\transp x/\|w\opt\|_1 \geq
-%  w\transp x/\|w\|_1.$$ This procedure continues until all data samples in $X$ have been used. The final $k$-th atom is the Hamming average of all the samples added to its corresponding
-%  weight vector, that is, $d_k[i] = \lfloor w_k[i] / n_k \rceil$, where $n_k$ is the number of
-%  samples from $X$ which were added to $w_k$. This is a \emph{soft} version of the original graph grow algorithm, where the
-%  criterion used to assign a sample to a given atom $k$ is based on the Hamming distance between $w$
-%  and a sample $x$.
 The above initialization heuristics are not claimed to be good in any sense; they just embody some principles and practices usually seen in Data Mining applications. A careful analysis of each method is beyond this paper. However, it is important to shed some intuition as to how these methods would perform in the $n \gg m$ setting found in dictionary learning problems. We will discuss this in the context of the proposed methods, which are described in the next section.
 
 \subsection{Binary factorizations beyond rank one}
 
-For rank one, it is easy to interpret the product $\hat{X}=uv\transp$; the element $\hat{x}_{ij}$ will be $1$ only $u_i$ and $v_j$ are $1$, that is, if we denote the AND operation by $\odot$,  $\hat{x}_{ij} = u_i \odot v_j$. Furthermore, this product coincides with the \emph{standard} product for binary operators. If a rank-k, $k>1$ model is sought, even with binary factors, there are several ways in which the ranks can be combined to produce a result. One is to use modulo-2 arithmetic, that is, $\hat{X} = u_1v_1\transp \oplus u_2v_2\transp \oplus \ldots \oplus u_kv_k\transp$. 
+\def\xor{\oplus}
 
+Let us now formalize the notation used for binary operations hereafter. We use $a \land b$ to denote the logical AND operation between binary operators $a$ and $b$; $a \lor b$ denotes logical OR, and $a \xor b$ the eXclusive OR (XOR); logical negation (NEG) is denoted by the unary operator, e.g., $\neg a$.
+ 
+Now we return to our previous discussion. For rank one, it is easy to interpret the product $\hat{X}=uv\transp$; the element $\hat{x}_{ij}$ will be $1$ only $u_i$ and $v_j$ are $1$, that is, if we denote the AND operation by $\land$,  $\hat{x}_{ij} = u_i \odot v_j$. Furthermore, this product coincides with the \emph{standard} product for binary operators. If a rank-k, $k>1$ model is sought, even with binary factors, there are several ways in which the ranks can be combined to produce a result. One is to use modulo-2 arithmetic, that is, $\hat{X} = u_1v_1\transp \oplus u_2v_2\transp \oplus \ldots \oplus u_kv_k\transp$. Other is to use Boolean algebra, where addition is mapped to the OR operator, and we have $\hat{X} = u_1v_1\transp \lor u_2v_2\transp \lor \ldots \lor u_kv_k\transp$. Finally, we can use standard addition and then let the result be defined by some threshold, for example,
+$\hat{X} = \indicator\left(\sum_{r=1}^k u_kv_k\transp \geq k/2 \right)$.
+Which one is better will ultimately depend on the task and the prior information available about $X$.
 
 \section{Binary Dictionary Learning}
 
-The straightforward approach here is to adapt methods such as MOD or K-SVD to the case of binary matrices. One possibility, along the line of the SDD method described earlier, is to simply use those methods as they are and squash the resulting values to $\{0,1\}$. An alternative, more akin to the Proximus approach, is to work directly on binary operands, using binary operations. Since speed and scalability is the main focus of our proposed method, we choose the second option. The result is a pair of binary dictionary learning algorithms, which we now present.
+This work proposes two methods for Binary Matrix Factorization which are essentially binary adaptations of the two Dictionary Learning methods discussed before, MOD and K-SVD. Correspondingly, we call these methods MOB (Method Of Binary directions) and K-PROX. As described in Section~\ref{sec:dictionary-learning}, the iterations of Dictionary Learning methods consist of an alternate minimization between the coefficients matrix $A$ and the dictionary matrix $D$. We now describe the coefficients update step, which is common to both methods.
 
 \paragraph{Coefficients update via Binary Matching Pursuit (BMP)}
 First of all, as $\ell_0$ norm and the $\ell_1$ norms are the same for binary vectors, we define a coefficients update step that is common to both dictionary learning methods, which will then differ only in the way that the dictionaries are updated.
@@ -202,9 +190,11 @@ Set iteration $k=0$, residual $r\iter{0}=x$, coefficients $a\iter{0}=0$\;
 \end{algorithm}
 
 Besides the differences mentioned, the algorithm also stops when the Hamming distance between the atom that is closest to the current residual is larger than the Hamming weight of the residual itself, as in such case there is no possible improvement. % show the number of maximum iterates! 
+
 In the worst case, a maximum of $m$ steps will be required.
 PENDING: PROVE THIS!
- 
+
+The main issue with this method, contrary to MP, is that there is no fast way to update the  
 \subsection{MOB: Method Of Binary directions}
  
 Here we want to update each atom so that the Hamming weight of the total residual matrix $E = X \oplus DA$ is minimum (note that minus and plus are the same thing in modulo-2 arithmetic). Say we want to update the $r$-th atom at iteration $k$. Clearly, the affected columns will only be those for which the  coefficients in $A$  corresponding to that atom are non-zero, that is $\{j : A_{rj} \neq 0 \}$; let us call this set $J_r$ and $n_r$ its size. What we want is the update $\Delta$ that, when added to $D_r$, minimizes the weight of the residual $E$ in those colums affected by $D_r$,
