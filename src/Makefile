@@ -8,6 +8,7 @@ OBJ=bsvd.o \
 	 random_number_generation.o\
 	 config.o\
 	 binmat.o\
+	intmat.o\
 	 entropy_coding.o\
 	 util.o\
 	 pbm.o\

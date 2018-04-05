@@ -1,14 +1,10 @@
 #ifndef BINMAT_H
 #define BINMAT_H
-//#include <ostream>
 #include <iostream>
 #include <bitset>
 #include <cstring>
-
-typedef unsigned long idx_t;
-typedef unsigned long block_t;
-//typedef unsigned char block_t; // for debugging!
-//typedef unsigned short block_t; // for debugging!
+#include "base_types.h"
+#include "intmat.h"
 
 #ifdef __GNUC__
 #define block_weight(a) __builtin_popcountl(a)
@@ -189,6 +185,8 @@ public:
   */
  friend binary_matrix& mul(const binary_matrix& A, const bool At, const binary_matrix& B, const bool Bt, binary_matrix& C);
 
+ friend integer_matrix& int_mul(const binary_matrix& A, const bool At, const binary_matrix& B, const bool Bt, integer_matrix& C);
+ 
  void destroy() { delete[] data; memset(this,0,sizeof(binary_matrix)); }
 
  /** Hamming distance */
@@ -224,6 +222,18 @@ private:
  /** C=A^t*B^t */
  friend binary_matrix& mul_AtBt(const binary_matrix& A, const binary_matrix& B, binary_matrix& C);
 
+ /** C=A*B */
+ friend integer_matrix& int_mul_AB(const binary_matrix& A, const binary_matrix& B, integer_matrix& C);
+
+ /** C=A^t*B */
+ friend integer_matrix& int_mul_AtB(const binary_matrix& A, const binary_matrix& B, integer_matrix& C);
+
+ /** C=A*B^t */
+ friend integer_matrix& int_mul_ABt(const binary_matrix& A, const binary_matrix& B, integer_matrix& C);
+
+ /** C=A^t*B^t */
+ friend integer_matrix& int_mul_AtBt(const binary_matrix& A, const binary_matrix& B, integer_matrix& C);
+ 
  /** rows of the matrix */
   idx_t rows;
 

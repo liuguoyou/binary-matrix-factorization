@@ -29,11 +29,13 @@ const char* mi_algorithm_names[] = {"Neighbor initialization",
 };
 
 es_algorithm_t es_algorithm_catalog[] = {encode_samples_omp,
-					 encode_samples,
+					 encode_samples_basic,
+					 encode_samples_corr,
 					 0};
 
 const char* es_algorithm_names[] = {"OpenMP basic coefficients update",
 				    "Basic coefficients update",
+				    "Coefficients update using correlation",
 				    0
 };
 
