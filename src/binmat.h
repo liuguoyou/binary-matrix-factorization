@@ -4,7 +4,6 @@
 #include <bitset>
 #include <cstring>
 #include "base_types.h"
-#include "intmat.h"
 
 #ifdef __GNUC__
 #define block_weight(a) __builtin_popcountl(a)
@@ -184,8 +183,6 @@ public:
   * It is assumed that C contains enough space for the result. 
   */
  friend binary_matrix& mul(const binary_matrix& A, const bool At, const binary_matrix& B, const bool Bt, binary_matrix& C);
-
- friend integer_matrix& int_mul(const binary_matrix& A, const bool At, const binary_matrix& B, const bool Bt, integer_matrix& C);
  
  void destroy() { delete[] data; memset(this,0,sizeof(binary_matrix)); }
 
@@ -197,18 +194,6 @@ public:
 
  binary_matrix& operator=(const binary_matrix& A);
 
-private:
-
-
- /** @return the specified data block, aligned case */
- inline block_t get_block(const idx_t i, const idx_t j) const {
-   return (j < last_block) ? data[i*blocks_per_row + j] : data[i*blocks_per_row + j] & trail_mask; 
- }
-
- /** Sets the specified data block to the given value, aligned case */
- inline void set_block(const idx_t i, const idx_t j, const block_t b)  { 
-   data[i*blocks_per_row+j] = b;
- }
 
  /** C=A*B */
  friend binary_matrix& mul_AB(const binary_matrix& A, const binary_matrix& B, binary_matrix& C);
@@ -222,18 +207,20 @@ private:
  /** C=A^t*B^t */
  friend binary_matrix& mul_AtBt(const binary_matrix& A, const binary_matrix& B, binary_matrix& C);
 
- /** C=A*B */
- friend integer_matrix& int_mul_AB(const binary_matrix& A, const binary_matrix& B, integer_matrix& C);
+ inline size_t get_blocks_per_row() const { return blocks_per_row; }
 
- /** C=A^t*B */
- friend integer_matrix& int_mul_AtB(const binary_matrix& A, const binary_matrix& B, integer_matrix& C);
+ /** @return the specified data block, aligned case */
+ inline block_t get_block(const idx_t i, const idx_t j) const {
+   return (j < last_block) ? data[i*blocks_per_row + j] : data[i*blocks_per_row + j] & trail_mask; 
+ }
 
- /** C=A*B^t */
- friend integer_matrix& int_mul_ABt(const binary_matrix& A, const binary_matrix& B, integer_matrix& C);
+ /** Sets the specified data block to the given value, aligned case */
+ inline void set_block(const idx_t i, const idx_t j, const block_t b)  { 
+   data[i*blocks_per_row+j] = b;
+ }
 
- /** C=A^t*B^t */
- friend integer_matrix& int_mul_AtBt(const binary_matrix& A, const binary_matrix& B, integer_matrix& C);
- 
+private:
+
  /** rows of the matrix */
   idx_t rows;
 

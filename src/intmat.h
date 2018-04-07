@@ -2,8 +2,9 @@
 #define INTMAT_H
 #include <algorithm>
 #include <fstream>
-#include "base_types.h"
 #include <cstring>
+#include "base_types.h"
+#include "binmat.h"
 
 typedef long int_t;
 
@@ -85,7 +86,7 @@ public:
  inline void clear() { std::fill(data,data+len,0); }
 
 
- inline bool get(const idx_t i, const idx_t j) const { 
+ inline int_t get(const idx_t i, const idx_t j) const { 
    return data[i*cols+j];
  }
 
@@ -119,14 +120,14 @@ public:
   * It is assumed that C contains enough space for the result. 
   */
  friend integer_matrix& mul(const integer_matrix& A, const bool At, const integer_matrix& B, const bool Bt, integer_matrix& C);
+ 
+ friend integer_matrix& mul(const binary_matrix& A, const bool At, const binary_matrix& B, const bool Bt, integer_matrix& C);
 
  void destroy() { delete[] data; memset(this,0,sizeof(integer_matrix)); }
 
  friend idx_t dist(const integer_matrix& A, const integer_matrix& B);
 
  integer_matrix& operator=(const integer_matrix& A);
-
-private:
 
  /** C=A*B */
  friend integer_matrix& mul_AB(const integer_matrix& A, const integer_matrix& B, integer_matrix& C);
@@ -140,6 +141,20 @@ private:
  /** C=A^t*B^t */
  friend integer_matrix& mul_AtBt(const integer_matrix& A, const integer_matrix& B, integer_matrix& C);
 
+ /** C=A*B */
+ friend integer_matrix& mul_AB(const binary_matrix& A, const binary_matrix& B, integer_matrix& C);
+
+ /** C=A^t*B */
+ friend integer_matrix& mul_AtB(const binary_matrix& A, const binary_matrix& B, integer_matrix& C);
+
+ /** C=A*B^t */
+ friend integer_matrix& mul_ABt(const binary_matrix& A, const binary_matrix& B, integer_matrix& C);
+
+ /** C=A^t*B^t */
+ friend integer_matrix& mul_AtBt(const binary_matrix& A, const binary_matrix& B, integer_matrix& C);
+
+private:
+ 
  /** rows of the matrix */
   idx_t rows;
 

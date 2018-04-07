@@ -1,9 +1,9 @@
-#include "binmat.h"
 #include <iomanip>
 #include <cstring>
 #include <bitset>
 #include <cassert>
 #include <omp.h>
+#include "binmat.h"
 
 
 /* information on how to vectorize these operations using x86 SSE extensions in C is
@@ -632,95 +632,6 @@ binary_matrix& mul(const binary_matrix& A, const bool At, const binary_matrix& B
   }
 }
 
-//====================================================================
-
-// C is assumed to have been allocated and have the appropriate dimension
-integer_matrix& int_mul_AB(const binary_matrix& A, const binary_matrix& B, integer_matrix& C)
-{
-  // brutally inefficient
-  assert(!C.empty());
-  assert(C.get_rows() == A.rows);
-  assert(C.get_cols() == B.cols);
-  assert(A.cols == B.rows);
-  const idx_t M = A.rows;
-  const idx_t N = B.cols;
-  const idx_t K = B.rows;
-  C.clear();
-  for (idx_t i = 0; i < M; ++i) {
-    for (idx_t j = 0; j < N; ++j) {
-      for (idx_t k = 0; k < K; ++k) {
-	if (A.get(i,k) && B.get(k,j))
-	  C.inc(i,j);
-      }
-    } 
-  }
-  return C;
-}
-
-integer_matrix& int_mul_AtB(const binary_matrix& A, const binary_matrix& B, integer_matrix& C)
-{
-  // brutally inefficient
-  assert(C.get_rows() == A.cols);
-  assert(C.get_cols() == B.cols);
-  assert(A.rows == B.rows);
-  C.clear();
-  const idx_t M = A.cols;
-  const idx_t N = B.cols;
-  const idx_t K = B.rows;
-  C.clear();
-  for (idx_t i = 0; i < M; ++i) {
-    for (idx_t j = 0; j < N; ++j) {
-      for (idx_t k = 0; k < K; ++k) {
-	if (A.get(k,i) && B.get(k,j))
-	  C.inc(i,j);
-      }
-    } 
-  }
-  return C;
-}
-
-integer_matrix& int_mul_ABt(const binary_matrix& A, const binary_matrix& B, integer_matrix& C)
-{
-  // this one is efficient...
-  assert(C.get_rows() == A.rows);
-  assert(C.get_cols() == B.rows);
-  assert(A.cols == B.cols);
-  const idx_t M = A.rows;
-  const idx_t N = B.cols;
-  const idx_t K = A.blocks_per_row;
-  for (idx_t i = 0; i < M; ++i) {
-    for (idx_t j = 0; j < N; ++j) {
-      int_t a = 0;
-      for (idx_t k = 0; k < K; ++k) {
-	a += block_weight(A.get_block(i,k) & B.get_block(j,k)); // pA[k] & pB[k]);
-      }
-      C.set(i,j,a);
-    }
-  }
-  return C;
-}
-
-integer_matrix& int_mul_AtBt(const binary_matrix& A, const binary_matrix& B, integer_matrix& C)
-{
-  // not implemented!
-  assert(C.get_rows() == A.cols);
-  assert(C.get_cols() == B.rows);
-  assert(A.rows == B.cols);
-  C.clear();
-  return C;
-}
-
-integer_matrix& mul(const binary_matrix& A, const bool At, const binary_matrix& B, const bool Bt, integer_matrix& C) {
-  if (At && Bt) {
-    return int_mul_AtBt(A,B,C);
-  } else if (At && !Bt) {
-    return int_mul_AtB(A,B,C);
-  } else if (!At && Bt) {
-    return int_mul_ABt(A,B,C);
-  } else {
-    return int_mul_AB(A,B,C);
-  }
-}
 
 //====================================================================
 

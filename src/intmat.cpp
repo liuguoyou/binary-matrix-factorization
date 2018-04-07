@@ -1,10 +1,12 @@
+#include <cassert>
 #include "intmat.h"
 
 integer_matrix::integer_matrix(idx_t _rows, idx_t _cols):rows(_rows),cols(_cols),len(rows*cols) {
   data = new int_t[len];
 }
 
-integer_matrix::integer_matrix(const integer_matrix& other): integer_matrix(other.rows, other.cols) {
+integer_matrix::integer_matrix(const integer_matrix& other) {
+  allocate(other.rows,other.cols);
   other.copy_to(*this);
 }
 
@@ -171,3 +173,94 @@ integer_matrix& mul_AtB(const integer_matrix& A, const integer_matrix& B, intege
   return C;
 }
 
+//====================================================================
+//
+// products with binary operators
+//
+// C is assumed to have been allocated and have the appropriate dimension
+integer_matrix& mul_AB(const binary_matrix& A, const binary_matrix& B, integer_matrix& C)
+{
+  // brutally inefficient
+  assert(!C.empty());
+  assert(C.get_rows() == A.get_rows());
+  assert(C.get_cols() == B.get_cols());
+  assert(A.get_cols() == B.get_rows());
+  const idx_t M = A.get_rows();
+  const idx_t N = B.get_cols();
+  const idx_t K = B.get_rows();
+  C.clear();
+  for (idx_t i = 0; i < M; ++i) {
+    for (idx_t j = 0; j < N; ++j) {
+      for (idx_t k = 0; k < K; ++k) {
+	if (A.get(i,k) && B.get(k,j))
+	  C.inc(i,j);
+      }
+    } 
+  }
+  return C;
+}
+
+integer_matrix& mul_AtB(const binary_matrix& A, const binary_matrix& B, integer_matrix& C)
+{
+  // brutally inefficient
+  assert(C.get_rows() == A.get_cols());
+  assert(C.get_cols() == B.get_cols());
+  assert(A.get_rows() == B.get_rows());
+  C.clear();
+  const idx_t M = A.get_cols();
+  const idx_t N = B.get_cols();
+  const idx_t K = B.get_rows();
+  C.clear();
+  for (idx_t i = 0; i < M; ++i) {
+    for (idx_t j = 0; j < N; ++j) {
+      for (idx_t k = 0; k < K; ++k) {
+	if (A.get(k,i) && B.get(k,j))
+	  C.inc(i,j);
+      }
+    } 
+  }
+  return C;
+}
+
+integer_matrix& mul_ABt(const binary_matrix& A, const binary_matrix& B, integer_matrix& C)
+{
+  // this one is efficient...
+  assert(C.get_rows() == A.get_rows());
+  assert(C.get_cols() == B.get_rows());
+  assert(A.get_cols() == B.get_cols());
+  const idx_t M = A.get_rows();
+  const idx_t N = B.get_cols();
+  const idx_t K = A.get_blocks_per_row();
+  for (idx_t i = 0; i < M; ++i) {
+    for (idx_t j = 0; j < N; ++j) {
+      int_t a = 0;
+      for (idx_t k = 0; k < K; ++k) {
+	a += block_weight(A.get_block(i,k) & B.get_block(j,k)); // pA[k] & pB[k]);
+      }
+      C.set(i,j,a);
+    }
+  }
+  return C;
+}
+
+integer_matrix& mul_AtBt(const binary_matrix& A, const binary_matrix& B, integer_matrix& C)
+{
+  // not implemented!
+  assert(C.get_rows() == A.get_cols());
+  assert(C.get_cols() == B.get_rows());
+  assert(A.get_rows() == B.get_cols());
+  C.clear();
+  return C;
+}
+
+integer_matrix& mul(const binary_matrix& A, const bool At, const binary_matrix& B, const bool Bt, integer_matrix& C) {
+  if (At && Bt) {
+    return mul_AtBt(A,B,C);
+  } else if (At && !Bt) {
+    return mul_AtB(A,B,C);
+  } else if (!At && Bt) {
+    return mul_ABt(A,B,C);
+  } else {
+    return mul_AB(A,B,C);
+  }
+}

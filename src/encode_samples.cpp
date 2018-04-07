@@ -1,7 +1,160 @@
-#include "encode_samples.h"
 #include <algorithm>
 #include <omp.h>
 #include <iomanip>
+#include "encode_samples.h"
+#include "intmat.h"
+#include <cassert>
+
+//==========================================================================
+//
+// AUXILIARY FUNCTIONS FOR CORRELATION-BASED ENCODING
+//
+
+/// compute unnormalized squared correlation between dict. D and sample x, D (pxm), x (1xm): g = Dx^t and
+/// squared norm of the rows of D, w
+static void  compute_correlation(const binary_matrix& D, const binary_matrix& x, integer_matrix& g, integer_matrix& w) {
+  const size_t p = D.get_rows();
+  const size_t m = D.get_cols();
+  assert(x.get_cols() == m);
+  assert(g.get_cols() == p);
+  assert(w.get_cols() == p);
+  mul_ABt(D,x,g); // integer
+  // now square every element in g
+  // and compute the row weights of D
+  for (size_t i = 0; i < p; i++) {
+    g.set(0,i,g.get(0,i)*g.get(0,i));
+    w.set(0,i,D.row_weight(i));
+  }
+}
+
+
+/// update correlation given a 
+static void  update_correlation(const binary_matrix& D, const idx_t& i, integer_matrix& g) {
+  const size_t p = D.get_rows();
+  const size_t m = D.get_cols();
+  assert(g.get_cols() == p);
+  //
+  // this is tricky: we want to update the standard correlation between two Euclidean vectors
+  // but the newly added atom is combined using XOR addition, so the result is more convolved
+  //
+  // Typically, if we have a correlation at step k g^k = D^tr^k and a new atom D_i is added (with coefficient a_i^{k+1}
+  // we would have g^{k+1} = D^t(r^k - a_i^{k+1}D_i)= D^tr^k - a_i^{k+1}DD_i^t = Dr^k - a_i^{k+1}G_i
+  //
+  // Here the thing is very different: a_i doesn't matter, it only matters that it switched, so only the index i
+  // matters. We have
+  // g^{k+1} = D( r^k XOR {k+1}D_i )
+  // but g^{k+1} is still the traditional (unnormalized) correlation, so we have to update it using the result
+  // of the XOR operation for each element j in r^k and D_i:
+  // furthermore, we need to take into account the norm of the atoms, but using integer only arithmethic, so
+  // we cannot use the Euclidean norm, but the squared euclidean norm
+  // theremore we must work with squared correlations: g^k_j = (D_j*r^k)^2 / h(D_j) = 
+  //       r^k_j  D_ij    r^{k+1}_j
+  // j= 0  0      0       0         nothing changes
+  // j= 1  0      1       1         the j-th row  of D is ADDED (in integer arithmethic) to the unnormalized g^k
+  //       1      0       1         nothing changes
+  // j= K  1      1       0         the j-th row of D is SUBSTRACTED from  g^k
+  //
+  // NOTE: the operations below are transposed to what the text says, so rows are columns, columns  are rows, etc.
+  binary_matrix D_i = D.get_row(i);
+  binary_matrix Dcol(1,p);
+  for (size_t j = 0; j < m; j++) {
+    if (D.get(0,j)) {
+      D.copy_col_to(j,Dcol);
+      if (g.get(0,j)) { // substract column
+	for (size_t k = 0; k < m; k++) {
+	  if (Dcol.get(0,k))
+	    g.dec(0,k);
+	}
+      } else { // add column to g
+	for (size_t k = 0; k < m; k++) {
+	  if (Dcol.get(0,k))
+	    g.inc(0,k);
+	}
+      }
+    }
+  }
+  D_i.destroy();
+  Dcol.destroy();
+}
+
+
+idx_t encode_samples_corr(binary_matrix& E,
+			  const binary_matrix& H,
+			  const binary_matrix& D,
+			  binary_matrix& A,
+			  const idx_t max_a_weight,
+			  const idx_t max_e_weight) 
+{
+  const idx_t m = E.get_cols();
+  const idx_t n = E.get_rows();
+  const idx_t p = D.get_rows();
+  std::cout << "cu/corr" << std::endl;
+  //
+  // SPARSE CODING STEP
+  // Go over each row and encode it using rows from D until the residual weight
+  // is no longer diminished.
+  //
+  idx_t changed = 0;
+  binary_matrix Ei(1,m);
+  binary_matrix Ai(1,p);
+  binary_matrix Dk(1,m);
+  for (idx_t i = 0; i < n; i++) {
+    E.copy_row_to(i,Ei);
+    A.copy_row_to(i,Ai);
+    bool improved = true;
+    bool ichanged = false;
+    idx_t iter = 0;
+    while (improved) {
+      idx_t w = Ei.weight();
+      if (w <= max_e_weight) { // reached maximum error goal
+	break;
+      }
+      if (Ai.weight() >= max_a_weight) { // reached maximum allowable weight in A
+	break;
+      }
+      D.copy_row_to(0,Dk);
+      idx_t bestk = 0;
+      idx_t bestd = dist(Ei,Dk);
+      //bool_and(Ei,Dk,Dk);
+      //     idx_t r = Dk.weight();
+      //      std::cout << "\titer=" << iter << " k=" << 0 << " r=" << r << " d=" << bestd << std::endl;
+      for (idx_t k = 1; k < p; k++) {
+	D.copy_row_to(k,Dk);
+	const idx_t dk = dist(Ei,Dk);
+	//bool_and(Ei,Dk,Dk);
+	//	idx_t r = Dk.weight();
+	//	std::cout << "\titer" << iter << " k=" << k << " r=" << r << " d=" << dk << std::endl;
+	if (dk < bestd) {
+	  bestd = dk;
+	  bestk = k;
+	} 
+      } // for each candidate atom
+      //      std::cout << "i=" << i << " w=" << w << " bestk=" << bestk << " bestd=" << bestd << std::endl;
+      if (bestd < w) {
+	D.copy_row_to(bestk,Dk);
+	Ai.flip(0,bestk);
+	add(Ei,Dk,Ei);
+	w = bestd;
+	ichanged = true;
+      } else {
+	improved = false;
+      }  
+      iter++;
+    } // while there is any improvement in the i-th sample residual
+    if (ichanged) {
+      changed++;
+      E.set_row(i,Ei);
+      A.set_row(i,Ai);
+    }
+    std::cout << "i=" << i << " changed=" << ichanged << " |Ei|=" << Ei.weight() << "|Ai|=" << Ai.weight() << std::endl;
+  } // for each row in E
+  Ei.destroy();
+  Ai.destroy();
+  Dk.destroy();
+  return changed;
+}
+
+//==========================================================================
 
 idx_t encode_samples_basic(binary_matrix& E,
 			   const binary_matrix& H,
@@ -304,82 +457,5 @@ idx_t encode_samples_missing_data_omp(binary_matrix& E,
 }
 
 
-//==========================================================================
-
-idx_t encode_samples_corr(binary_matrix& E,
-			  const binary_matrix& H,
-			  const binary_matrix& D,
-			  binary_matrix& A,
-			  const idx_t max_a_weight,
-			  const idx_t max_e_weight) 
-{
-  const idx_t m = E.get_cols();
-  const idx_t n = E.get_rows();
-  const idx_t p = D.get_rows();
-  std::cout << "cu/corr" << std::endl;
-  //
-  // SPARSE CODING STEP
-  // Go over each row and encode it using rows from D until the residual weight
-  // is no longer diminished.
-  //
-  idx_t changed = 0;
-  binary_matrix Ei(1,m);
-  binary_matrix Ai(1,p);
-  binary_matrix Dk(1,m);
-  for (idx_t i = 0; i < n; i++) {
-    E.copy_row_to(i,Ei);
-    A.copy_row_to(i,Ai);
-    bool improved = true;
-    bool ichanged = false;
-    idx_t iter = 0;
-    while (improved) {
-      idx_t w = Ei.weight();
-      if (w <= max_e_weight) { // reached maximum error goal
-	break;
-      }
-      if (Ai.weight() >= max_a_weight) { // reached maximum allowable weight in A
-	break;
-      }
-      D.copy_row_to(0,Dk);
-      idx_t bestk = 0;
-      idx_t bestd = dist(Ei,Dk);
-      //bool_and(Ei,Dk,Dk);
-      //     idx_t r = Dk.weight();
-      //      std::cout << "\titer=" << iter << " k=" << 0 << " r=" << r << " d=" << bestd << std::endl;
-      for (idx_t k = 1; k < p; k++) {
-	D.copy_row_to(k,Dk);
-	const idx_t dk = dist(Ei,Dk);
-	//bool_and(Ei,Dk,Dk);
-	//	idx_t r = Dk.weight();
-	//	std::cout << "\titer" << iter << " k=" << k << " r=" << r << " d=" << dk << std::endl;
-	if (dk < bestd) {
-	  bestd = dk;
-	  bestk = k;
-	} 
-      } // for each candidate atom
-      //      std::cout << "i=" << i << " w=" << w << " bestk=" << bestk << " bestd=" << bestd << std::endl;
-      if (bestd < w) {
-	D.copy_row_to(bestk,Dk);
-	Ai.flip(0,bestk);
-	add(Ei,Dk,Ei);
-	w = bestd;
-	ichanged = true;
-      } else {
-	improved = false;
-      }  
-      iter++;
-    } // while there is any improvement in the i-th sample residual
-    if (ichanged) {
-      changed++;
-      E.set_row(i,Ei);
-      A.set_row(i,Ai);
-    }
-    std::cout << "i=" << i << " changed=" << ichanged << " |Ei|=" << Ei.weight() << "|Ai|=" << Ai.weight() << std::endl;
-  } // for each row in E
-  Ei.destroy();
-  Ai.destroy();
-  Dk.destroy();
-  return changed;
-}
 
 //==========================================================================
