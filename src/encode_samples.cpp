@@ -10,7 +10,7 @@
 // AUXILIARY FUNCTIONS FOR CORRELATION-BASED ENCODING
 //
 
-/// compute unnormalized squared correlation between dict. D and sample x, D (pxm), x (1xm): g = Dx^t and
+/// compute unnormalized  correlation between dict. D and sample x, D (pxm), x (1xm): g = Dx^t and
 /// squared norm of the rows of D, w
 static void  compute_correlation(const binary_matrix& D, const binary_matrix& x, integer_matrix& g, integer_matrix& w) {
   const size_t p = D.get_rows();
@@ -22,7 +22,6 @@ static void  compute_correlation(const binary_matrix& D, const binary_matrix& x,
   // now square every element in g
   // and compute the row weights of D
   for (size_t i = 0; i < p; i++) {
-    g.set(0,i,g.get(0,i)*g.get(0,i));
     w.set(0,i,D.row_weight(i));
   }
 }
@@ -77,7 +76,23 @@ static void  update_correlation(const binary_matrix& D, const idx_t& i, integer_
   Dcol.destroy();
 }
 
-
+idx_t get_most_correlated(const integer_matrix& g, const integer_matrix& w) {
+  const size_t m = g.get_rows();
+  assert(w.get_rows() == m);
+  double gk = g.get(0,0);
+  idx_t max_k = 0;
+  double max_corr = gk*gk / (double) w.get(0,0);
+  for (size_t k = 1; k < m; k++) {
+    gk = g.get(0,k);
+    double corr = gk*gk / w.get(0,k);
+    if (corr > max_corr) {
+      max_k = k;
+      max_corr = corr;
+    }
+  }
+  return max_k;
+}
+		  
 idx_t encode_samples_corr(binary_matrix& E,
 			  const binary_matrix& H,
 			  const binary_matrix& D,
@@ -97,7 +112,6 @@ idx_t encode_samples_corr(binary_matrix& E,
   idx_t changed = 0;
   binary_matrix Ei(1,m);
   binary_matrix Ai(1,p);
-  binary_matrix Dk(1,m);
   for (idx_t i = 0; i < n; i++) {
     E.copy_row_to(i,Ei);
     A.copy_row_to(i,Ai);
@@ -105,40 +119,7 @@ idx_t encode_samples_corr(binary_matrix& E,
     bool ichanged = false;
     idx_t iter = 0;
     while (improved) {
-      idx_t w = Ei.weight();
-      if (w <= max_e_weight) { // reached maximum error goal
-	break;
-      }
-      if (Ai.weight() >= max_a_weight) { // reached maximum allowable weight in A
-	break;
-      }
-      D.copy_row_to(0,Dk);
-      idx_t bestk = 0;
-      idx_t bestd = dist(Ei,Dk);
-      //bool_and(Ei,Dk,Dk);
-      //     idx_t r = Dk.weight();
-      //      std::cout << "\titer=" << iter << " k=" << 0 << " r=" << r << " d=" << bestd << std::endl;
-      for (idx_t k = 1; k < p; k++) {
-	D.copy_row_to(k,Dk);
-	const idx_t dk = dist(Ei,Dk);
-	//bool_and(Ei,Dk,Dk);
-	//	idx_t r = Dk.weight();
-	//	std::cout << "\titer" << iter << " k=" << k << " r=" << r << " d=" << dk << std::endl;
-	if (dk < bestd) {
-	  bestd = dk;
-	  bestk = k;
-	} 
-      } // for each candidate atom
-      //      std::cout << "i=" << i << " w=" << w << " bestk=" << bestk << " bestd=" << bestd << std::endl;
-      if (bestd < w) {
-	D.copy_row_to(bestk,Dk);
-	Ai.flip(0,bestk);
-	add(Ei,Dk,Ei);
-	w = bestd;
-	ichanged = true;
-      } else {
-	improved = false;
-      }  
+      // PENDING!!!
       iter++;
     } // while there is any improvement in the i-th sample residual
     if (ichanged) {
@@ -150,7 +131,6 @@ idx_t encode_samples_corr(binary_matrix& E,
   } // for each row in E
   Ei.destroy();
   Ai.destroy();
-  Dk.destroy();
   return changed;
 }
 
