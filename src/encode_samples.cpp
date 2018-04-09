@@ -6,90 +6,7 @@
 #include <cassert>
 
 //==========================================================================
-//
-// AUXILIARY FUNCTIONS FOR CORRELATION-BASED ENCODING
-//
 
-/// compute unnormalized  correlation between dict. D and sample x, D (pxm), x (1xm): g = Dx^t and
-/// squared norm of the rows of D, w
-static void  compute_correlation(const binary_matrix& D, const binary_matrix& x, integer_matrix& g) {
-  const size_t p = D.get_rows();
-  const size_t m = D.get_cols();
-  assert(x.get_cols() == m);
-  assert(g.get_cols() == p);
-  mul_ABt(D,x,g); // integer
-  // now square every element in g
-  // and compute the row weights of D
-}
-
-
-/// update correlation given a 
-static void  update_correlation(const binary_matrix& D, const idx_t& i, integer_matrix& g) {
-  const size_t p = D.get_rows();
-  const size_t m = D.get_cols();
-  assert(g.get_cols() == p);
-  //
-  // this is tricky: we want to update the standard correlation between two Euclidean vectors
-  // but the newly added atom is combined using XOR addition, so the result is more convolved
-  //
-  // Typically, if we have a correlation at step k g^k = D^tr^k and a new atom D_i is added (with coefficient a_i^{k+1}
-  // we would have g^{k+1} = D^t(r^k - a_i^{k+1}D_i)= D^tr^k - a_i^{k+1}DD_i^t = Dr^k - a_i^{k+1}G_i
-  //
-  // Here the thing is very different: a_i doesn't matter, it only matters that it switched, so only the index i
-  // matters. We have
-  // g^{k+1} = D( r^k XOR {k+1}D_i )
-  // but g^{k+1} is still the traditional (unnormalized) correlation, so we have to update it using the result
-  // of the XOR operation for each element j in r^k and D_i:
-  // furthermore, we need to take into account the norm of the atoms, but using integer only arithmethic, so
-  // we cannot use the Euclidean norm, but the squared euclidean norm
-  // theremore we must work with squared correlations: g^k_j = (D_j*r^k)^2 / h(D_j) = 
-  //       r^k_j  D_ij    r^{k+1}_j
-  // j= 0  0      0       0         nothing changes
-  // j= 1  0      1       1         the j-th row  of D is ADDED (in integer arithmethic) to the unnormalized g^k
-  //       1      0       1         nothing changes
-  // j= K  1      1       0         the j-th row of D is SUBSTRACTED from  g^k
-  //
-  // NOTE: the operations below are transposed to what the text says, so rows are columns, columns  are rows, etc.
-  binary_matrix D_i = D.get_row(i);
-  binary_matrix Dcol(1,p);
-  for (size_t j = 0; j < m; j++) {
-    if (D.get(0,j)) {
-      D.copy_col_to(j,Dcol);
-      if (g.get(0,j)) { // substract column
-	for (size_t k = 0; k < m; k++) {
-	  if (Dcol.get(0,k))
-	    g.dec(0,k);
-	}
-      } else { // add column to g
-	for (size_t k = 0; k < m; k++) {
-	  if (Dcol.get(0,k))
-	    g.inc(0,k);
-	}
-      }
-    }
-  }
-  D_i.destroy();
-  Dcol.destroy();
-}
-
-idx_t get_most_correlated(const integer_matrix& g, const integer_matrix& w, double& max_corr) {
-  const size_t m = g.get_rows();
-  assert(w.get_rows() == m);
-  double gk = g.get(0,0);
-  idx_t max_k = 0;
-  double _max_corr = gk*gk / (double) w.get(0,0);
-  for (size_t k = 1; k < m; k++) {
-    gk = g.get(0,k);
-    double corr = gk*gk / w.get(0,k);
-    if (corr > max_corr) {
-      max_k = k;
-      _max_corr = corr;
-    }
-  }
-  max_corr = _max_corr;
-  return max_k;
-}
-		  
 idx_t encode_samples_corr(binary_matrix& E,
 			  const binary_matrix& H,
 			  const binary_matrix& D,
@@ -112,8 +29,13 @@ idx_t encode_samples_corr(binary_matrix& E,
   //
   integer_matrix Dw(1,p);
   for (size_t i = 0; i < p; i++) {
-    Dw.set(0,i,D.row_weight(i));
+    Dw.set(0,i,D.row_weight(i)); // weight is SQUARED Euclidean norm
   }
+  //
+  // modulo-2 Gram matrix of D
+  //
+  binary_matrix G2(p,p);
+  mul_ABt(D,D,G2);
   binary_matrix Ei(1,m);
   binary_matrix Ai(1,p);
   binary_matrix Dk(1,m);
@@ -121,11 +43,13 @@ idx_t encode_samples_corr(binary_matrix& E,
   for (idx_t i = 0; i < n; i++) {
     E.copy_row_to(i,Ei);
     A.clear();
-    compute_correlation(D,Ei,gi);
+    // compute initial (unnormalized) correlation with D and Ei
+    mul_ABt(D,Ei,gi); 
     bool improved = false;
     bool ichanged = false;
-    idx_t iter = 0;
-    double max_corr;
+    idx_t t = 0;
+    double max_corr, max_weight;
+    idx_t max_k;
     while (improved) {
       //
       // current weight of residual
@@ -135,15 +59,42 @@ idx_t encode_samples_corr(binary_matrix& E,
       //
       // get atom with maximum correlation 
       //
-      const idx_t kmax = get_most_correlated(gi,Dw,max_corr);
+      double gk = gi.get(0,0);
+      max_k = 0;
+      max_corr = gk*gk;
+      max_weight = (double) Dw.get(0,0);
+      for (size_t k = 1; k < m; k++) {
+	gk = gi.get(0,k);
+	// comparison of correlation is squared
+	const double corr = gk*gk;
+	const double weight = Dw.get(0,k);
+	// instead of corr/weight > max_corr/max_weight
+	if (max_weight*corr > weight*max_corr) { 
+	  max_k = k;
+	  max_corr = corr;
+	  max_weight = weight;
+	}
+      }
       if (max_corr == 0) {
 	improved = false; break;
       }
       // if there is correlation, go on
-      Dk = D.get_row(kmax);
-      const idx_t wk = Dw.get(0,kmax);
-      update_correlation(D,kmax,gi);
-      iter++;
+      Dk = D.get_row(max_k);
+      const idx_t wk = Dw.get(0,max_k);
+      //
+      // add Dk to Ei mod 2
+      //
+      add(Ei,Dk,Ei);
+      //
+      // update correlation: g(t+1) = g(t) - G2_k
+      //
+      for (size_t i = 0; i < p; i++) {
+	if (G2.get(max_k,i)) {
+	  gi.dec(0,i);
+	}
+      }
+      // next iteration t <- t+1
+      t++;
     } // while there is any improvement in the i-th sample residual
     if (ichanged) {
       changed++;
