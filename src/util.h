@@ -4,6 +4,11 @@
 
 typedef std::pair<idx_t,idx_t> aux_t;
 
+
+void inc_verbosity();
+
+char get_verbosity();
+
 /**
  * Saves an image where each column of D is transformed into a square and shown
  * as a tile.

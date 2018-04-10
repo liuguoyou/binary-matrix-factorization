@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
   fL = fopen(Lname,"r");
   if (!fL) { std::cerr << "Error  reading labels file " << Lname << std::endl; std::exit(1); }
   while (fscanf(fL,"%d ",&l)) {
-    L[i++];
+    L[i++] = l;
   } 
   fclose(fL);
 

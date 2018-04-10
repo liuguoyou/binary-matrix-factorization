@@ -5,9 +5,11 @@
 #include "intmat.h"
 #include <cassert>
 #include <cmath>
+#include "util.h"
 
-//#define DEBUG 0
 //==========================================================================
+
+#define UCORR(x) ( pow(fabs((double)(x)),1) )
 
 idx_t encode_samples_corr(binary_matrix& E,
 			  const binary_matrix& H,
@@ -19,7 +21,10 @@ idx_t encode_samples_corr(binary_matrix& E,
   const idx_t m = E.get_cols();
   const idx_t n = E.get_rows();
   const idx_t p = D.get_rows();
-//  std::cout << "cu/corr" << std::endl;
+  if (get_verbosity() >= 2) {
+    std::cout << "cu/corr: |E(0)|=" << E.weight() << std::endl;
+  }
+  //  std::cout << "cu/corr" << std::endl;
   //
   // SPARSE CODING STEP
   // Go over each row and encode it using rows from D until the residual weight
@@ -38,19 +43,28 @@ idx_t encode_samples_corr(binary_matrix& E,
   //
   binary_matrix G2(p,p);
   mul_ABt(D,D,G2);
-#if DEBUG
-  std::cout << " G2: " << G2 << std::endl;
-#endif
+  if (get_verbosity() >= 3) {
+    std::cout << "Dw: " << Dw << std::endl;
+    std::cout << " G2: " << G2 << std::endl;
+  }
   binary_matrix Ei(1,m);
   binary_matrix Ai(1,p);
   binary_matrix Dk(1,m);
   integer_matrix gi(1,p);
-  A.clear();
+  binary_matrix used(1,p);
   for (idx_t i = 0; i < n; i++) {
+    used.clear();
     E.copy_row_to(i,Ei);
     A.copy_row_to(i,Ai);
     // compute initial (unnormalized) correlation with D and Ei
-    mul_ABt(Ei,D,gi); 
+    mul_ABt(Ei,D,gi);
+    if (get_verbosity() >= 3) {
+      std::cout << "i=" << i << " |Ei(0)|=" << Ei.weight() << " |Ai(0)|=" << Ai.weight() << std::endl;
+      if (get_verbosity() >= 4) {
+	std::cout << "g_i(0) " << gi << std::endl;
+	std::cout << "Ei_i(0) " << gi << std::endl;
+      }
+    }
     bool improved = false;
     bool ichanged = false;
     idx_t t = 0;
@@ -61,13 +75,14 @@ idx_t encode_samples_corr(binary_matrix& E,
       // current weight of residual
       // 
       const idx_t ew = Ei.weight();
-    std::cout << "i="  << i << "\tt=" << t << "\t|e_i(t)|=" << ew << "\t|a_i(t)|=" << Ai.weight() << std::endl;
-#if DEBUG
-    std::cout << "i="  << i << "\tt=" << t << "\t|e_i(t)|=" << ew << "\t|a_i(t)|=" << Ai.weight() << std::endl;
-    std::cout << "e_i(t)=" << Ei << std::endl;
-    std::cout << "g_i(t)=" << gi << std::endl;
-    std::cout << "a_i(t)=" << Ai << std::endl;
-#endif
+      if (get_verbosity() >= 4) {
+	std::cout << "i="  << i << "\tt=" << t << "\t|e_i(t)|=" << ew << "\t|a_i(t)|=" << Ai.weight() << std::endl;
+	if (get_verbosity() >= 5) {
+	  std::cout << "e_i(t)=" << Ei << std::endl;
+	  std::cout << "g_i(t)=" << gi << std::endl;
+	  std::cout << "a_i(t)=" << Ai << std::endl;
+	}
+      }
       if (t >= max_a_weight) { break; }
       if (ew <= max_e_weight) { break; }
       //
@@ -75,14 +90,15 @@ idx_t encode_samples_corr(binary_matrix& E,
       //
       double gk = gi.get(0,0);
       max_k = 0;
-      max_corr = gk*gk;
-      //max_corr = gk >= 0 ? gk: -gk;
+
+      max_corr = UCORR(gk);
       max_weight = (double) Dw.get(0,0);
       for (size_t k = 1; k < p; k++) {
+	if (Ai.get(0,k)) continue; // greedy
 	gk = gi.get(0,k);
 	// comparison of correlation is squared
 	//const double corr = gk >= 0 ? gk : -gk ;
-	const double corr = gk*gk;
+	const double corr = UCORR(gk);
 	const double weight = Dw.get(0,k);
 	// instead of corr/weight > max_corr/max_weight
 	if ((max_weight*corr) > (weight*max_corr)) { 
@@ -91,28 +107,37 @@ idx_t encode_samples_corr(binary_matrix& E,
 	  max_weight = weight;
 	}
       }
-#if DEBUG
-     std::cout << "max_k(t)=" << max_k << "\tmax_corr=" << max_corr << "\tmax_weight=" << max_weight << std::endl;
-#endif
+      if (get_verbosity() >= 4) {
+	std::cout << "max_k(t)=" << max_k << "\tmax_corr=" << max_corr << "\tmax_weight=" << max_weight << std::endl;
+      }
       if (max_corr == 0) {
 	improved = false; break;
       }
       // if there is correlation, go on
-      Dk = D.get_row(max_k);
-      const idx_t wk = Dw.get(0,max_k);
-      const idx_t dik = dist(Ei,Dk);
-      if (dik > ew) { improved = false; break; }
-#if DEBUG
-     std::cout << "D_{max_k(t)}= " << Dk;
+      D.copy_row_to(max_k,Dk);
+      if (get_verbosity() >= 5) {
+	std::cout << "D_{max_k(t)}= " << Dk;
+      }
+      // attempt update
+      add(Ei,Dk,Ei);
+#if 1 // disabled rolling back for now
+      const size_t cand_ew = Ei.weight();
+      if (cand_ew >= ew) {
+	if (get_verbosity() >= 3) {
+	  std::cout << "STOP at t=" << t << " atom does not improve weigth: from " << ew << " to " << cand_ew << std::endl;
+	}
+	add(Ei,Dk,Ei); // roll back
+	improved = false; break;
+      }
 #endif
       improved = true;
       ichanged = true;
       //
       // add Dk to Ei mod 2
       //
-      if (!Ai.get(0,max_k))  { 
+      used.set(0,max_k);
+      if (!Ai.get(0,max_k)) { 
         Ai.set(0,max_k);
-        add(Ei,Dk,Ei);
         //
         // update correlation: g(t+1) = g(t) - G2_k
         //
@@ -121,33 +146,42 @@ idx_t encode_samples_corr(binary_matrix& E,
 	    gi.dec(0,i);
 	  }
         }
-      } else {
+      }
+      else {
         Ai.clear(0,max_k);
-        add(Ei,Dk,Ei);
         //
         // update correlation: g(t+1) = g(t) - G2_k
         //
         for (size_t i = 0; i < p; i++) {
-  	  if (G2.get(max_k,i)) {
-	    gi.inc(0,i);
-	  }
+      	  if (G2.get(max_k,i)) {
+      	    gi.inc(0,i);
+      	  }
         }    
       }
       // next iteration t <- t+1
       t++;
-    } while (improved); 
+    } while (improved);
+    //
+    // if there was any change , record it
+    //
     if (ichanged) {
       changed++;
       E.set_row(i,Ei);
       A.set_row(i,Ai);
     }
-#if DEBUG
-    std::cout << "i=" << i << " changed=" << ichanged << " |Ei|=" << Ei.weight() << " |Ai|=" << Ai.weight() << std::endl;
-#endif
+    if (get_verbosity() >= 3) {
+      std::cout << "i=" << i << " changed=" << ichanged << " |Ei|=" << Ei.weight() << " |Ai|=" << Ai.weight() << std::endl;
+    }
   } // for each reow in E
+  if (get_verbosity() >= 2) {
+    std::cout << "changed=" << changed << " |E|=" << E.weight() << " |A|=" << A.weight() << std::endl;
+  }
+  used.destroy();
   gi.destroy();
   Ei.destroy();
   Ai.destroy();
+  G2.destroy();
+  Dw.destroy();
   return changed;
 }
 
@@ -163,7 +197,7 @@ idx_t encode_samples_basic(binary_matrix& E,
   const idx_t m = E.get_cols();
   const idx_t n = E.get_rows();
   const idx_t p = D.get_rows();
-  std::cout << "cu/basic" << std::endl;
+  //  std::cout << "cu/basic" << std::endl;
   //
   // SPARSE CODING STEP
   // Go over each row and encode it using rows from D until the residual weight
@@ -221,9 +255,9 @@ idx_t encode_samples_basic(binary_matrix& E,
       E.set_row(i,Ei);
       A.set_row(i,Ai);
     }
-#if DEBUG
-    std::cout << "i=" << i << " changed=" << ichanged << " |Ei|=" << Ei.weight() << "|Ai|=" << Ai.weight() << std::endl;
-#endif
+    if (get_verbosity() >= 3) {
+      std::cout << "i=" << i << " changed=" << ichanged << " |Ei|=" << Ei.weight() << "|Ai|=" << Ai.weight() << std::endl;
+    }
   } // for each row in E
   Ei.destroy();
   Ai.destroy();
@@ -265,7 +299,7 @@ idx_t encode_samples_omp(binary_matrix& E,
   idx_t NT;
 #pragma omp parallel
   {  
- NT = omp_get_num_threads(); 
+    NT = omp_get_num_threads(); 
   }
   //  std::cout << "THREADS=" << NT << std::endl;
   binary_matrix Ei[NT];
@@ -288,15 +322,15 @@ idx_t encode_samples_omp(binary_matrix& E,
     while (improved) {
       idx_t w = Ei[T].weight();
       if (w <= max_e_weight) { // reached maximum error goal
-#ifdef DEBUG
-	std::cout << "STOP: error below maximum allowed error weight. " << std::endl;
-#endif
+	if (get_verbosity() >= 3) {
+	  std::cout << "STOP: error below maximum allowed error weight. " << std::endl;
+	}
 	break;
       }
       if (Ai[T].weight() >= max_a_weight) { // reached maximum allowable weight in A
-#ifdef DEBUG
-	std::cout << "STOP: coefficients above maximum allowed  weight. " << std::endl;
-#endif
+	if (get_verbosity() >= 3) {
+	  std::cout << "STOP: coefficients above maximum allowed  weight. " << std::endl;
+	}
 	break;
       }
       D.copy_row_to(0,Dk[T]);
@@ -315,10 +349,10 @@ idx_t encode_samples_omp(binary_matrix& E,
           bestk = k;
 	} 
       }
-#ifdef DEBUG
-      //std::cout << "i=" << std::setw(10) << i << " iter="<< std::setw(4) << iter;
-      //std::cout << " wk=" << std::setw(3) << Dk[T].weight() << " w=" << w << " bestk=" << std::setw(4) << bestk << " bestd=" << std::setw(4) << bestd << std::endl;
-#endif
+      if (get_verbosity() >= 3) {
+	//std::cout << "i=" << std::setw(10) << i << " iter="<< std::setw(4) << iter;
+	//std::cout << " wk=" << std::setw(3) << Dk[T].weight() << " w=" << w << " bestk=" << std::setw(4) << bestk << " bestd=" << std::setw(4) << bestd << std::endl;
+      }
       if (bestd < w) {
 	D.copy_row_to(bestk,Dk[T]);
 	Ai[T].flip(0,bestk);
@@ -335,9 +369,9 @@ idx_t encode_samples_omp(binary_matrix& E,
       E.set_row(i,Ei[T]);
       A.set_row(i,Ai[T]);
     }
-#ifdef DEBUG
-    std::cout << "i=" << std::setw(10) << i << " changed=" << std::setw(4) << ichanged << " |Ei|=" << std::setw(4) << Ei[T].weight() << " |Ai|=" << std::setw(4) << Ai[T].weight() << std::endl;
-#endif
+    if (get_verbosity() >= 3) {
+      std::cout << "i=" << std::setw(10) << i << " changed=" << std::setw(4) << ichanged << " |Ei|=" << std::setw(4) << Ei[T].weight() << " |Ai|=" << std::setw(4) << Ai[T].weight() << std::endl;
+    }
   }
   for (idx_t T = 0; T < NT; T++) {
     Ei[T].destroy();
@@ -370,7 +404,7 @@ idx_t encode_samples_missing_data_omp(binary_matrix& E,
   idx_t NT;
 #pragma omp parallel
   {  
- NT = omp_get_num_threads(); 
+    NT = omp_get_num_threads(); 
   }
   //  std::cout << "THREADS=" << NT << std::endl;
   binary_matrix Ei[NT];
@@ -396,15 +430,15 @@ idx_t encode_samples_missing_data_omp(binary_matrix& E,
     while (improved) {
       idx_t w = Ei[T].weight();
       if (w <= max_e_weight) { // reached maximum error goal
-#ifdef DEBUG
-	std::cout << "STOP: error below maximum allowed error weight. " << std::endl;
-#endif
+	if (get_verbosity() >= 3) {
+	  std::cout << "STOP: error below maximum allowed error weight. " << std::endl;
+	}
 	break;
       }
       if (Ai[T].weight() >= max_a_weight) { // reached maximum allowable weight in A
-#ifdef DEBUG
-	std::cout << "STOP: coefficients above maximum allowed  weight. " << std::endl;
-#endif
+	if (get_verbosity() >= 3) {
+	  std::cout << "STOP: coefficients above maximum allowed  weight. " << std::endl;
+	}
 	break;
       }
       D.copy_row_to(0,Dk[T]);
@@ -423,10 +457,10 @@ idx_t encode_samples_missing_data_omp(binary_matrix& E,
           bestk = k;
 	} 
       }
-#ifdef DEBUG
-      //std::cout << "i=" << std::setw(10) << i << " iter="<< std::setw(4) << iter;
-      //std::cout << " wk=" << std::setw(3) << Dk[T].weight() << " w=" << w << " bestk=" << std::setw(4) << bestk << " bestd=" << std::setw(4) << bestd << std::endl;
-#endif
+      if (get_verbosity() >= 3) {
+	//std::cout << "i=" << std::setw(10) << i << " iter="<< std::setw(4) << iter;
+	//std::cout << " wk=" << std::setw(3) << Dk[T].weight() << " w=" << w << " bestk=" << std::setw(4) << bestk << " bestd=" << std::setw(4) << bestd << std::endl;
+      }
       if (bestd < w) {
 	D.copy_row_to(bestk,Dk[T]);
 	Ai[T].flip(0,bestk);
@@ -443,9 +477,9 @@ idx_t encode_samples_missing_data_omp(binary_matrix& E,
       E.set_row(i,Ei[T]);
       A.set_row(i,Ai[T]);
     }
-#ifdef DEBUG
-    std::cout << "i=" << std::setw(10) << i << " changed=" << std::setw(4) << ichanged << " |Ei|=" << std::setw(4) << Ei[T].weight() << " |Ai|=" << std::setw(4) << Ai[T].weight() << std::endl;
-#endif
+    if (get_verbosity() >= 3) {
+      std::cout << "i=" << std::setw(10) << i << " changed=" << std::setw(4) << ichanged << " |Ei|=" << std::setw(4) << Ei[T].weight() << " |Ai|=" << std::setw(4) << Ai[T].weight() << std::endl;
+    }
   }
   for (idx_t T = 0; T < NT; T++) {
     Ei[T].destroy();

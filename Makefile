@@ -1,8 +1,7 @@
-#TEST
 all:
-	make -C src
-	make -C doc
+	$(MAKE) -C src
+#	$(MAKE) -C doc
 
 clean:
-	make -C src clean
-	make -C doc clean
+	$(MAKE) -C src clean
+#	make -C doc clean

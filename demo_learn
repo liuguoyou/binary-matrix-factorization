@@ -1,0 +1,13 @@
+#!/bin/bash
+make -C src -j 4
+mkdir -p res/mnist
+src/bsvd_learn_exp -i 1 -l 4 -k 10 -m 1 $* data/mnist_data.pbm
+mv *pbm res/mnist
+
+mkdir -p res/usps
+src/bsvd_learn_exp -i 1 -l 4 -k 10 -m 1 $* data/usps_data.pbm
+mv *pbm res/usps/
+
+mkdir -p res/einstein
+src/bsvd_learn_exp -i 1 -l 4 -k 20 -I 1 $* data/einstein.pbm
+mv *pbm res/einstein/

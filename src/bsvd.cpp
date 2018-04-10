@@ -21,27 +21,33 @@ idx_t learn_model_traditional(binary_matrix& X,
   const idx_t me  = 0;
   mul(A,false,D,false,E);
   add(E,X,E);
-  //  std::cout << "trad" << std::endl;
   idx_t changed = 1;
   idx_t iter = 0;
-  //std::cout << "iter=" << std::setw(8) << iter 
-//	    << "\t||E||=" << std::setw(8) << E.weight()
-//	    << "\t||D||=" << std::setw(8) << D.weight()
-//	    << "\t||A||=" << std::setw(8) << A.weight() << std::endl;
+  if (get_verbosity() >= 2) {
+    std::cout << "trad" << std::endl;
+    std::cout << "iter=" << std::setw(8) << iter 
+	    << "\t||E||=" << std::setw(8) << E.weight()
+	    << "\t||D||=" << std::setw(8) << D.weight()
+	    << "\t||A||=" << std::setw(8) << A.weight() << std::endl;
+  }
   while (changed > 0) {    
     iter++;
     idx_t changed_coefs = encode_samples(E,H,D,A,ma,me);
-  //  std::cout << "iter=" << std::setw(8) << iter 
-//	      << "\t||E||=" << std::setw(8) << E.weight()
-//	      << "\t||D||=" << std::setw(8) << D.weight()
-//	      << "\t||A||=" << std::setw(8) << A.weight()
-//	      << "\tchanged coefs=" << std::setw(8) << changed_coefs << std::endl;
+    if (get_verbosity() >= 2) {
+      std::cout << "iter=" << std::setw(8) << iter 
+		<< "\t||E||=" << std::setw(8) << E.weight()
+		<< "\t||D||=" << std::setw(8) << D.weight()
+		<< "\t||A||=" << std::setw(8) << A.weight()
+		<< "\tchanged coefs=" << std::setw(8) << changed_coefs << std::endl;
+    }
     changed = changed_coefs + update_dictionary(E,H,D,A);
-//    std::cout << "iter=" << std::setw(8) << iter 
-//	      << "\t||E||=" << std::setw(8) << E.weight()
-//	      << "\t||D||=" << std::setw(8) << D.weight()
-//	      << "\t||A||=" << std::setw(8) << A.weight()
-//	      << "\tchanged atoms=" << std::setw(8) << changed << std::endl;
+    if (get_verbosity() >= 2) {
+      std::cout << "iter=" << std::setw(8) << iter 
+		<< "\t||E||=" << std::setw(8) << E.weight()
+		<< "\t||D||=" << std::setw(8) << D.weight()
+		<< "\t||A||=" << std::setw(8) << A.weight()
+		<< "\tchanged atoms=" << std::setw(8) << changed << std::endl;
+    }
   }
   return iter;
 }
@@ -276,8 +282,14 @@ idx_t learn_model_mdl_forward_selection(binary_matrix& X,
     //
     idx_t currL = model_codelength(currE,currD,currA);
     int dif = int(currL) - int(bestL);
-    int dev = allStuck > 0 ? (sumStuck/allStuck) : 0;
-    std::cout << "currK=" << K << " currL=" << currL << " bestK=" << bestK << " bestL=" << bestL << " stuck=" << stuck << " dif=" << dif << " dev=" << dev << std::endl;
+    int dev = allStuck > 0 ? (sumStuck/allStuck) : 0;    
+    std::cout << "currK=" << K
+	      << " |currE|=" << currE.weight()
+	      << " |currA|=" << currA.weight()
+	      << " |currD|=" << currD.weight()
+	      << " currL=" << currL << " bestK=" << bestK
+	      << " bestL=" << bestL << " stuck=" << stuck
+	      << " dif=" << dif << " dev=" << dev << std::endl;
     initialize_dictionary(currE,H,nextAtom,nextCoefs);
     //learn_model_inner(currE,nextE,nextAtom,nextCoefs);
     //std::cout << nextAtom << std::endl;

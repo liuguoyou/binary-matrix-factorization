@@ -21,11 +21,48 @@ bool force_mosaic = true;
 bool force_residual_mosaic = true;
 const char* iname = "data/test.pbm";
 
+void list_choices(const char* prefix, const char* opts[]) {
+  size_t i = 0;
+  while (opts[i]) {
+    std::cout << prefix << i << " -> " << opts[i] << std::endl;
+    i++;
+  }
+}
+
+
+void show_help(const char* pname) {
+  std::cout << "USAGE: " << pname << " [options] <data_file>" << std::endl;
+  std::cout << "where [options can be any combination of: " << std::endl;
+  std::cout << "\t-i initialization algorithm. Choices are:" << std::endl;
+  list_choices("\t\t",mi_algorithm_names);
+  std::cout << "\t-c coefficients update algorithm. Choices are:" << std::endl;
+  list_choices("\t\t",es_algorithm_names);
+  std::cout << "\t-d dictionary update algorithm. Choices are:" << std::endl;
+  list_choices("\t\t",du_algorithm_names);
+  std::cout << "\t-l model selection algorithm. Choices are:" << std::endl;
+  list_choices("\t\t",lm_algorithm_names);
+  std::cout << "\t-L model learning algorithm. Choices are:" << std::endl;
+  list_choices("\t\t",lm_algorithm_names);
+  std::cout << "\t-w patch width, for image analysis." << std::endl;
+  std::cout << "\t-k model size/rank (bool" << std::endl;
+  std::cout << "\t-r random number generator seed (int)" << std::endl;
+  std::cout << "\t-I model size/rank (bool)" << std::endl;
+  std::cout << "\t-m force generation of atom mosaic image (bool)." << std::endl;
+  std::cout << "\t-M force generation of residual samples mosaic image (bool)." << std::endl;
+  std::cout << "\t-v increase verbosity." << std::endl;
+  std::cout << "\t-h show this message." << std::endl;
+}
+
 void parse_args(int argc, char **argv) {
   for (int i = 0; i < argc; ++i) {		       
     if (argv[i][0] == '-') { 
-      if (i == (argc-1)) {
-	std::cerr << "Missing argument for " << argv[i] << std::endl; exit(-1); 
+      if (argv[i][1] == 'h') {
+        show_help(argv[0]); exit(0);
+      } else if (argv[i][1] == 'v') {
+	inc_verbosity();
+	continue;
+      } else if (i == (argc-1)) {
+	  std::cerr << "Missing argument for " << argv[i] << std::endl; exit(-1); 
       }
       const char* val = argv[i+1];
 //      std::cout << "Parameter " << argv[i] << " value " << val << std::endl;
@@ -153,7 +190,10 @@ int main(int argc, char **argv) {
   }
   mul(A,false,D,false,E);
   add(E,X,E);
-  std::cout << "|E|" << E.weight() << std::endl;
+  std::cout << "FINAL: |E|=" << E.weight()
+	    << " |A|=" << A.weight() 
+	    << " |D|=" << D.weight() 
+	    << " K=" << D.get_rows() << std::endl;
   A.destroy();
   I.destroy();
   E.destroy();

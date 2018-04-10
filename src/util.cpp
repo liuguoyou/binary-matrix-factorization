@@ -4,6 +4,12 @@
 #include <cstdio>
 #include "util.h"
 
+static char verbosity = 0;
+
+char get_verbosity() { return verbosity; }
+
+void inc_verbosity() { verbosity++; }
+
 void counting_sort(aux_t* s, idx_t n) {  
   idx_t maxs = 0; 
 
