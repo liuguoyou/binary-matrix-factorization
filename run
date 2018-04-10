@@ -1,0 +1,18 @@
+#!/bin/bash
+d=`date +%Y-%m-%d-%H-%M-%S`
+export PRG=${1}
+rm latest
+mkdir -p res/${PRG}-${d}
+ln -s res/${PRG}-${d} latest
+#
+# copy snapshot of sources
+#
+cp -r src run latest/
+#
+# dump output to log file
+#
+echo "$*" > latest/${PRG}-${d}.cmd
+./src/$* > latest/${PRG}-${d}.log
+#mkdir latest/work
+#mv -f work/* latest/work/
+mv -f *.p?m latest/

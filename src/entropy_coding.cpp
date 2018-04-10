@@ -1,6 +1,7 @@
 #include "gsl/gsl_sf_gamma.h"
 #include "entropy_coding.h"
 #include <cmath>
+#include "util.h"
 
 void bilinear_predictor(const binary_matrix& P, binary_matrix& pP) {
   // can be very quickly implemented at block level using binary operators,
@@ -31,27 +32,28 @@ double universal_codelength(const unsigned n, const unsigned r) {
   }
 }
 
-idx_t model_codelength(const binary_matrix& E, 
-		       const binary_matrix& D, 
-		       const binary_matrix& A) {
+codelength model_codelength(const binary_matrix& E, 
+			      const binary_matrix& D, 
+			      const binary_matrix& A) {
 
   const idx_t M = E.get_cols();
   const idx_t N = E.get_rows();
   const idx_t K = D.get_rows();
-
-
-  binary_matrix Dk(1,M);
-  binary_matrix Ak(1,N);
-
-  idx_t LE = universal_codelength(E.get_rows()*E.get_cols(),E.weight());
-  idx_t LD = 0, LA = 0;
+  codelength L;
   for (idx_t k = 0; k < K; k++) {
-    D.copy_row_to(k,Dk);
-    A.copy_col_to(k,Ak);
-    LD += universal_codelength(M,Dk.weight());
-    LA += universal_codelength(N,Ak.weight());
+    L.D += universal_codelength(M,D.row_weight(k));
+    L.A += universal_codelength(N,A.col_weight(k));
   }
-  Dk.destroy();
-  Ak.destroy();
-  return LE+LD+LA;
+#if 0
+  for (idx_t i = 0; i < M; i++) { // col-wise coding
+    L.E += universal_codelength(N,E.col_weight(i));
+  }
+#else
+  L.E = universal_codelength(E.get_len(),E.weight());
+#endif
+  L.X = L.E+L.D+L.A;
+  if (get_verbosity() >= 1) {
+    std::cout << "Codelength: L(E)=" << L.E << " L(D)=" << L.D << " L(A)=" << L.A << " L(X)=" << (L.X) << std::endl;
+  }
+  return L;
 }

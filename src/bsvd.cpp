@@ -272,15 +272,17 @@ idx_t learn_model_mdl_forward_selection(binary_matrix& X,
   binary_matrix currD(D),currA(A),currE(E);  
   binary_matrix nextD,nextA,nextE(N,M);
   idx_t bestK = K;
-  idx_t bestL = model_codelength(E,D,A);
+  codelength Lparts = model_codelength(E,D,A); 
+  idx_t bestL = Lparts.X; 
   idx_t stuck = 0;
   idx_t sumStuck = 0;
   idx_t allStuck = 0;
+  //  Lparts = model_codelength(currE,currD,currA);
   do {
     //
     // initialize curr atom and associated coefs.
     //
-    idx_t currL = model_codelength(currE,currD,currA);
+    idx_t currL = Lparts.X;
     int dif = int(currL) - int(bestL);
     int dev = allStuck > 0 ? (sumStuck/allStuck) : 0;    
     std::cout << "currK=" << K
@@ -318,7 +320,8 @@ idx_t learn_model_mdl_forward_selection(binary_matrix& X,
     nextA.destroy();
 
     learn_model_inner(X,H,currE,currD,currA);
-    currL = model_codelength(currE,currD,currA);
+    Lparts = model_codelength(currE,currD,currA); // RARO: dos veces??
+    currL = Lparts.X;
     if ((currL + dev) < bestL) {
       stuck = 0;
       bestL = currL;
@@ -361,7 +364,8 @@ idx_t learn_model_mdl_backward_selection(binary_matrix& X,
   learn_model_inner(X,H,E,D,A);
   //mul(A,false,D,false,E);
   //add(E,X,E);
-  idx_t bestL = model_codelength(E,D,A);
+  codelength Lparts = model_codelength(E,D,A);
+  idx_t bestL = Lparts.X;
   idx_t bestK = K;
   idx_t currL = bestL;
   binary_matrix Dk(1,M);
@@ -386,7 +390,8 @@ idx_t learn_model_mdl_backward_selection(binary_matrix& X,
       mul(Ak,true,Dk,false,AkDk);
       // codelength of nex
       add(AkDk,E,nextE); // residual associated to removing Dk
-      idx_t tmpL = model_codelength(nextE,currD,currA);
+      const codelength Lparts = model_codelength(nextE,currD,currA);
+      idx_t tmpL = Lparts.X;
       tmpL -= universal_codelength(M,Dk.weight());
       tmpL -= universal_codelength(N,Ak.weight());
       if (tmpL < nextL) {
@@ -415,9 +420,11 @@ idx_t learn_model_mdl_backward_selection(binary_matrix& X,
 	nextA.set_col(k-1,Ak);
       }
       learn_model_inner(X,H,nextE,nextD,nextA);
-      nextL = model_codelength(nextE,nextD,nextA);
+      const codelength Lparts = model_codelength(nextE,nextD,nextA);
+      nextL = Lparts.X;
     } else {
-      nextL = model_codelength(nextE,nextD,nextA);
+      const codelength Lparts = model_codelength(nextE,nextD,nextA);
+      nextL = Lparts.X;
     }
 
     if (nextL + dev < bestL)  {
@@ -493,7 +500,8 @@ idx_t learn_model_mdl_full_search(binary_matrix& X,
       random_seed = (random_seed*31 ) % 17;
       initialize_dictionary(X,H,candD,candA);
       learn_model_inner(X,H,candE,candD,candA);
-      aux[I] = model_codelength(candE,candD,candA);
+      const codelength Lparts = model_codelength(candE,candD,candA);
+      aux[I] = Lparts.X;
       std::cout << " " << aux[I];
     }
     idx_t candL = *std::min_element(aux+0,aux+REPS);
