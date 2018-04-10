@@ -596,7 +596,7 @@ binary_matrix& mul_ABt(const binary_matrix& A, const binary_matrix& B, binary_ma
   assert(C.cols == B.rows);
   assert(A.cols == B.cols);
   const idx_t M = A.rows;
-  const idx_t N = B.cols;
+  const idx_t N = B.rows;
   const idx_t K = A.blocks_per_row;
   for (idx_t i = 0; i < M; ++i) {
     for (idx_t j = 0; j < N; ++j) {
@@ -604,6 +604,7 @@ binary_matrix& mul_ABt(const binary_matrix& A, const binary_matrix& B, binary_ma
       for (idx_t k = 0; k < K; ++k) {
 	a ^= block_sum(A.get_block(i,k) & B.get_block(j,k)); // pA[k] & pB[k]);
       }
+      //std::cout << "i=" << i << " j=" << j << " C(i,j)=" << a << std::endl;
       C.set(i,j,a);
     }
   }
@@ -642,9 +643,9 @@ void set_grid_width(idx_t g) { grid_width = g; }
 // slow: I don't think anyone cares about fast dumping, since most of the time
 // will be I/O anyway.
 std::ostream& operator<<(std::ostream& out, const binary_matrix& A)  {
-  out << "rows=" << A.rows << "\tcols=" << A.cols << "\tlen=" << A.len;
+  out << "rows=" << A.rows << "\tcols=" << A.cols << "\tlen=" << A.len << "\t trail=" << std::hex <<  A.trail_mask;
   out << std::endl;
-  out << "       ";
+  //out << "       ";
   for (idx_t i = 0; i < A.rows; ++i) {
     for (idx_t j = 0; j < A.cols; ++j) {
       out << std::setw(7) << A.get(i,j) << ',';

@@ -5,6 +5,7 @@
 #include "intmat.h"
 #include <cassert>
 
+#define DEBUG 1
 //==========================================================================
 
 idx_t encode_samples_corr(binary_matrix& E,
@@ -36,26 +37,37 @@ idx_t encode_samples_corr(binary_matrix& E,
   //
   binary_matrix G2(p,p);
   mul_ABt(D,D,G2);
+#if DEBUG
+  std::cout << " G2: " << G2 << std::endl;
+#endif
   binary_matrix Ei(1,m);
   binary_matrix Ai(1,p);
   binary_matrix Dk(1,m);
   integer_matrix gi(1,p);
+  A.clear();
   for (idx_t i = 0; i < n; i++) {
     E.copy_row_to(i,Ei);
-    A.clear();
+    A.copy_row_to(i,Ai);
     // compute initial (unnormalized) correlation with D and Ei
-    mul_ABt(D,Ei,gi); 
+    mul_ABt(Ei,D,gi); 
     bool improved = false;
     bool ichanged = false;
     idx_t t = 0;
     double max_corr, max_weight;
     idx_t max_k;
-    while (improved) {
+    do {
       //
       // current weight of residual
       // 
       const idx_t ew = Ei.weight();
-      if (ew == 0) { continue; };
+#if DEBUG
+    std::cout << "i="  << i << "\tt=" << t << "\t|e_i(t)|=" << ew << "\t|a_i(t)|=" << Ai.weight() << std::endl;
+    std::cout << "e_i(t)=" << Ei << std::endl;
+    std::cout << "g_i(t)=" << gi << std::endl;
+    std::cout << "a_i(t)=" << Ai << std::endl;
+#endif
+      if (t >= max_a_weight) { break; }
+      if (ew <= max_e_weight) { break; }
       //
       // get atom with maximum correlation 
       //
@@ -63,10 +75,11 @@ idx_t encode_samples_corr(binary_matrix& E,
       max_k = 0;
       max_corr = gk*gk;
       max_weight = (double) Dw.get(0,0);
-      for (size_t k = 1; k < m; k++) {
+      for (size_t k = 1; k < p; k++) {
 	gk = gi.get(0,k);
 	// comparison of correlation is squared
-	const double corr = gk*gk;
+	const double corr = gk >= 0 ? gk : -gk ;
+	//const double corr = gk*gk;
 	const double weight = Dw.get(0,k);
 	// instead of corr/weight > max_corr/max_weight
 	if (max_weight*corr > weight*max_corr) { 
@@ -75,15 +88,23 @@ idx_t encode_samples_corr(binary_matrix& E,
 	  max_weight = weight;
 	}
       }
+#if DEBUG
+     std::cout << "max_k(t)=" << max_k << "\tmax_corr=" << max_corr << "\tmax_weight=" << max_weight << std::endl;
+#endif
       if (max_corr == 0) {
 	improved = false; break;
       }
       // if there is correlation, go on
       Dk = D.get_row(max_k);
       const idx_t wk = Dw.get(0,max_k);
+#if DEBUG
+     std::cout << "D_{max_k(t)}= " << Dk;
+#endif
+      improved = true;
       //
       // add Dk to Ei mod 2
       //
+      Ai.set(0,max_k);
       add(Ei,Dk,Ei);
       //
       // update correlation: g(t+1) = g(t) - G2_k
@@ -95,7 +116,7 @@ idx_t encode_samples_corr(binary_matrix& E,
       }
       // next iteration t <- t+1
       t++;
-    } // while there is any improvement in the i-th sample residual
+    } while (improved); 
     if (ichanged) {
       changed++;
       E.set_row(i,Ei);

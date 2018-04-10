@@ -1,4 +1,5 @@
 #include <cassert>
+#include <iomanip>
 #include "intmat.h"
 
 integer_matrix::integer_matrix(idx_t _rows, idx_t _cols):rows(_rows),cols(_cols),len(rows*cols) {
@@ -126,7 +127,14 @@ int_t integer_matrix::col_sum(idx_t j) const {
 }
 
 std::ostream& operator<<(std::ostream& out, const integer_matrix& A) {
-  // PENDING
+  out << std::dec << "rows=" << A.rows << "\tcols=" << A.cols << "\tlen=" << A.len ;
+  out << std::endl;
+  for (idx_t i = 0; i < A.rows; ++i) {
+    for (idx_t j = 0; j < A.cols; ++j) {
+      out << std::setw(7) << A.get(i,j) << ',';
+    }
+    out << std::endl;
+  }
   return out;
 }
 
@@ -229,7 +237,7 @@ integer_matrix& mul_ABt(const binary_matrix& A, const binary_matrix& B, integer_
   assert(C.get_cols() == B.get_rows());
   assert(A.get_cols() == B.get_cols());
   const idx_t M = A.get_rows();
-  const idx_t N = B.get_cols();
+  const idx_t N = B.get_rows();
   const idx_t K = A.get_blocks_per_row();
   for (idx_t i = 0; i < M; ++i) {
     for (idx_t j = 0; j < N; ++j) {
