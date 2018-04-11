@@ -167,7 +167,7 @@ Which one is better will ultimately depend on the task and the prior information
 
 \section{MDL-Guided Binary Dictionary Learning}
 
-Given a particular model order (determined by the dictionary size) $p$, our proposed method consists of a traditional alternate descent dictionary learning approach much like MOD and K-SVD. On top of it, we use the Minimum Description Length (MDL) criterion for evaluating the parsimony of the best learned model of size $p$, together with  three different algorithms for performing the selection of the best model among a range of model sizes $p=p_{\min},\ldots,p_{\max}$. 
+Given a particular model order (determined by the dictionary size) $p$, our proposed method consists of a traditional alternate descent dictionary learning approach much like MOD and K-SVD. On top of it, we use the Minimum Description Length (MDL) criterion for evaluating the parsimony of the best learned model of size $p$, together with  three different algorithms for performing the selection of the best model among a range of model sizes $p=p_{\min},\ldots,p_{\max}$. We leave the description of the top-level model selection algorithms to Section~\ref{sec:model-selection}.
 
 For the dictionary learning algorithm we provide a common coefficients update step, the Binary Matching Pursuit (BMP) algorithm, and  two choices for the dictionary update step: MOB (a binarized version of MOD) and K-PROX (combining ideas of K-SVD and Proximus)  We now provide details on each of these algorithms
 
@@ -181,22 +181,41 @@ For a given sample $x$, we begin ($t=0$) with an initial coefficients vector $a\
 \KwData{sample to encode $x$, dictionary $D$, initial coeficients $a_0$, maximum steps $t_{\max}$, maximum residual weight $w_{\max}$, residual exponent $\beta$}
 \KwResult{Optimum coefficients for $x$, $a$}
 Set iteration $t=0$, coefficients $a\iter{0}=a_0$ ,residual $r\iter{0}=x \oplus Da\iter{0}$\;
-Set modulo-2 Gramm matrix $G = D\transp \odot D$\;
-Set (unnormalized) residual correlation $g\iter{0}=D\transp{r\iter{0}}$ \;
-\While{$h(r\iter{k}) \geq w_{\max}$ \textbf{and} $t < t_{\max}$ }{
-  $k \leftarrow \arg \max_l \{\;|g\iter{t}_l|\;/\;h(D_l)\;\} $ \;
+Set modulo-2 Gramm matrix $G = D\transp \odot D$\tcc*{(a)}
+Set residual correlation $g\iter{0}=D\transp{r\iter{0}}$\tcc*{(b)}
+\While{$h(r\iter{t}) \geq w_{\max}$ \textbf{and} $t < t_{\max}$ }{
+  $k \leftarrow \arg \max_l \{\;|g\iter{t}_l|\;/\;\|D_l\|_2^\beta\;\} $ \tcc*{(c)}
   \If{$g\iter{t}_{k} = 0$} { \textbf{finish} }  
   $r\iter{t+1} \leftarrow r\iter{t} \oplus  D_{k} $\; 
-  \If {$a\iter{t+1}_{k} = 1$} {
-    $a\iter{t+1}_{k} = 0$ \;
-    } \Else {
-    puto \;
+  \If { $h(r\iter{t+1}) \geq h(r\iter{t})$\tcc*{(d)} } 
+  {
+	  $r\iter{t+1} \leftarrow r\iter{t} \oplus  D_{k} $\; 
+	  \textbf{finish} \;
+  }
+  \eIf {$a\iter{t+1}_{k} = 1$} {
+    $a\iter{t+1}_{k} \leftarrow 0$ \;
+    $g\iter{t+1} \leftarrow g\iter{t} - G_{k}$\tcc*{(e)}
+    } {
+    $a\iter{t+1}_{k} = 1$ \; 
+    $g\iter{t+1} \leftarrow g\iter{t} + G_{k}$ \tcc*{(e)}
     }
 
 }
 \label{alg:bmp}
 \end{algorithm}
-%
+
+Some steps of the algorithm, marked as $(a)$, $(b)$, $(c)$, $(d)$ and $(e)$ (appearing twice) are not obvious from the overall description of the algorithm and need to be clarified. 
+
+In $(a)$ we see the creation of an auxiliary matrix, the \emph{modulo-2 Gramm matrix} of $D$. In the traditional OMP and MP algorithms, this matrix is used in the same way throughout the algorithm, but is computed using traditional arithmetic. The idea is that the correlations vector can be efficiently updated when the new coefficients vector $a\iter{t+1}$ differs from $a\iter{t}$ by a value of $\Delta$ at the $k$-th coordinate: $g\iter{t+1} = D\transp (r\iter{t} - \Delta D_k) = g\iter{t} - \Delta D\transp D_k = g\iter{t} - \Delta\transp G_k$; this requires only $2p$ operations instead of the $\approx 2pm$ required if the correlations vector was computed all over again.
+
+Despite the fact that we are working with binary vectors with binary operations, the euclidean correlation between the dictionary and the residual is still a good proxy for choosing an atom that will serve to reduce the weight of the residual. Note however that this will work correctly if the atoms are normalized, which they are not. This is why 
+the maximum in $(c)$ is taken with respect to the ration $g\iter{t}_l / \}D_l\|_2^\beta$. If we wanted to truly normalize the atoms, we should use the Euclidean norm of $D_l$, that is, $\beta=1$. However, we leave this as a parameter, as it is useful to increase $\beta$ above $1$, which favors atoms with lower weights. We have found in our experiments that $\beta=2$
+(in which case $\|D_l\|_2^2=h(D_l)$) gives better results than $\beta=1$.
+
+The step marked with $(d)$ adds monotonicity to the method: if the weight of the residual increases (which might happen), the update is rolled back and the algorithm finishes.
+
+Finally, and most interestingly, despite the correlation vector being initially computed using a \emph{traditional} matrix-vector product, its update can be written as the traditional update used in OMP/MP, only that the Gramm matrix is actually computed using the modulo-2. The first $(e)$ corresponds to the case when $\Delta=1$, that is, when $a_k$ is switched from $0$ to $1$. The second $(e)$ corresponds to $\Delta=-1$, when $a_k$ is switched off. (This curious result is easily verified by writing down the corresponding arithmetic.) 
+
 %
 %\subsection{Coefficients update/Binary Weight Pursuit (BWP)}
 %
@@ -217,27 +236,27 @@ Set (unnormalized) residual correlation $g\iter{0}=D\transp{r\iter{0}}$ \;
 %\end{algorithm}
 \subsection{MOB: Method Of Binary directions}
  
-Here we want to update each atom so that the Hamming weight of the total residual matrix $E = X \oplus DA$ is minimum (note that minus and plus are the same thing in modulo-2 arithmetic). Say we want to update the $r$-th atom at iteration $k$. Clearly, the affected columns will only be those for which the  coefficients in $A$  corresponding to that atom are non-zero, that is $\{j : A_{rj} \neq 0 \}$; let us call this set $J_r$ and $n_r$ its size. What we want is the update $\Delta$ that, when added to $D_r$, minimizes the weight of the residual $E$ in those colums affected by $D_r$,
+Here we want to update each atom so that the Hamming weight of the total residual matrix $E = X \oplus D \odot A$ is minimum (we recall that minus and plus are the same thing in modulo-2 arithmetic). Say we want to update the $r$-th atom at iteration $k$. Clearly, the affected columns will only be those for which the  coefficients in $A$  corresponding to that atom are non-zero, that is $\{j : A_{rj} \neq 0 \}$; let us call this set $J_r$ and $n_r$ its size. What we want is the update $\Delta$ that, when added to $D_r$, minimizes the weight of the residual $E$ in those colums affected by $D_r$,
  \begin{eqnarray}
  \Delta  =& \arg\min_d \sum_{j \in J_r}  h(E\iter{k}_j \oplus d) \\
  =& \arg\min_d \sum_{j \in J_r} (\sum_i E\iter{k}_j + n_r d_i).
 \label{eq:mob1}
  \end{eqnarray}
 
-(note that the summation symbols are carried on using normal addition). The above objective is trivially separable in the elements of $d$,
+The above objective is trivially separable in the elements of $d$,
  \begin{eqnarray}
  \Delta_i  =& \arg\min_{u \in \{0,1\}} \sum_j E_{ij}\iter{k} \oplus d_i\\
  =& \arg\min_{u \in \{0,1\}} \sum_{j\in J_r} E_{ij}\iter{k} + n_r u.
 \label{eq:mob2}
  \end{eqnarray}
 In other words, the $i$-th element of $D_r$ should be $0$ if most of the elements in the rows of $E$ affected by it are $0$, and $1$ otherwise. 
-This is clearly an optimum solution (note that there could be many optima  when $n_r$ is even, in which case we simply choose one).
+This is clearly an optimum solution (note that there could be many optima  when $n_r$ is even, in which case we simply choose one value; in our case we use $0$).
 
 \subsection{K-PROX: Dictionary Update via Proximus}
 
-In this case, following the K-SVD concept, we want to obtain the best rank-one approximation to the residual $E$ obtained after removing the contribution of $D_r$. Let $J_r = \{j: A_{rj} \neq 0 \}$ and $X_{J_r}$ and $A_{J_r}$ the submatrices formed by the columns of $X$ and $A$ indexed by $J_r$ and $E_{J_r}=DA_{J_r} \oplus E_{J_r}$. We then have the following update:
+In this case, following the K-SVD concept, we want to obtain the best rank-one approximation to the residual $E$ obtained after removing the contribution of $D_r$. Let $J_r = \{j: A_{rj} \neq 0 \}$ and $E_{J_r}$, $X_{J_r}$ and $A_{J_r}$ the submatrices formed by the columns of $X$ and $A$ indexed by $J_r$ and $R_{J_r}=D{\odot}A_{J_r} \oplus E_{J_r}$. We then have the following update:
 \begin{equation}
-(D_r\iter{k+1},A_{J_r}\iter{k+1}) = \arg\min_{u,v} h\left( E_{J_r}\iter{k} \oplus uv\transp \right).
+(D_r\iter{k+1},A_{J_r}\iter{k+1}) = \arg\min_{u,v} h\left( R_{J_r}\iter{k} \oplus uv\transp \right).
 \label{eq:bsvd1}
 \end{equation}
 As the name K-PROX implies, we seek an approximation to the NP-hard problem \refeq{eq:bsvd1} using the Proximus algorithm defined in Section~\ref{sec:proximus}.
