@@ -167,11 +167,17 @@ Which one is better will ultimately depend on the task and the prior information
 
 \section{Binary Dictionary Learning}
 
-This work proposes two methods for Binary Matrix Factorization which are essentially binary adaptations of the two Dictionary Learning methods discussed before, MOD and K-SVD. Correspondingly, we call these methods MOB (Method Of Binary directions) and K-PROX. As described in Section~\ref{sec:dictionary-learning}, most Dictionary Learning methods consist of an alternate minimization between the coefficients matrix $A$ and the dictionary matrix $D$; MOD and K-SVD are no exception. We now describe the coefficients update step, which is common to both methods.
+CORRECT: we have two CU and two DU steps, both can be used interchangeably.
+
+This work proposes two methods for Binary Matrix Factorization which are essentially binary adaptations of the two Dictionary Learning methods discussed before, MOD and K-SVD. Correspondingly, we call these methods MOB (Method Of Binary directions) and K-PROX. As described in Section~\ref{sec:dictionary-learning}, most Dictionary Learning methods consist of an alternate minimization between the coefficients matrix $A$ and the dictionary matrix $D$; MOD and K-SVD are no exception. We now describe two  coefficients update steps,.
 
 \paragraph{Coefficients update/Binary Matching Pursuit (BMP)}
 
-We define BMP as a binarized variant of MP, that is, we begin with an zero coefficients vector $a=0$ and greedily incorporate, at iteration $k+1$, the atom that is closest to  $r\iter{k} = x - a\iter{k}$ in Hamming distance. (MP uses dot product, which is not a good idea in our case since the vectors are unnormalized). % hamming or Entropy?? 
+We define BMP as a binarized variant of MP
+
+\paragraph{Coefficients update/ Hamming Pursuit (HP)}
+
+hat is, we begin with an zero coefficients vector $a=0$ and greedily incorporate, at iteration $k+1$, the atom that is closest to  $r\iter{k} = x - a\iter{k}$ in Hamming distance. (MP uses dot product, which is not a good idea in our case since the vectors are unnormalized). % hamming or Entropy?? 
 The residual is correspondingly  updated by substracting the closest atom from it using modulo-2 algebra (XOR). The algorithm is formalized as follows:
 
 \begin{algorithm}[ht]
