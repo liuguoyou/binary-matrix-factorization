@@ -4,7 +4,7 @@ OBJ=bsvd.o \
 	initialize_dictionary.o\
 	 update_dictionary.o\
 	 update_dictionary_missing_data.o\
-	 encode_samples.o\
+	 coefficients_update.o\
 	 random_number_generation.o\
 	 config.o\
 	 binmat.o\

@@ -4,7 +4,7 @@
 #include "random_number_generation.h"
 #include "update_dictionary.h"
 #include "initialize_dictionary.h"
-#include "encode_samples.h"
+#include "coefficients_update.h"
 #include "entropy_coding.h"
 #include <iomanip>
 #include <cstdlib>
@@ -32,7 +32,7 @@ idx_t learn_model_traditional(binary_matrix& X,
   }
   while (changed > 0) {    
     iter++;
-    idx_t changed_coefs = encode_samples(E,H,D,A,ma,me);
+    idx_t changed_coefs = coefficients_update(E,H,D,A,ma,me);
     if (get_verbosity() >= 2) {
       std::cout << "iter=" << std::setw(8) << iter 
 		<< "\t||E||=" << std::setw(8) << E.weight()
@@ -83,7 +83,7 @@ idx_t learn_model_alter1(binary_matrix& X,
 //	    << "\t||A||=" << std::setw(8) << A.weight() << std::endl;
   while (changed > 0) {    
     iter++;
-    idx_t changed_coefs = encode_samples(E,H,D,A,ma,me);
+    idx_t changed_coefs = coefficients_update(E,H,D,A,ma,me);
 //    std::cout << "DIRECT: iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << E.weight()
 //	      << "\t||D||=" << std::setw(8) << D.weight()
@@ -100,7 +100,7 @@ idx_t learn_model_alter1(binary_matrix& X,
     D.transpose_to(Dt);
     E.transpose_to(Et);
 
-    changed_coefs = encode_samples(Et,Ht,At,Dt,ma,me);
+    changed_coefs = coefficients_update(Et,Ht,At,Dt,ma,me);
   //  std::cout << "TRANSP: iter=" << std::setw(8) << iter 
 //	      << "\t||E||=" << std::setw(8) << Et.weight()
 //	      << "\t||D||=" << std::setw(8) << Dt.weight()
@@ -156,7 +156,7 @@ idx_t learn_model_alter2(binary_matrix& X,
     outer_changed = 0;
     while (changed > 0) {    
       iter++;
-      idx_t changed_coefs = encode_samples(E,H,D,A,ma,me);
+      idx_t changed_coefs = coefficients_update(E,H,D,A,ma,me);
 //      std::cout << "DIRECT: iter=" << std::setw(8) << iter 
 //		<< "\t||E||=" << std::setw(8) << E.weight()
 //		<< "\t||D||=" << std::setw(8) << D.weight()
@@ -177,7 +177,7 @@ idx_t learn_model_alter2(binary_matrix& X,
     iter = 0;
     while (changed > 0) {    
       iter++;
-      idx_t changed_coefs = encode_samples(Et,Ht,At,Dt,ma,me);
+      idx_t changed_coefs = coefficients_update(Et,Ht,At,Dt,ma,me);
 //      std::cout << "TRANSPOSED: iter=" << std::setw(8) << iter 
 //		<< "\t||E||=" << std::setw(8) << Et.weight()
 //		<< "\t||D||=" << std::setw(8) << Dt.weight()

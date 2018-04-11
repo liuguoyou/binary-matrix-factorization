@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <omp.h>
 #include <iomanip>
-#include "encode_samples.h"
+#include "coefficients_update.h"
 #include "intmat.h"
 #include <cassert>
 #include <cmath>
@@ -9,9 +9,13 @@
 
 //==========================================================================
 
-#define UCORR(x) ( pow(fabs((double)(x)),1) )
+#define GREEDY 0
+#define CORR_POW 2
 
-idx_t encode_samples_corr(binary_matrix& E,
+//#define UCORR(x) ( pow(fabs((double)(x)),1) )
+#define UCORR(x) ( fabs((double)(x)) )
+
+idx_t coefficients_update_corr(binary_matrix& E,
 			  const binary_matrix& H,
 			  const binary_matrix& D,
 			  binary_matrix& A,
@@ -51,9 +55,7 @@ idx_t encode_samples_corr(binary_matrix& E,
   binary_matrix Ai(1,p);
   binary_matrix Dk(1,m);
   integer_matrix gi(1,p);
-  binary_matrix used(1,p);
   for (idx_t i = 0; i < n; i++) {
-    used.clear();
     E.copy_row_to(i,Ei);
     A.copy_row_to(i,Ai);
     // compute initial (unnormalized) correlation with D and Ei
@@ -68,15 +70,13 @@ idx_t encode_samples_corr(binary_matrix& E,
     bool improved = false;
     bool ichanged = false;
     idx_t t = 0;
-    double max_corr, max_weight;
-    idx_t max_k;
     do {
       //
       // current weight of residual
       // 
       const idx_t ew = Ei.weight();
       if (get_verbosity() >= 4) {
-	std::cout << "i="  << i << "\tt=" << t << "\t|e_i(t)|=" << ew << "\t|a_i(t)|=" << Ai.weight() << std::endl;
+	std::cout << "i="  << i << "\tt=" << 0 << "\t|e_i(t)|=" << ew << "\t|a_i(t)|=" << Ai.weight() << std::endl;
 	if (get_verbosity() >= 5) {
 	  std::cout << "e_i(t)=" << Ei << std::endl;
 	  std::cout << "g_i(t)=" << gi << std::endl;
@@ -88,13 +88,37 @@ idx_t encode_samples_corr(binary_matrix& E,
       //
       // get atom with maximum correlation 
       //
+      double max_corr = 0, max_weight = 0;
+      idx_t max_k;
       double gk = gi.get(0,0);
       max_k = 0;
-
-      max_corr = UCORR(gk);
-      max_weight = (double) Dw.get(0,0);
-      for (size_t k = 1; k < p; k++) {
+      size_t k;
+#if GREEDY
+      for (k = 0; k < p; k++) {
+	if(!Ai.get(0,k)) {
+	  max_k = k;
+	  max_corr = UCORR(gi.get(0,max_k));
+	  max_weight = (double) Dw.get(0,max_k);
+	  break;
+	}
+      }
+      // all atoms are used!
+      if (max_corr == 0) {
+	if (get_verbosity() >= 3) {
+	  std::cout << "STOP: all atoms are used already. " << std::endl;
+	}
+	break;
+      }
+#else
+      k = 0;
+      max_k = k;
+      max_corr = UCORR(gi.get(0,max_k));
+      max_weight = (double) Dw.get(0,max_k);
+#endif
+      for (++k ; k < p; k++) {
+#if GREEDY
 	if (Ai.get(0,k)) continue; // greedy
+#endif
 	gk = gi.get(0,k);
 	// comparison of correlation is squared
 	//const double corr = gk >= 0 ? gk : -gk ;
@@ -110,7 +134,8 @@ idx_t encode_samples_corr(binary_matrix& E,
       if (get_verbosity() >= 4) {
 	std::cout << "max_k(t)=" << max_k << "\tmax_corr=" << max_corr << "\tmax_weight=" << max_weight << std::endl;
       }
-      if (max_corr == 0) {
+      if (max_corr == 0) { // no correlation
+	  std::cout << "STOP: residual is totally decorrelated from all atoms. " << std::endl;
 	improved = false; break;
       }
       // if there is correlation, go on
@@ -120,7 +145,7 @@ idx_t encode_samples_corr(binary_matrix& E,
       }
       // attempt update
       add(Ei,Dk,Ei);
-#if 1 // disabled rolling back for now
+
       const size_t cand_ew = Ei.weight();
       if (cand_ew >= ew) {
 	if (get_verbosity() >= 3) {
@@ -129,13 +154,11 @@ idx_t encode_samples_corr(binary_matrix& E,
 	add(Ei,Dk,Ei); // roll back
 	improved = false; break;
       }
-#endif
       improved = true;
       ichanged = true;
       //
       // add Dk to Ei mod 2
       //
-      used.set(0,max_k);
       if (!Ai.get(0,max_k)) { 
         Ai.set(0,max_k);
         //
@@ -176,7 +199,6 @@ idx_t encode_samples_corr(binary_matrix& E,
   if (get_verbosity() >= 2) {
     std::cout << "changed=" << changed << " |E|=" << E.weight() << " |A|=" << A.weight() << std::endl;
   }
-  used.destroy();
   gi.destroy();
   Ei.destroy();
   Ai.destroy();
@@ -187,7 +209,7 @@ idx_t encode_samples_corr(binary_matrix& E,
 
 //==========================================================================
 
-idx_t encode_samples_basic(binary_matrix& E,
+idx_t coefficients_update_basic(binary_matrix& E,
 			   const binary_matrix& H,
 			   const binary_matrix& D,
 			   binary_matrix& A,
@@ -267,7 +289,7 @@ idx_t encode_samples_basic(binary_matrix& E,
 
 //==========================================================================
 
-idx_t encode_samples_missing_data_omp(binary_matrix& E,
+idx_t coefficients_update_missing_data_omp(binary_matrix& E,
 				      const binary_matrix& H,
 				      const binary_matrix& D,
 				      binary_matrix& A,
@@ -276,14 +298,14 @@ idx_t encode_samples_missing_data_omp(binary_matrix& E,
 
 //==========================================================================
 
-idx_t encode_samples_omp(binary_matrix& E,
+idx_t coefficients_update_omp(binary_matrix& E,
 			 const binary_matrix& H,
 			 const binary_matrix& D,
 			 binary_matrix& A,
 			 const idx_t max_a_weight,
 			 const idx_t max_e_weight) 
 {
-  if (!H.empty()) return encode_samples_missing_data_omp(E,H,D,A,max_a_weight,max_e_weight);
+  if (!H.empty()) return coefficients_update_missing_data_omp(E,H,D,A,max_a_weight,max_e_weight);
 
   //  std::cout << "cu/omp" << std::endl;
   const idx_t m = E.get_cols();
@@ -383,7 +405,7 @@ idx_t encode_samples_omp(binary_matrix& E,
 
 //==========================================================================
 
-idx_t encode_samples_missing_data_omp(binary_matrix& E,
+idx_t coefficients_update_missing_data_omp(binary_matrix& E,
 				      const binary_matrix& H,
 				      const binary_matrix& D,
 				      binary_matrix& A,

@@ -151,7 +151,7 @@ int main(int argc, char **argv) {
   std::cout << "Denoising. <<" << std::endl;
   std::cout << "Average number of errors per row " << me << std::endl;
   A.clear();
-  encode_samples(X,H,D,A,K,me);  
+  coefficients_update(X,H,D,A,K,me);  
   X.copy_to(E); // at this point X contains the residual
   std::cout << "Average residual weight=" << (double)E.weight()/(double)rows << std::endl;
   std::cout << "Average coefficients weight=" << (double)A.weight()/(double)rows << std::endl;

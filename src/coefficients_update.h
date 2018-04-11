@@ -12,7 +12,7 @@
  * max_a_weight is the maximum allowed number of ones in any row of A
  * max_e_weight is the maximum allowed number of ones in any row of E
 */
-idx_t encode_samples_basic(binary_matrix& E,
+idx_t coefficients_update_basic(binary_matrix& E,
 			   const binary_matrix& H,
 			   const binary_matrix& D,
 			   binary_matrix& A,
@@ -29,7 +29,7 @@ idx_t encode_samples_basic(binary_matrix& E,
  * max_a_weight is the maximum allowed number of ones in any row of A
  * max_e_weight is the maximum allowed number of ones in any row of E
 */
-idx_t encode_samples_omp(binary_matrix& E,
+idx_t coefficients_update_omp(binary_matrix& E,
 			 const binary_matrix& H,
 			 const binary_matrix& D,
 			 binary_matrix& A,
@@ -46,7 +46,7 @@ idx_t encode_samples_omp(binary_matrix& E,
  * max_a_weight is the maximum allowed number of ones in any row of A
  * max_e_weight is the maximum allowed number of ones in any row of E
 */
-idx_t encode_samples_corr(binary_matrix& E,
+idx_t coefficients_update_corr(binary_matrix& E,
 			  const binary_matrix& H,
 			  const binary_matrix& D,
 			  binary_matrix& A,

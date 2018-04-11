@@ -2,11 +2,11 @@
 #include <cstdlib>
 #include "bsvd.h"
 #include "initialize_dictionary.h"
-#include "encode_samples.h"
+#include "coefficients_update.h"
 #include "update_dictionary.h"
 
 mi_algorithm_t initialize_dictionary = initialize_dictionary_neighbor;
-es_algorithm_t encode_samples = encode_samples_omp;
+es_algorithm_t coefficients_update = coefficients_update_omp;
 du_algorithm_t update_dictionary = update_dictionary;
 ml_algorithm_t learn_model = learn_model_traditional;
 ml_algorithm_t learn_model_inner = learn_model_traditional;
@@ -28,9 +28,9 @@ const char* mi_algorithm_names[] = {"Neighbor initialization",
 				    0
 };
 
-es_algorithm_t es_algorithm_catalog[] = {encode_samples_omp,
-					 encode_samples_basic,
-					 encode_samples_corr,
+es_algorithm_t es_algorithm_catalog[] = {coefficients_update_omp,
+					 coefficients_update_basic,
+					 coefficients_update_corr,
 					 0};
 
 const char* es_algorithm_names[] = {"OpenMP basic coefficients update",
@@ -78,7 +78,7 @@ void learn_model_setup(int mi_algo, int es_algo, int du_algo, int lm_algo, int l
 
   initialize_dictionary = mi_algorithm_catalog[mi_algo];
   std::cout << "Using " << mi_algorithm_names[mi_algo] << std::endl;
-  encode_samples = es_algorithm_catalog[es_algo];
+  coefficients_update = es_algorithm_catalog[es_algo];
   std::cout << "Using " << es_algorithm_names[es_algo] << std::endl;
   update_dictionary = du_algorithm_catalog[du_algo];
   std::cout << "Using " << du_algorithm_names[du_algo] << std::endl;

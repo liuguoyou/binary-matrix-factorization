@@ -26,7 +26,7 @@ typedef idx_t (*ml_algorithm_t)(binary_matrix& X,
 				binary_matrix& A);
 
 extern mi_algorithm_t initialize_dictionary;
-extern es_algorithm_t encode_samples;
+extern es_algorithm_t coefficients_update;
 extern du_algorithm_t update_dictionary;
 extern ml_algorithm_t learn_model;
 extern ml_algorithm_t learn_model_inner;
