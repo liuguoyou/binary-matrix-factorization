@@ -2,6 +2,6 @@
 mkdir -p res/denoise2
 src/add_noise_tool data/einstein.pbm res/denoise2/einstein_p0.02.pbm 0.02
 src/extract_patches_tool res/denoise2/einstein_p0.02.pbm 16 res/denoise2/einstein_p0.02_patches.pbm
-src/bsvd_denoising_exp -i 5 -p 0.02 -k 512 -o res/denoise2/einstein_p0.02_patches_den.pbm res/denoise2/einstein_p0.02_patches.pbm
+src/bsvd_denoising_exp -i 5 -p 0.02 -k 512 ${*} -o res/denoise2/einstein_p0.02_patches_den.pbm res/denoise2/einstein_p0.02_patches.pbm
 src/stitch_patches_tool res/denoise2/einstein_p0.02_patches_den.pbm 896 1160 res/denoise2/einstein_p0.02_den.pbm
 mv *.pbm res/denoise2
