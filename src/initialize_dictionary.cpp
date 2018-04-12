@@ -1,84 +1,23 @@
 #include "initialize_dictionary.h"
 #include "random_number_generation.h"
 #include "util.h"
+#include "intmat.h"
+
 //#include <algorithm>
 
-void initialize_dictionary_random_centroids_xor(const binary_matrix& E,
-						const binary_matrix& H,
-						binary_matrix& D, 
-						binary_matrix& A) {
-  //
-  // Initialize using random clusters
-  //
-  //
-  // Initialize dictionary
-  //
-  const idx_t m = E.get_cols();
-  const idx_t n = E.get_rows();
-  const idx_t p = D.get_rows();
-  binary_matrix Dk(1,m);
-  binary_matrix Ei(1,m);
-  A.clear();
-  D.clear();
-  for (idx_t i = 0; i < n; ++i) {
-    idx_t k = get_uniform_unsigned_sample(p);
-    A.set(i,k);
-    D.copy_row_to(k,Dk);
-    E.copy_row_to(i,Ei);
-    add(Dk,Ei,Dk);
-    D.set_row(k,Dk);
-  }
-  Ei.destroy();
-  Dk.destroy();
-}
 
-void initialize_dictionary_random_centroids(const binary_matrix& E, 
-					    const binary_matrix& H,
-					    binary_matrix& D, 
-					    binary_matrix& A) {
-  //
-  // Initialize using random clusters
-  //
-  //
-  // Initialize dictionary
-  //
-  const idx_t m = E.get_cols();
-  const idx_t n = E.get_rows();
-  const idx_t p = D.get_rows();
-  idx_t** s;
-  idx_t* u;
-  s = new idx_t*[p];
-  for (idx_t i = 0; i < p; i++)  {
-    s[i] = new idx_t[m];
-    std::fill(s[i],s[i]+m,0);
-  }
-  u = new idx_t[p];
-  std::fill(u,u+p,0);
-  binary_matrix Dk(1,m);
-  binary_matrix Ei(1,m);
-  
-  A.clear();
-  D.clear();
-  idx_t S = 0;
-  for (idx_t i = 0; i < n; ++i) {
-    idx_t k = get_uniform_unsigned_sample(p);
-    A.set(i,k);
-    u[k]++;
-    E.copy_row_to(i,Ei);
-    for (idx_t j = 0; j < m; j++)
-      if (Ei.get(0,j)) { S++; s[k][j]++; }
-  }
-  S /= (m*n);
-  for (idx_t k = 0; k < p; k++) {
-    for (idx_t j = 0; j < m; j++) {
-      D.set(k,j, 2*s[k][j] >= u[k]);
+void initialize_dictionary_random(const binary_matrix& E, 
+				  const binary_matrix& H,
+				  binary_matrix& D, 
+				  binary_matrix& A) {
+  const idx_t K = D.get_rows();
+  const idx_t M = D.get_cols();
+  for (idx_t k = 0; k < K; k++) {
+    for (idx_t j = 0; j < M; j++) {
+      D.set(k,j,get_bernoulli_sample(0.5));
     }
   }
-  Ei.destroy();
-  Dk.destroy();
-  delete[] u;
-  for (idx_t i = 0; i < p; i++) delete[] s[i];
-  delete[] s;
+  A.clear();
 }
 
 /**
@@ -118,7 +57,7 @@ void initialize_dictionary_partition(const binary_matrix& E,
   for (idx_t k = 0; (k < p) && (k < m); k++) {
     u = 0;
     std::fill(s,s+m,0);
-    // chose the next heaviest dimension (column) in the data E as 'pivot'
+    // choose the next heaviest dimension (column) in the data E as 'pivot'
     idx_t pivot = ranking[m-k-1].second;
     //    std::cout << "k=" << k << " pivot=" << pivot << " score=" << ranking[m-k-1].first << std::endl;
     // compute the k-th atom as the Hamming average (majority)
@@ -156,37 +95,40 @@ void initialize_dictionary_neighbor(const binary_matrix& E,
   const idx_t n = E.get_rows();
   const idx_t p = D.get_rows();
   binary_matrix Dk(1,m);
+  binary_matrix c(1,m);
   binary_matrix Ei(1,m);
-  binary_matrix Ej(1,m);
   A.clear();
   D.clear();
+  integer_matrix wi(1,1); // I need to implement dot product ...
+  wi.clear();
   for (idx_t k = 0; k < p; ) {
-    // pick a random row
-    idx_t i = get_uniform_unsigned_sample(n);
-    E.copy_row_to(i,Ei);
-    if (Ei.weight()==0) continue;
+    // pick a random sample c
+    idx_t r = get_uniform_unsigned_sample(n);
+    E.copy_row_to(r,c);
+    if (c.weight()==0) continue; // useless sample, continue
     idx_t s[m];
     idx_t u = 0;
     std::fill(s,s+m,0);
-    for (idx_t j = 0; j < n; ++j) {
-      E.copy_row_to(j,Ej);
-      bool_and(Ej,Ei,Ej);
-      if (Ej.weight() > 0) {
-	u++;
-	for (idx_t j = 0; j < m; ++j) {
-	  if (Ej.get(0,j))
+    for (idx_t i = 0; i < n; ++i) {
+      E.copy_row_to(i,Ei);
+      mul_ABt(c,Ei,wi);
+      if (wi.get(0,0) > 0) { // the i-th row is a neighbor of c  
+	u++; // increase the neighbor count for c
+	for (idx_t j = 0; j < m; ++j) { // add 
+	  if (Ei.get(0,j)) 
 	    s[j]++;
 	}
       }
     }
-    if (u > 0) { // the chosen has neighbors
+    if (u > 0) { // c has neighbors: add it to dictionary as the hamming average of all its neighbors
       for (idx_t j = 0; j < m; ++j) 
 	D.set(k,j,(s[j]<<1) >= u);
       k++;
     }
   }
+  wi.destroy();
   Ei.destroy();
-  Ej.destroy();
+  c.destroy();
   Dk.destroy();
 }
 
@@ -201,11 +143,13 @@ idx_t accumulate_to(binary_matrix& v, idx_t* s) {
   }
   return S;
 }
+
+#if 0
 /**
- * For each atom Dk we define a 'subgraph' and initialize it to a random row Ei, 
- * Then grow the subgraph by adding those rows Ej which share support with any element in the subgraph
- * I guess a good idea is to add not all, but
- * Finally, set Dk as the centroid of all samples in its corresponding part.
+ * This is supposed to be similar to the 'graph grow' method described
+ * in the Proximus paper, but it has morphed into something quite unrelated
+ * and not consistent with the description I had written, so I am not using
+ * it for the moment until I really understand what I am doint.
  */
 void initialize_dictionary_graph_grow(const binary_matrix& E, 
 				      const binary_matrix& H,
@@ -272,8 +216,8 @@ void initialize_dictionary_graph_grow(const binary_matrix& E,
 	if (t[i]) continue; // already used
 	score = 0;
 	for (idx_t j = 0; j <m; j++) {
-	  //	  if (E.get(i,j)) score += s[k][j];  // NOT BAD< NEED TO TEST
-	  if (E.get(i,j)) score += 1; // do not accumulate overlapped supports, just support
+	  if (E.get(i,j)) score += s[k][j];  // NOT BAD< NEED TO TEST
+	  //if (E.get(i,j)) score += 1; // do not accumulate overlapped supports, just support
 	}
 	if (score > maxscore) {
 	  maxscore = score;
@@ -317,17 +261,85 @@ void initialize_dictionary_graph_grow(const binary_matrix& E,
   Ei.destroy();
   Dk.destroy();
 }
+
+
+
+
+void initialize_dictionary_random_centroids_xor(const binary_matrix& E,
+						const binary_matrix& H,
+						binary_matrix& D, 
+						binary_matrix& A) {
+  //
+  // Initialize using random clusters
+  //
+  //
+  // 
+  //
+  const idx_t m = E.get_cols();
+  const idx_t n = E.get_rows();
+  const idx_t p = D.get_rows();
+  binary_matrix Dk(1,m);
+  binary_matrix Ei(1,m);
+  A.clear();
+  D.clear();
+  for (idx_t i = 0; i < n; ++i) {
+    idx_t k = get_uniform_unsigned_sample(p);
+    A.set(i,k);
+    D.copy_row_to(k,Dk);
+    E.copy_row_to(i,Ei);
+    add(Dk,Ei,Dk);
+    D.set_row(k,Dk);
+  }
+  Ei.destroy();
+  Dk.destroy();
+ }
+
+void initialize_dictionary_random_centroids(const binary_matrix& E, 
+					    const binary_matrix& H,
+					    binary_matrix& D, 
+					    binary_matrix& A) {
+  //
+  // Initialize using random clusters
+  //
+  //
+  // Initialize dictionary
+  //
+  const idx_t m = E.get_cols();
+  const idx_t n = E.get_rows();
+  const idx_t p = D.get_rows();
+  idx_t** s;
+  idx_t* u;
+  s = new idx_t*[p];
+  for (idx_t i = 0; i < p; i++)  {
+    s[i] = new idx_t[m];
+    std::fill(s[i],s[i]+m,0);
+  }
+  u = new idx_t[p];
+  std::fill(u,u+p,0);
+  binary_matrix Dk(1,m);
+  binary_matrix Ei(1,m);
   
-void initialize_dictionary_random(const binary_matrix& E, 
-				  const binary_matrix& H,
-				  binary_matrix& D, 
-				  binary_matrix& A) {
-  const idx_t K = D.get_rows();
-  const idx_t M = D.get_cols();
-  for (idx_t k = 0; k < K; k++) {
-    for (idx_t j = 0; j < M; j++) {
-      D.set(k,j,get_bernoulli_sample(0.5));
+  A.clear();
+  D.clear();
+  idx_t S = 0;
+  for (idx_t i = 0; i < n; ++i) {
+    idx_t k = get_uniform_unsigned_sample(p);
+    A.set(i,k);
+    u[k]++;
+    E.copy_row_to(i,Ei);
+    for (idx_t j = 0; j < m; j++)
+      if (Ei.get(0,j)) { S++; s[k][j]++; }
+  }
+  S /= (m*n);
+  for (idx_t k = 0; k < p; k++) {
+    for (idx_t j = 0; j < m; j++) {
+      D.set(k,j, 2*s[k][j] >= u[k]);
     }
   }
-  A.clear();
+  Ei.destroy();
+  Dk.destroy();
+  delete[] u;
+  for (idx_t i = 0; i < p; i++) delete[] s[i];
+  delete[] s;
 }
+#endif

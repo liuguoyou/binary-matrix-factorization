@@ -1,5 +1,5 @@
 %\documentclass[a4paper,11pt]{article}
-\documentclass[a4paper]{IEEEtran}
+\documentclass[twocolumn]{IEEEtran}
 \usepackage[pdftex]{graphicx}
 \usepackage{amsmath}
 \usepackage{amsthm}
@@ -11,7 +11,7 @@
 \input{notation.inc}
 \newcommand{\falta}[1]{{\color{red}FALTA:#1}}
 
-\title{Binary Matrix Factorization}\author{Ignacio Ram\'{i}rez}
+\title{Binary Matrix Factorization via Dictionary Learning}\author{Ignacio Ram\'{i}rez}
 %
 %
 %
@@ -20,8 +20,11 @@
 \maketitle
 %
 \begin{abstract}
-Matrix factorization is a key tool in data analysis; its applications include recommender systems, correlation analysis, signal processing, among others. There are several ways to factorize a matrix: notorious examples include PCA and its robust versions. Binary matrices are of particular interest as they arise naturally in many applications, can be stored   efficiently, and suitable algebras exist for combining their entries; this has led to the development  of a number of techniques which are specific to this case; most of them for the task of data mining.
-We propose a binary matrix factorization method which combines tools from signal processing  and data mining. All operations are binary and carried out using bitwise operators. thus avoiding costly floating point operation and enabling the use of vectorized instructions. Furthermore, the algorithm is shown to converge to a local minimum in a finite number of steps,  thus performing no worse than similar real-valued optimization methods. Finally, our preliminary results show that the proposed method is effective at producing interpretable factorizations of various data types of interest.
+Matrix factorization is a key tool in data analysis; its applications include recommender systems, correlation analysis, signal processing, among others. Binary matrices are a particular case which has received significant attention for over thirty years, especially within the field of data mining. Dictionary learning refers to a family of methods for learning overcomplete basis (also called frames) in order to efficiently encode samples of a given type; this area, now also about twenty years old, was mostly developed within the signal processing field.
+In this work we propose a number of binary matrix factorization methods which are based on an adaptation of the dictionary learning paradigm to binary matrices.
+The proposed algorithms focus on speed and scalability; they work with binary factors combined with bit-wise operations and a few auxiliary integer ones.
+Another important issue in matrix factorization is the choice of rank for the factors; we address this model selection problem using the Minimum Description Length principle and propose a number of methods for efficiently choosing the best rank.
+Our preliminary results show that the proposed method is effective at producing interpretable factorizations of various data types of interest. We also show the performance of the method on a simple binary denoising application, obtaining promising results.
 \end{abstract}%
 \begin{IEEEkeywords}
 binary matrix factorization, binary dictionary learning, data mining
@@ -34,15 +37,31 @@ We consider the problem of approximating a binary matrix $X \in \{0,1\}^{m{\time
 X = UV\transp + E.
 \label{eq:mf}
 \end{equation}
-The problem \refeq{eq:mf} has been addressed using various methods from different fields for over a hundred years. A famous example is Principal Component Analysis (PCA), pioneered by Pearson~\cite{pearson01}. The PCA method is based on the Singular Value Decomposition (SVD) of a matrix, $X=U{\Sigma}V\transp$ where $U$ and $V$ are matrices of $p=\min\{m,k\}$  orthogonal columns each and $\Sigma$ is a diagonal $p{\times}p$ matrix whose diagonal elements $\sigma_{11} \geq \sigma_{22} \geq \ldots \geq \sigma_{pp} \geq 0$, are the so-called \emph{singular values} of $X$. The PCA method decomposes $X$ by selecting the first $p' \leq p$ columns of $U$, $V$, and upper-left $p'{\times}p'$ submatrix of $\Sigma$ to form an approximation of $X$, $X'=U'\Sigma'(V')\transp$. It can be shown that $X'$ is the rank-$p'$ matrix that best approximates $X$ in Frobenius norm.
+In this work we will consider the $n$ \emph{columns} of $X$ as the data samples to be represented, each of dimension $m$. (Note that this convention, typical in signal processing, is opposite to most works in statistics and computer science, where the \emph{rows} of $X$ are the samples.)
+%The problem \refeq{eq:mf} has been addressed using various methods from different fields for over a hundred years. A famous example is Principal Component Analysis (PCA), pioneered by Pearson~\cite{pca}. The PCA method is based on the Singular Value Decomposition (SVD) of a matrix, $X=U{\Sigma}V\transp$ where $U$ and $V$ are matrices of $p=\min\{m,k\}$  orthogonal columns each and $\Sigma$ is a diagonal $p{\times}p$ matrix whose diagonal elements $\sigma_{11} \geq \sigma_{22} \geq \ldots \geq \sigma_{pp} \geq 0$, are the so-called \emph{singular values} of $X$. The PCA method decomposes $X$ by selecting the first $p' \leq p$ columns of $U$, $V$, and upper-left $p'{\times}p'$ submatrix of $\Sigma$ to form an approximation of $X$, $X'=U'\Sigma'(V')\transp$. It can be shown that $X'$ is the rank-$p'$ matrix that best approximates $X$ in Frobenius norm.
+%
+%Dozens of variants, with different properties, have been developed since PCA was first proposed. Some methods target the robustness of PCA against perturbations in the entries of $X$. This idea was first proposed in~\cite{rpca} and is embodied today by many methods under what is called Robust or Generalized PCA; see~\cite{rpca-paper,rpca-book} for more on the subject. Other methods impose additional restrictions on the factors; a common  one is to enforce $U$ and $V$ in \refeq{eq:mf} to be non-negative, giving rise to the so called Nonnegative Matrix Factorization (NMF) family of methods~\cite{nmf-review}. The restriction of non-negativity is often imposed to improve interpretability  or because the factors are expected to be non-negative by the nature of the problem to be solved (e.g., probabilities). For similar reasons, in different contexts, some matrices cannot be reasonably assumed to be real numbers. If the matrix entries should be integer (or naturals), the usual approach is to treat them as real (or non-negative) numbers anyway and then truncate the result. In other situations, only a relative order between the values can be established. A  more complicated setting is when the entries are just categories or labels (such as Football Teams) for which there is no reasonable relationship  but ``equal'' or ``different''. We call such matrices \emph{categorical}. 
 
-Dozens of variants, with different properties, have been developed since PCA was first proposed. Some methods target the robustness of PCA against perturbations in the entries of $X$. These are generally called Robust PCA methods; see~\cite{rpca-review} for a review. 
+% bmf07 - Zhang, NML proyectado en 0,1. Garantias de recup. bajo hipotesis
+% bmf06 -Message Passing for BMF. Además de original, tiene FLOR de review en BMF
+% bmf-mdl - ASSO (algoritmo interesante de BMF); MDL casi idéntico al mio
+% bmf13 - semi-binario, resuelto con optimización tradicional, pesado, pero
+%         con pruebas de solucion exacta en algunos casos.
+% falta tiling!!
+% bmf-dm - primer paper de Mittienen o algo asi de aplicacion de BMF a data mining
+% monson95 - inconseguible, pero citado como 'review de enfoque combinatiorio a BMF
+% ASSO: association rule es lo que yo puse como 'correlacion'!
+%
+The problem of Binary Matrix Factorization (BMF) problem has been treated extensively in the last three decades. It was first studied as a combinatorial problem (see~\cite{monson95} and references therein). It then received great attention from the data mining community starting with works such as~\cite{proximus,tiling} which fall into the category of \emph{tile matching} heuristics, where binary matrices are decomposed as superpositions of square tiles, and which are in fact also closely related to  the matrix factorization paradigm (note that a tile is nothing but the rank-one outer product of two binary vectors) and~\cite{asso}, which was the first to pose the binary data mining problem as a matrix factorization one.
 
-Other methods impose additional restrictions on the factors; a popular one is to enforce $U$ and $V$ in \refeq{eq:mf} to be non-negative, resulting in the so called Nonnegative Matrix Factorization (NMF) family of methods~\cite{nmf-review}. The restriction of non-negativity is often imposed to improve interpretability  or because the factors are expected to be non-negative by the nature of the problem to be solved (e.g., probabilities). For similar reasons, in different contexts, some matrices cannot be reasonably assumed to be real numbers. If the matrix entries should be integer (or naturals), the usual approach is to treat them as real (or non-negative) numbers anyway and then truncate the result. In other situations, only a relative order between the values can be established. A  more complicated setting is when the entries are just categories or labels (such as Football Teams) for which there is no reasonable relationship  but ``equal'' or ``different''. We call such matrices \emph{categorical}. 
+A thorough survey of BMF methods is beyond the scope of this paper; we refer the reader to~\cite{bmf-mdl} which incidentally proposes a very similar MDL-based model selection strategy for selecting the best rank of the decomposition (more on this later). We will however mention some key works which represent either recent developments or different approaches to the problem.
 
-Binary matrices, which admit only two possible values for their entries (say $0$ and $1$ to fix concepts), are an interesting type which can be considered both categorical and numeric at the same time: their values may be considered labels, but can also be considered numbers and an algebra may be constructed to operate on them, vector spaces can be defined with its entries, etc. Perhaps because of this, most existing \emph{binary matrix factorization} (BMF) methods still rely on real-valued matrix factorization methods~\cite{bmf-prev}; for example, constraints can be added so that the factors are within the $[0,1]$ range. An important exception, derived for the task of large scale data mining, is the Proximus~\cite{proximus} method, an extremely fast method which relies on binary-only operations; in fact, Proximus is one of the pillars of the present work.
+We begin with the ASSO algorithm proposed in~\cite{asso}. The method in question constructs a binary correlation matrix $C$ by thresholding the correlation matrix $C=A{\transp}A$ with parameter $\tau$. It then produces a series of increasing rank approximations by adding a column taken from $C$ and a row which is chosen to maximize, together with that column, a given covering function (essentially, how many bits are set to zero in the residual). As in our case, this method can be efficiently implemented with bitwise and integer operations. It is also a popular and simple method with good performance. However, it does not scale well with the number of samples. In particular, for dictionary learning applications where $n \gg m$, the matrix $C$ to be computed can be extremely large, and the overall complexity of each step is $O(kn^2m)$, also very large for values of $n$ which in our case can be over a million.
 
-Finally, there are methods which are in fact instances of MF although they were not conceived to be so. The second pillar of our proposed solution is inspired by the \emph{dictionary learning} techniques whose origins date back to the 2000's~\cite{olshausen97,engan00,elad06} within the field of signal processing
+The work~\cite{bmf07} is one of many examples which use nonlinear optimization over real spaces to solve BMF as a relaxed problem, that is, a Nonnegative Matrix Factorization formulation with values restricted to lie in the range $[0,1]$. The problem solved by~\cite{bmf07} is actually convex and can be solved exactly. Furthermore, if one assumes that $X$ is a noisy observation of a low-rank matrix $\hat{X}$ corrupted by a sparse noise matrix $E$, the solution obtained can be shown to coincide with the sought matrix $\hat{X}$.
+
+ 
+Finally, there are methods which are in fact instances of MF although they were not conceived to be so. The second pillar of our proposed solution is inspired by the \emph{dictionary learning} techniques whose origins date back to the 2000's~\cite{lewicki99,engan00,aharon06} within the field of signal processing
 
 This work proposes a novel method for binary matrix factorization which combines ideas and tools from dictionary learning and data mining methods while relying entirely on binary algebras which are in turn implemented using the standard bit-wise operators available in any microprocessor, plus the vectorized operations available in most modern processors~\footnote{Of particular impact is the recent addition of the single-instruction \texttt{popcount}~\cite{popcount} operation to Intel processors, which makes summation and inner products even more efficient.}. The result is an extremely fast and scalable method, specially when compared to its real-relaxation counterparts. 
 
@@ -266,15 +285,16 @@ As the name K-PROX implies, we seek an approximation to the NP-hard problem \ref
 
 \subsection{Initialization}
 
-First of all, if we are to apply these methods to the dictionary learning case, an important observation is that the \emph{pattern} vector $v$ is conceptually much closer to the concept of a dictionary atom, that is, a \emph{column} of $D$ in the decomposition $X=DA+E$, rather than a row of the coefficients matrix $A$. Therefore, when updating a given dictionary atom $D_k$ and its corresponding row of coefficients $A^k$ using proximus
+As mentioned before, initialization is of paramount importance to the success of any non-convex matrix factorization method. At the same time, there is no provably optimum way of doing so, otherwise we would be contravening the NP-hard nature of the factorization problem itself. We are left with heuristics based on intuition and prior information, if any. Ultimately, it is an art. Below we describe the three methods we have tested with our algorithms, two of which are vaguely inspired by the ones proposed in Proximus, which are defined only for rank-$1$ factorizations.
 
-The \emph{partition}...
+In any case, these are not to be taken as particularly good methods; they are examples which in some cases, as we will see, can work well. We advise the interested reader to investigate whether these are adequate to the data at hand in each case, eventually defining new strategies which can take into account prior information particular to the problem at hand. 
 
-The \emph{graph grow} ...
+\paragraph{(Pseudo) Partition}: This method works for dictionaries of size $p \leq m$. Let $I=\{i_1,i_2,\ldots,i_p\}$ be the indexes of the $p$ rows of $X$ which have the largest weight, that is, $h(X_i) \geq h(X_{i'}),\forall\,i\in{I},\,i' \notin{I}$. Then the $k$-th atom is initialized as the Hamming average of all the \emph{columns} of $X$ which have a $1$ in their $i_k$-th row. If we define $J_k=\{j:1 \leq j \leq n, X_{ij_k}=1 \}$, then $$D_k = \frac{1}{|J_k|}\sum_{j \in J_k} X_j.$$ 
+The idea behind this initialization is to ensure that the initial atoms are correlated with those dimensions which are more commonly active in the dataset; this is particularly useful in very sparse matrices, but for the same reason can fail for dense matrices as all the atoms may end up being mostly $1$ and very similar among themselves.
+ 
+\paragraph{Neighbor}: Here we draw $p$ samples at random from $X$, then each atom $D_k$ is initialized as the Hamming average of all samples in $X$ which have non-zero correlation with $X$. This is essentially a rank-$k$ extension of the method described in \cite{proximus} under the same name. It is however not a good method for dense, fat matrices (see Figure~\ref{fig:neighbor-fail} on page~\pageref{fig:neighbor-fail}), especially if some row of $E$ is largely composed of $1$s, in which case all or most atoms may end up being identical, dense patterns.
 
-The \emph{neighbor} ...
-
-\falta{Describir las inicializaciones}
+\paragraph{Random} This is a fallback, universal alternative for initializing a dictionary when almost no prior information can be exploited to devise a better alternative. The samples are initialized using pseudo-random Bernoulli samples of probability $\theta$, a parameter which can be chosen to reflect, for example, the density of $1$s in the dataset.  The value by default is $1/2$, which is a good idea even for very sparse matrices, as $\theta \ll 1$ combined with a large dimension $m$ may result in atoms which are orthogonal to most or even all data samples if the data is sparse.
 
 
 \subsection{Learning variants}
@@ -385,6 +405,6 @@ The following two methods are actually meant to choose the best from an ensemble
 %FALTA
 
 \bibliographystyle{plain}
-\bibliography{bmf,sparse}
+\bibliography{IEEEabrv,bmf,sparse}
 
 \end{document}
