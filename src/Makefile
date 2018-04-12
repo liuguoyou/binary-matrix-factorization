@@ -2,17 +2,19 @@ SRC=$(wildcard *.cpp)
 HDR=$(wildcard *.h)
 OBJ=bsvd.o \
 	initialize_dictionary.o\
-	 update_dictionary.o\
-	 update_dictionary_missing_data.o\
-	 coefficients_update.o\
-	 random_number_generation.o\
-	 config.o\
-	 binmat.o\
+	update_dictionary.o\
+	update_dictionary_missing_data.o\
+	coefficients_update.o\
+	random_number_generation.o\
+	config.o\
+	binmat.o\
 	intmat.o\
-	 entropy_coding.o\
-	 util.o\
-	 pbm.o\
-	 pnm.o 
+	entropy_coding.o\
+	util.o\
+	pbm.o\
+	binimage.o\
+	pnm.o
+
 # tests
 TESTSRC=$(wildcard *_test.cpp)
 TEST=$(patsubst %.cpp,%,$(TESTSRC))
