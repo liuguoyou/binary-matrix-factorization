@@ -12,8 +12,8 @@ OBJ=bsvd.o \
 	entropy_coding.o\
 	util.o\
 	pbm.o\
-	pnm.o
-#	binimage.o\ #uncomment when I get that file back...
+	pnm.o\
+	binimage.o #uncomment when I get that file back...
 
 # tests
 TESTSRC=$(wildcard *_test.cpp)
