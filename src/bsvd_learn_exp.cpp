@@ -154,7 +154,7 @@ int main(int argc, char **argv) {
   //
   //  2. learn model
   //
-  learn_model(X,H,E,D,A);
+  idx_t L = learn_model(X,H,E,D,A);
   //
   // 3. write output
   //
@@ -193,6 +193,7 @@ int main(int argc, char **argv) {
   std::cout << "FINAL: |E|=" << E.weight()
 	    << " |A|=" << A.weight() 
 	    << " |D|=" << D.weight() 
+	    << " L(X)=" << L
 	    << " K=" << D.get_rows() << std::endl;
   A.destroy();
   I.destroy();

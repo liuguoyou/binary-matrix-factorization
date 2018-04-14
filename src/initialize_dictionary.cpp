@@ -30,8 +30,9 @@ void initialize_dictionary_partition(const binary_matrix& E,
 				     binary_matrix& D, 
 				     binary_matrix& A) {
   //
-  // Initialize using random clusters
+  // first we initialize all atoms to random
   //
+  initialize_dictionary_random(E,H,D,A);
   //
   // Initialize dictionary
   //
@@ -40,8 +41,6 @@ void initialize_dictionary_partition(const binary_matrix& E,
   const idx_t p = D.get_rows();
   binary_matrix Dk(1,m);
   binary_matrix Ei(1,m);
-  A.clear();
-  D.clear();
   idx_t s[m];
   aux_t ranking[m];
   //
@@ -76,7 +75,7 @@ void initialize_dictionary_partition(const binary_matrix& E,
     for (idx_t j = 0; j < m; ++j) 
       D.set(k,j,(s[j]<<1) >= u);
   }
-  // if p > m, the other atoms are left uninitialized!
+  // all atoms for p > m are left as bernoulli samples
   Ei.destroy();
   Dk.destroy();
 }

@@ -19,7 +19,7 @@ void bilinear_predictor(const binary_matrix& P, binary_matrix& pP) {
 
 double enumerative_codelength(const unsigned n,
 			      const unsigned r) { // number of nonzeroes
-  return r>0 ? gsl_sf_lnchoose ( n,r ) *COSMOS_LOG2E : 0.0;
+  return log2(n) + (r > 0 ? gsl_sf_lnchoose ( n,r ) *COSMOS_LOG2E : 0.0);
 }
 
 double universal_codelength(const unsigned n, const unsigned r) {
@@ -32,6 +32,7 @@ double universal_codelength(const unsigned n, const unsigned r) {
   }
 }
 
+
 codelength model_codelength(const binary_matrix& E, 
 			      const binary_matrix& D, 
 			      const binary_matrix& A) {
@@ -41,18 +42,18 @@ codelength model_codelength(const binary_matrix& E,
   const idx_t K = D.get_rows();
   codelength L;
   for (idx_t k = 0; k < K; k++) {
-    L.D += universal_codelength(M,D.row_weight(k));
-    L.A += universal_codelength(N,A.col_weight(k));
+    L.D += ucode(M,D.row_weight(k));
+    L.A += ucode(N,A.col_weight(k));
   }
 #if 0
   for (idx_t i = 0; i < M; i++) { // col-wise coding
     L.E += universal_codelength(N,E.col_weight(i));
   }
 #else
-  L.E = universal_codelength(E.get_len(),E.weight());
+  L.E = ucode(E.get_len(),E.weight());
 #endif
   L.X = L.E+L.D+L.A;
-  if (get_verbosity() >= 1) {
+  if (get_verbosity() >= 2) {
     std::cout << "Codelength: L(E)=" << L.E << " L(D)=" << L.D << " L(A)=" << L.A << " L(X)=" << (L.X) << std::endl;
   }
   return L;

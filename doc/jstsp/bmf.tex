@@ -440,21 +440,27 @@ In this section we describe a particular implementation of the MDL criterion for
 
 \subsection{Codelength computation}
 
-Luckily for us, the universal compression of binary sources has been extensively studied in the literature. In particular, Bernoulli sequences ..
-
-ENUM CODE
-
-The question is, how to incorporate the biases introduced by our choice of model family (matrix factorizations) for producing a good model. Simply treating ($E,A,D$) as Bernoulli processes does not suffice.
-
-POR FILAS
+The universal compression of binary sources has been extensively studied in the literature. Moreover, we do not need to perform a real encoding; we need only to compute the codelength. One particularly simple method, for which the codelength is easy to compute, is the enumerative coding~\cite{enum}. Given a binary string $x$ of length $n$ ahd its hamming weight $r=h(x)$, its code is composed of two parts. The first one describes $r$ with $\lceil\log_2(n)\rceil$ bits, and the second one describes the index of $x$ in the lexicographically ordered list of all strings of length $n$ with the same weight $r$, which requires $\lceil\log_2(r \choose n)\rceil$ bits. The total codelength is then $L(x) = \lceil\log_2(n)\rceil + \lceil\log_2(r \choose n)\rceil$. (Note that $\log(r \choose n)$ can be accurately approximated by using Stirling's formula, a function which is readily available in most scientific computation libraries.)
+As we expect the different columns of $D$ to represent particular patterns in the data, and the corresponding rows of $A$ their appearance in $X$, it makes sense to consider different codes for each column and row of $D$ and $A$ respectively. As of $E$, the usual assumption is to consider it as \emph{noise}. While this may not always be the case (remaining structure may still exist in $E$ after the decomposition), it is a safe and general assumption. Thus, we encode the whole matrix $E$ as one single binary string of length $m{\times}n$. The total codelength for our model is then givem by
+\begin{equation}
+L(X) = L(E) + \sum_k [ L(D_k) + L(A^k) ] 
+\label{eq:codelength}
+\end{equation} 
+The codelength function~\refeq{eq:codelength} encoding scheme is among the ones proposed in~\cite{bmf-mdl}.
 
 \subsection{Model selection algorithms}
 
+Given the codelength function $L(X)$, we now need to solve: a) the search for the best model given $k$ and b) the best value of $k$. The first problem is what most of this paper is about, that is, to learn the dictionary and coefficients $A$, and is described in Section~\ref{sec:bdl}. Our implementation includes the following three alternatives:
 \begin{enumerate}
-\item Forward selection:  Here begin with an initial dictionary size $K_0$, train a dictionary, add a few more atoms to obtain $K_1$, and keep doing this until no further improvement is obtained, that is, until the overall codelength does not decrease by adding new atoms to the dictionary.
+
+\item Exhaustive search. We initialize and learn a new model for each value of $K$ within a given range $[K_{\min}, K_{\max}]$. We then compare the codelengths obtained and keep the one 
+
+\item Forward selection: Here begin with an initial dictionary size $K=K_{\min}$, train a model, add one or a few more atoms to $D$, and re-adapt both $D$ and $A$. We and keep doing this until no further improvement is obtained, that is, until the overall codelength does not decrease by adding new atoms to the dictionary.
  
-\item Backward selection: We begin with a maximum dictionary size $K_0$, train the dictionary, and then remove the worst atom using some criterion (for example, remove one atom at a time and drop the one  which results in the largest decrease in the overall codelength). If removing an atom does not result in a better overall codelength, the method stops. 
+\item Backward selection: We begin with a maximum dictionary size $K_{\max}$, train the model, and then remove the worst atom using some criterion (for example, remove one atom at a time and drop the one  which results in the largest decrease in the overall codelength). If removing another atom does not result in a better overall codelength, the method stops. 
 \end{enumerate}
+
+Of the three methods, the forward selection  method is generally much faster. The exhaustive method is clearly slower than the other two. Even so, the backward method is not always better than the forward method, and the exhaustive method may yield better results than either forward or backward selection. In Section~\ref{sec:results} we compare the three methods and report their relative speed as of our implementation.
 
 \section{Application to Denoising}
 \label{sec:denoising}
@@ -514,20 +520,21 @@ where $\sigma$ is the variance of the noise $C$ is a positive constant usually c
 \section{Results and discussion}
 \label{sec:results}
 
-\subsection{Modeling examples}
+The following results were obtained with our current implementation, which can be found at \url{http://iie.fing.edu.uy/\~nacho/bdl/} along with more experiments and data. The results here are for binarized version of two popular handwritten digits datasets, MNIST~\cite{mnist} and USPS~\cite{usps}.
 
-\subsection{Denoising}
+\subsection{Sample results}
 
-%FALTA
-%
-%\subsection{Missing data}
-%
-%FALTA
-%
-%\subsection{Classification}
-%
-%FALTA
-%
+We work
+* SAMPLE RESULTS ON MNIST, USPS, EINSTEIN
+
+* EXAMPLE OF CONVERGENCE OF BDL (both variants) FOR FIXED K
+
+* SPEED / CODELENGTH COMPARISON FOR THREE SELECTION METHODS
+
+* EXAMPLE RESULTS FOR THREE INIT METHODS
+
+* DENOISING?
+
 \section{Conclusion}
 \label{sec:conclusion}
 %

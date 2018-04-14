@@ -33,6 +33,8 @@ double enumerative_codelength(const unsigned n,
 double universal_codelength(const unsigned n,
 			      const unsigned r);
 
+#define ucode enumerative_codelength
+
 /**
  * Overall codelength of describing the decomposition of a matrix
  * X in terms of E,D,A: X = E + DA

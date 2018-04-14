@@ -11,8 +11,8 @@ cp -r src run latest/
 #
 # dump output to log file
 #
-echo "$*" > latest/${PRG}-${d}.cmd
-./src/$* > latest/${PRG}-${d}.log
+echo "$*" | tee latest/${PRG}-${d}.cmd
+time ./src/$* | tee latest/${PRG}-${d}.log
 #mkdir latest/work
 #mv -f work/* latest/work/
 mv -f *.p?m latest/

@@ -353,6 +353,10 @@ idx_t learn_model_mdl_forward_selection(binary_matrix& X,
   return bestL;
 }
 
+#if 0
+//
+// THIS IMPLEMENTATION IS FASTER BUT IS NOT WORKING WELL
+//
 idx_t learn_model_mdl_backward_selection(binary_matrix& X,
 					 const binary_matrix& H,
 					 binary_matrix& E, 
@@ -380,23 +384,36 @@ idx_t learn_model_mdl_backward_selection(binary_matrix& X,
   idx_t allStuck = 0;
   for (; K > 0; K--) {
     int dif = int(currL) - int(bestL);
+    // need a good rationale for this!
     int dev = allStuck > 0 ? (sumStuck/allStuck) : 0;
     std::cout << "currK=" << K << " currL=" << currL << " bestK=" << bestK << " bestL=" << bestL << " stuck=" << stuck << " dif=" << dif << " dev=" << dev << std::endl;
     idx_t nextk = 0;
     idx_t nextL = ~(1UL<<(sizeof(idx_t)-1));
-    for (idx_t k = 0; k < K; k++) {
-      currD.copy_row_to(k,Dk);
-      currA.copy_col_to(k,Ak);
+    for (idx_t r = 0; r < K; k++) {
+      currD.copy_row_to(r,Dk);
+      currA.copy_col_to(r,Ak);
       mul(Ak,true,Dk,false,AkDk);
       // codelength of nex
       add(AkDk,E,nextE); // residual associated to removing Dk
       const codelength Lparts = model_codelength(nextE,currD,currA);
-      idx_t tmpL = Lparts.X;
-      tmpL -= universal_codelength(M,Dk.weight());
-      tmpL -= universal_codelength(N,Ak.weight());
+      const idx_t LDk = universal_codelength(M,Dk.weight());
+      const idx_t LAk =  universal_codelength(N,Ak.weight());
+      const idx_t tmpL = Lparts.X - LDk - LAk;
+      if (get_verbosity() >= 1) {
+	std::cout << "backsel: K=" << K << " candidate= " << k
+		  << " L(E)=" << Lparts.E
+		  << " L(D)=" << Lparts.D
+		  << " L(A)=" << Lparts.A
+		  << " -L(Dk)=" << LDk
+		  << " -L(Ak)=" << LAk
+		  << " L=" << tmpL << "  nextk=" << nextk << " nextL=" << nextL << std::endl;
+      }
       if (tmpL < nextL) {
 	nextL = tmpL;
 	nextk = k;
+	if (get_verbosity() >= 1) {
+	  std::cout << "new best! " << std::endl;
+	}
       }
     }
     //
@@ -419,7 +436,7 @@ idx_t learn_model_mdl_backward_selection(binary_matrix& X,
 	currA.copy_col_to(k,Ak);
 	nextA.set_col(k-1,Ak);
       }
-      learn_model_inner(X,H,nextE,nextD,nextA);
+      //learn_model_inner(X,H,nextE,nextD,nextA);
       const codelength Lparts = model_codelength(nextE,nextD,nextA);
       nextL = Lparts.X;
     } else {
@@ -475,6 +492,198 @@ idx_t learn_model_mdl_backward_selection(binary_matrix& X,
   return bestL;
 }
 
+#else
+
+//
+// SLOWER IMPLEMENTATION, BUT SAFE
+//
+idx_t learn_model_mdl_backward_selection(binary_matrix& X,
+					 const binary_matrix& H,
+					 binary_matrix& E, 
+					 binary_matrix& D, 
+					 binary_matrix& A) {
+  const idx_t M = E.get_cols();
+  const idx_t N = E.get_rows();
+  idx_t K = D.get_rows();
+  learn_model_inner(X,H,E,D,A);
+  binary_matrix Dk(1,M);
+  binary_matrix Ak(1,N);
+  binary_matrix bestD,candD,innerD;
+  binary_matrix bestA,candA,innerA;
+  binary_matrix innerE(N,M);
+  //
+  // first stage: get rid of unused atoms
+  //
+  idx_t nused = 0;
+  char iused[K];
+  for (size_t k = 0; k < K; k++) {
+    if (A.col_weight(k) > 0) {
+      iused[k] = 1;
+      nused++;
+    } else {
+      iused[k] = 0;
+    }
+  }
+  if (get_verbosity() >= 1) {
+    std::cout << "Removing " << (K-nused) << " unused atoms." << std::endl;
+  }
+  codelength Lparts = model_codelength(E,D,A);
+  idx_t bestL = Lparts.X;
+  idx_t bestK = nused;
+  idx_t candL = bestL;
+  idx_t candK = bestK;
+  //
+  // initial candidate is best candidate after pruning
+  //
+  bestD.allocate(bestK,M);
+  bestA.allocate(N,bestK);
+  candD.allocate(bestK,M);
+  candA.allocate(N,bestK);
+  for (size_t k = 0, r = 0; r < bestK; k++) {
+    if (iused[k]) {
+      D.copy_row_to(k,Dk);
+      bestD.set_row(r,Dk);
+      candD.set_row(r,Dk);
+      A.copy_col_to(k,Ak);
+      bestA.set_row(r,Ak);
+      candA.set_row(r,Ak);
+      r++;
+    }
+  }
+  idx_t stuck = 0;
+  idx_t sumStuck = 0;
+  idx_t allStuck = 0;
+  for (candK = bestK-1; candK > 1; candK--) {
+    int dif = int(candL) - int(bestL);
+    // need a good rationale for this!
+    int dev = allStuck > 0 ? (sumStuck/allStuck) : 0;
+    std::cout << "candK=" << candK << " candL=" << candL << " bestK=" << bestK << " bestL=" << bestL << " stuck=" << stuck << " dif=" << dif << " dev=" << dev << std::endl;
+    idx_t best_inner_k = 0;
+    idx_t best_inner_L = ~(1UL<<(sizeof(idx_t)-1));
+
+    innerD.destroy();
+    innerA.destroy();
+    innerD.allocate(candK,M);
+    innerA.allocate(N,candK);
+    for (idx_t k = 0; k < candK; k++) {
+      //
+      // copy all but the k-th row and col of D and A
+      //
+      for (idx_t r = 0; r < k; r++) {
+	candD.copy_row_to(r,Dk);
+	innerD.set_row(r,Dk);
+	candA.copy_col_to(r,Ak);
+	innerA.set_col(r,Ak);
+      }
+      for (idx_t r = k+1; r < (candK+1); r++) {
+	candD.copy_row_to(r,Dk);
+	innerD.set_row(r-1,Dk);
+	candA.copy_col_to(r,Ak);
+	innerA.set_col(r-1,Ak);
+      }
+      //
+      // update model after removing k-th atom
+      //
+      learn_model_inner(X,H,innerE,innerD,innerA);
+      //
+      // compute codelength
+      // 
+      const codelength Lparts = model_codelength(innerE,innerD,innerA);
+      if (get_verbosity() >= 1) {
+	std::cout << "backsel: candK=" << candK << " candidate= " << k
+		  << " L(E)=" << Lparts.E
+		  << " L(D)=" << Lparts.D
+		  << " L(A)=" << Lparts.A
+		  << " L=" << Lparts.X << "  bestk=" << best_inner_k << " bestL=" << best_inner_L << std::endl;
+      }
+      //
+      // compare to best within the current inner iteration (over k)
+      //
+      if (Lparts.X < best_inner_L) {
+	best_inner_L =Lparts.X;
+	best_inner_k = k;
+      }
+    }
+    //
+    // see if we have improved compared to previous dictionary size 
+    //
+    if (best_inner_L + dev < bestL) {
+      std::cout << "new best K " << candK << std::endl;
+      //
+      // YES: best <- candidate - k-th atom
+      // 
+      bestL = best_inner_L;
+      bestK = candK;
+      bestD.destroy();
+      bestD.allocate(candK,M);      
+      bestA.destroy();
+      bestA.allocate(N,candK);
+      for (idx_t r = 0; r < best_inner_k; r++) {
+	candD.copy_row_to(r,Dk);
+	bestD.set_row(r,Dk);
+	candA.copy_col_to(r,Ak);
+	bestA.set_col(r,Ak);
+      }
+      for (idx_t r = best_inner_k+1; r < candK; r++) {
+	candD.copy_row_to(r,Dk);
+	bestD.set_row(r-1,Dk);
+	candA.copy_col_to(r,Ak);
+	bestA.set_col(r-1,Ak);
+      }
+    } else {
+      //
+      // NO improvement
+      //
+      stuck++;
+      allStuck++;
+      sumStuck += (candL-bestL);
+      if (stuck >= 10) {
+	std::cout << "No further improvement." << std::endl;
+	break;
+      }
+    }
+    //
+    // In any case, if we are still searching, new candidate 
+    // is the best dictionary obtained in this iteration
+    // candidate <- candidate - k+th atom
+    for (idx_t r = 0; r < best_inner_k; r++) {
+      candD.copy_row_to(r,Dk);
+      innerD.set_row(r,Dk);
+      candA.copy_col_to(r,Ak);
+      innerA.set_col(r,Ak);
+    }
+    for (idx_t r = best_inner_k+1; r < candK; r++) {
+      candD.copy_row_to(r,Dk);
+      innerD.set_row(r-1,Dk);
+      candA.copy_col_to(r,Ak);
+      innerA.set_col(r-1,Ak);
+    }    
+    candD.destroy();
+    candA.destroy();
+    candD.allocate(candK,M);
+    candA.allocate(N,candK);
+    candL = best_inner_L;
+  }
+
+  candD.destroy(); innerD.destroy();
+  candA.destroy(); innerA.destroy();
+  innerE.destroy();
+  Ak.destroy();
+  Dk.destroy();
+  if (bestK < D.get_rows()) {
+    D.destroy();
+    A.destroy();
+    D.allocate(bestK,M);
+    A.allocate(N,bestK);
+    bestD.copy_to(D);
+    bestA.copy_to(A);    
+  }
+  return bestL;
+}
+
+
+#endif
+
 idx_t learn_model_mdl_full_search(binary_matrix& X,
 				  const binary_matrix& H,
 				  binary_matrix& E, 
@@ -492,7 +701,7 @@ idx_t learn_model_mdl_full_search(binary_matrix& X,
     binary_matrix candD(k,M),candA(N,k);
     initialize_dictionary(X,H,candD,candA);
     learn_model_inner(X,H,candE,candD,candA);
-#define REPS 10
+#define REPS 1
 #if 1
     idx_t aux[REPS];
     std::cout << "K=" << k;
