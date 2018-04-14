@@ -1,13 +1,20 @@
 #!/bin/bash
 make -C src -j 4
-mkdir -p res/mnist
-src/bsvd_learn_exp -i 1 -l 4 -k 10 -m 1 $* data/mnist_data.pbm | tee res/mnist/mnist.log
-mv *pbm res/mnist
 
-mkdir -p res/usps
-src/bsvd_learn_exp -i 1 -l 4 -k 10 -m 1 $* data/usps_data.pbm | tee res/usps/usps.log
-mv *pbm res/usps/
+outdir="res/paper/conv/mnist"
+./run bsvd_learn_exp -i 1 -l 0 -k 100 -m 1 $* data/mnist_data.pbm -v -v | tee res/mnist/mnist.log
+mkdir -p ${outdir}
+rm ${outdir}/*
+mv *pbm latest/* ${outdir}
 
-mkdir -p res/einstein
-src/bsvd_learn_exp -i 1 -l 4 -k 20 -I 1 $* data/einstein.pbm | tee res/einstein/einstein.log
-mv *pbm res/einstein/
+outdir="res/paper/conv/usps"
+./run bsvd_learn_exp -i 1 -l 0 -k 100 -m 1 $* data/usps_data.pbm -v -v | tee res/usps/usps.log
+mkdir -p ${outdir}
+rm ${outdir}/*
+mv *pbm latest/* ${outdir}
+
+outdir="res/paper/conv/einstein"
+./run bsvd_learn_exp -i 1 -l 0 -k 100 -I 1 $* data/einstein.pbm -v -v 
+mkdir -p ${outdir}
+rm ${outdir}/*
+mv *pbm latest/* ${outdir}

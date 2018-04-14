@@ -1,0 +1,26 @@
+#!/bin/bash
+#make -C src -j 4
+#
+#mkdir -p res/einstein
+#src/bsvd_learn_exp -i 2 -l 4 -k 20 -I 1 $* data/einstein.pbm | tee res/einstein/einstein.log
+#mv *pbm res/einstein/
+#!/bin/bash
+make -C src -j 4
+
+outdir="res/paper/init/neigh/usps"
+./run bsvd_learn_exp -i 0 -l 4 -k 100 -m 1 $* data/usps_data.pbm -v
+mkdir -p ${outdir}
+rm ${outdir}/*
+mv *pbm latest/* ${outdir}
+
+outdir="res/paper/init/part/usps"
+./run bsvd_learn_exp -i 1 -l 4 -k 100 -m 1 $* data/usps_data.pbm -v 
+mkdir -p ${outdir}
+rm ${outdir}/*
+mv *pbm latest/* ${outdir}
+
+outdir="res/paper/init/rand/usps"
+./run bsvd_learn_exp -i 2 -l 4 -k 100 -m 1 $* data/usps_data.pbm -v 
+mkdir -p ${outdir}
+rm ${outdir}/*
+mv *pbm latest/* ${outdir}

@@ -4,19 +4,19 @@ echo COMPILE
 make -C src -j 4
 
 echo FWD
-./run bsvd_learn_exp  -i 1 -l 4 -k 10 -m 1 -v $* data/mnist_data.pbm
+./run bsvd_learn_exp -c 2 -i 1 -l 4 -k 10 -m 1 -v $* data/usps_data.pbm
 OUTDIR="res/paper/modsel/fwd"
 mkdir -p ${OUTDIR}
 cp -r latest/* ${OUTDIR}
 
 echo BACK
-./run bsvd_learn_exp  -i 1 -l 5 -k 500 -m 1 -v $* data/mnist_data.pbm
+./run bsvd_learn_exp -c 2 -i 1 -l 5 -k 500 -m 1 -v $* data/usps_data.pbm
 OUTDIR="res/paper/modsel/back"
 mkdir -p ${OUTDIR}
 cp -r latest/* ${OUTDIR}
 
 echo BACK
-./run bsvd_learn_exp  -i 1 -l 6 -k 400 -m 1 -v $* data/mnist_data.pbm
+./run bsvd_learn_exp -c 2 -i 1 -l 6 -k 400 -m 1 -v $* data/usps_data.pbm
 OUTDIR="res/paper/modsel/full"
 mkdir -p ${OUTDIR}
 cp -r latest/* ${OUTDIR}

@@ -7,6 +7,7 @@
 
 mi_algorithm_t initialize_dictionary = initialize_dictionary_neighbor;
 es_algorithm_t coefficients_update = coefficients_update_omp;
+//es_algorithm_t coefficients_update = coefficients_update_corr;
 du_algorithm_t update_dictionary = update_dictionary;
 ml_algorithm_t learn_model = learn_model_traditional;
 ml_algorithm_t learn_model_inner = learn_model_traditional;
@@ -21,9 +22,6 @@ mi_algorithm_t mi_algorithm_catalog[] = {initialize_dictionary_neighbor,
 
 const char* mi_algorithm_names[] = {"Neighbor initialization",
 				    "Partition initialization",
-				    // "Random centroids initialization",
-				    // "Random centroids (in mod-2 algebra) initialization",
-				    // "Graph growing initialization",
 				    "purely random dictionary",
 				    0
 };

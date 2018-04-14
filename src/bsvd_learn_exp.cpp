@@ -9,7 +9,7 @@
 #include "config.h"
 
 int mi_algo = 0;
-int es_algo = 0;
+int es_algo = 2; // default now is BMP
 int du_algo = 0;
 int lm_algo = 0;
 int lmi_algo = 0;

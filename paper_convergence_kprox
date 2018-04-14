@@ -1,0 +1,20 @@
+#!/bin/bash
+make -C src -j 4
+
+outdir="res/paper/conv-kprox/mnist"
+./run bsvd_learn_exp -i 1 -l 0 -k 100 -d 1 -m 1 $* data/mnist_data.pbm -v -v | tee res/mnist/mnist.log
+mkdir -p ${outdir}
+rm ${outdir}/*
+mv *pbm latest/* ${outdir}
+
+outdir="res/paper/conv-kprox/usps"
+./run bsvd_learn_exp -i 1 -l 0 -k 100 -d 1 -m 1 $* data/usps_data.pbm -v -v | tee res/usps/usps.log
+mkdir -p ${outdir}
+rm ${outdir}/*
+mv *pbm latest/* ${outdir}
+
+outdir="res/paper/conv-kprox/einstein"
+./run bsvd_learn_exp -i 1 -l 0 -k 100 -d 1 -I 1 $* data/einstein.pbm -v -v 
+mkdir -p ${outdir}
+rm ${outdir}/*
+mv *pbm latest/* ${outdir}
