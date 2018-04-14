@@ -429,26 +429,34 @@ The idea behind this initialization is to ensure that the initial atoms are corr
 \section{Model selection}
 \label{sec:model-selection}
 
-The following two methods are actually meant to choose the best from an ensemble of candidate dictionaries learned using one of the previous four methods (referred to as ``inner learning method'' in the implementation). MDL stands for Minimum Description Length, and is a criterion for model selection (that is, choosing the best model out of a set of competing models for describing some particular data) where the criterion used is, essentially, ``which of the models produces a more succint description of the data''; in other words, which model compresses the most.
- 
-\falta{describir claramente como se aplica MDL aca}
- 
+A crucial problem in BMF is how to choose the appropriate rank $p$ of the decomposition. In dictionary learning, this translates into the number $p$ of atoms of the dictionary $D$. This is a particular case of what is generally known as the \emph{model selection} problem. 
+
+Beyond theoretical results and simulations, when confronted with real data, 
+the true underlying model governing the generation of data is rarely available. In such situations, models can only be assumed to be tools for understanding the data at hand, and the best choice is dictated by how much regularity or structure each candidate model is capable to grasp from that data. In particular, the complexity of a model is limited by the amount of data available to estimate the different parameters of the model. An overly complex model will tend to \emph{overfit} the data, whereas an overly simple one will miss important details. The problem of model selection is that of finding the best model for a given data set. Typically this is done by seeking a balance between the \emph{goodness of fit} of a model, usually expressed in terms of the likelihood of the data given the model, and a measure of \emph{model complexity}; two very popular examples in this category are the Bayesian Information Criterion (BIC)~\cite{bic}, the Akaike's Information Criterion~\cite{aic}. 
+
+The Minimum Description Length principle (MDL)~\cite{mdl1,mdl2,mdl3} translates the model selection problem as one of data compression, where both the data and the model have to be (hypothetically) transmitted and perfectly recovered using some encoding mechanism. The tension between complexity is then resolved by how many bits are required to describe the data in terms of the model (stochastic complexity) and how many bits are required to describe the model itself (model complexity). The original version of MDL~\cite{mdl1} made this division explicit, and is asymptotically equivalent to BIC. However, the modern version of MDL~\cite{mdl2,mdl3} uses the more recent information-theoretic \emph{universal coding theory} to make the aforementioned balance implicit by producing an optimum, joint description of both the model and the data which is furthermore independent of arbitrary choices of, for example, the way the model is parameterized. These advantages make MDL an appealing method for model selection. However, contrary to BIC and AIC, MDL is more difficult to implement, in particular in its modern version. 
+
+In this section we describe a particular implementation of the MDL criterion for BMF models. This consists of two pieces. The first one is how to compute the hypotethical optimum codelength of our matrix $X$ given  a candidate factorization $(E,A,D)$. This has to be done with reasonable accuracy and efficiently. The second one is how to search over the possible models; simply trying out every possible model is clearly out of question.
+
+\subsection{Codelength computation}
+
+Luckily for us, the universal compression of binary sources has been extensively studied in the literature. In particular, Bernoulli sequences ..
+
+ENUM CODE
+
+The question is, how to incorporate the biases introduced by our choice of model family (matrix factorizations) for producing a good model. Simply treating ($E,A,D$) as Bernoulli processes does not suffice.
+
+POR FILAS
+
+\subsection{Model selection algorithms}
+
 \begin{enumerate}
-\item MDL/forward selection:  Here begin with an initial dictionary size $K_0$, train a dictionary, add a few more atoms to obtain $K_1$, and keep doing this until no further improvement is obtained, that is, until the overall codelength does not decrease by adding new atoms to the dictionary.
+\item Forward selection:  Here begin with an initial dictionary size $K_0$, train a dictionary, add a few more atoms to obtain $K_1$, and keep doing this until no further improvement is obtained, that is, until the overall codelength does not decrease by adding new atoms to the dictionary.
  
-\item MDL/backward selection: We begin with a maximum dictionary size $K_0$, train the dictionary, and then remove the worst atom using some criterion (for example, remove one atom at a time and drop the one  which results in the largest decrease in the overall codelength). If removing an atom does not result in a better overall codelength, the method stops. 
-
-\item MDL/full search: in both forward and backward selection, all or a part of the dictionary used in one iteration is kept and re-adapted after adding or removing atoms from it. In this case, for a range of values of $K$, a whole new dictionary is trained, and the best one is chosen among them. This method is much slower than the previous two ones (the fastest is forward selection), but tends to provide better results; This tradeoff is open for research.
-
+\item Backward selection: We begin with a maximum dictionary size $K_0$, train the dictionary, and then remove the worst atom using some criterion (for example, remove one atom at a time and drop the one  which results in the largest decrease in the overall codelength). If removing an atom does not result in a better overall codelength, the method stops. 
 \end{enumerate}
 
-
-%\section{Applications}
-%
-%Here we describe some classical applications from the Dictionary Learning literature, with some references to some of the best results in each case.
-
-
-\section{Denoising}
+\section{Application to Denoising}
 \label{sec:denoising}
 
 Denoising is a special case of the more general \emph{signal restoration} problem (other examples are zooming, deblurring, or inpainting -- a.k.a. filling erased regions). Here we assume that we want to recover a signal sample $x \in \reals^{m}$ from a noisy observation $z \in \reals^{m}$, both related by
