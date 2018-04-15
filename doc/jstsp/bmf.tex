@@ -448,19 +448,9 @@ L(X) = L(E) + \sum_k [ L(D_k) + L(A^k) ]
 \end{equation} 
 The codelength function~\refeq{eq:codelength} encoding scheme is among the ones proposed in~\cite{bmf-mdl}.
 
-\subsection{Model selection algorithms}
+\subsection{Model selection}
 
-Given the codelength function $L(X)$, we now need to solve: a) the search for the best model given $k$ and b) the best value of $k$. The first problem is what most of this paper is about, that is, to learn the dictionary and coefficients $A$, and is described in Section~\ref{sec:bdl}. Our implementation includes the following three alternatives:
-\begin{enumerate}
-
-\item Exhaustive search. We initialize and learn a new model for each value of $K$ within a given range $[K_{\min}, K_{\max}]$. We then compare the codelengths obtained and keep the one 
-
-\item Forward selection: Here begin with an initial dictionary size $K=K_{\min}$, train a model, add one or a few more atoms to $D$, and re-adapt both $D$ and $A$. We and keep doing this until no further improvement is obtained, that is, until the overall codelength does not decrease by adding new atoms to the dictionary.
- 
-\item Backward selection: We begin with a maximum dictionary size $K_{\max}$, train the model, and then remove the worst atom using some criterion (for example, remove one atom at a time and drop the one  which results in the largest decrease in the overall codelength). If removing another atom does not result in a better overall codelength, the method stops. 
-\end{enumerate}
-
-Of the three methods, the forward selection  method is generally much faster. The exhaustive method is clearly slower than the other two. Even so, the backward method is not always better than the forward method, and the exhaustive method may yield better results than either forward or backward selection. In Section~\ref{sec:results} we compare the three methods and report their relative speed as of our implementation.
+Given the codelength function $L(X)$, we now need to solve: a) the search for the best model given $p$ and b) the best value of $p$. The first problem is what most of this paper is about, that is, to learn the dictionary and coefficients $A$, and is described in Section~\ref{sec:bdl}. In order to choose the best order $p$ of the model we apply a \emph{forward selection} strategy. We begin with an initial dictionary size $K=K_{\min}$, adapt it to the data, add one or a few more atoms to $D$, and re-adapt both $D$ and $A$. The previous step is repeated until no further improvement is obtained, that is, until the overall codelength does not decrease by adding new atoms to the dictionary.
 
 \section{Application to Denoising}
 \label{sec:denoising}
@@ -521,85 +511,88 @@ where $\sigma$ is the variance of the noise $C$ is a positive constant usually c
 \label{sec:results}
 
 \begin{figure*}[t]
+\centering%
 \includegraphics[height=1.85in]{fig/mnist_bin.png} %
-\includegraphics[height=1.85in]{fig/usps.png} %
-\includegraphics[height=1.85in]{fig/einstein.png}
-\caption{\label{fig:datasets} Left and center: samples from the MNIST and USPS datasets. Right: halftone image of Einstein.}
+\includegraphics[height=1.85in]{fig/einstein.png} %
+%\includegraphics[height=1.8in]{fig/usps_b.png} %
+\includegraphics[height=1.85in]{fig/einstein_zoom3.png}
+\caption{\label{fig:datasets} Left to right: MNIST dataset, Einstein image, USPS dataset,  detail of Einstein's left eye.}
 \end{figure*}
 %
-\begin{figure}
-\includegraphics[width=\columnwidth]{fig/einstein_zoom2.png}
-\caption{\label{fig:einstein} Detail of the Einstein image.}
-\end{figure}
-%
-The following results were obtained with our current implementation, which can be found at \url{http://iie.fing.edu.uy/~nacho/bdl/} along with more experiments and data. The results here are for binarized version of two popular handwritten digits datasets, MNIST~\cite{mnist} and USPS~\cite{usps} and for the halftone binary image of Einstein. An overview of these datasets are shown in Figure~\ref{fig:datasets}; a detailed zoom of Einstein is shown in~\ref{fig:einstein}. The MNIST dataset consists of $10000$ $16{\times}16$ grayscale images of hand written digits. The USPS dataset has $2000$ samples, and its digits are somewhat more irregular than those of MNIST. Finally, for Einstein, the samples consist of the $4088$ non-overlapping blocks of size $16{\times}16$ that the image can be decomposed into.
+The following results were obtained with our current implementation, which can be found at \url{http://iie.fing.edu.uy/~nacho/bdl/} along with more experiments and data. The results here are for binarized version the handwritten digits dataset MNIST~\cite{mnist} and for the halftone binary image of Einstein. Figure~\ref{fig:datasets} shows a few samples from MNIST, the Einstein image, and a detail of his eye which shows the halftoning pattern. The MNIST dataset consists of $10000$ $16{\times}16$ grayscale images of hand written digits. For Einstein, the samples consist of the $4088$ non-overlapping blocks of size $16{\times}16$ that the image can be decomposed into.
 
 \subsection{Models}
 
-\begin{figure}
-\includegraphics[width=\columnwidth]{fig/mnist_dict.png}
-\includegraphics[width=\columnwidth]{fig/mnist_coef.png}
-\includegraphics[width=\columnwidth]{fig/mnist_err.png}
+\begin{figure*}
+\includegraphics[height=2.75in]{fig/mnist_mob_dict.png}\hspace{2ex}%
+\includegraphics[height=2.75in]{fig/mnist_mob_coef_crop.png}%\\
+%\includegraphics[width=\columnwidth]{fig/mnist_mob_coef_crop.png}
 \caption{\label{fig:mnist-mod} Sample model obtained for the MNIST dataset. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
-\end{figure}
+\end{figure*}
+%
+\begin{figure*}
+\centering\includegraphics[height=2.3in]{fig/mnist_kprox_dict.png}\hspace{2ex}% 
+\includegraphics[height=2.3in]{fig/mnist_kprox_coef_crop.png}%\\
+%\includegraphics[width=\columnwidth]{fig/mnist_kprox_coef_crop.png}
+\caption{\label{fig:mnist-kprox} Model obtained for the MNIST dataset using K-PROX. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
+\end{figure*}
+%
+%\begin{figure}
+%\includegraphics[height=1.7in]{fig/usps_mob_dict.png}%
+%\includegraphics[height=1.7in]{fig/usps_mob_err.png}\\
+%\includegraphics[width=\columnwidth]{fig/usps_mob_coef_crop.png}
+%\caption{\label{fig:usps-mob} Sample model obtained for the USPS dataset. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
+%\end{figure}
 %
 \begin{figure}
-\includegraphics[width=\columnwidth]{fig/usps_dict.png}
-\includegraphics[width=\columnwidth]{fig/usps_coef.png}
-\includegraphics[width=\columnwidth]{fig/usps_err.png}
-\caption{\label{fig:usps-mob} Sample model obtained for the USPS dataset. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
-\end{figure}
-%
-\begin{figure}
-\includegraphics[width=\columnwidth]{fig/einstein_dict.png}
-\includegraphics[width=\columnwidth]{fig/einstein_coef.png}
-\includegraphics[width=\columnwidth]{fig/einstein_err.png}
+\includegraphics[width=\columnwidth]{fig/einstein_mob_dict.png} %
+%\includegraphics[height=1.55in]{fig/einstein_mob_err_zoom.png}\\[1ex]
+\includegraphics[width=\columnwidth]{fig/einstein_mob_coef_crop.png}
 \caption{\label{fig:einstein-mob} Sample model obtained for the Einsteinimage. Left: dictionary. Center: first 100 coefficients. Right: zoom of residual. }
 \end{figure}
 %
-\begin{figure}
-\includegraphics[width=\columnwidth]{fig/mnist_dict.png}
-\includegraphics[width=\columnwidth]{fig/mnist_coef.png}
-\includegraphics[width=\columnwidth]{fig/mnist_err.png}
-\caption{\label{fig:mnist-kprox} Sample model obtained for the MNIST dataset. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
-\end{figure}
+%\begin{figure}
+%\includegraphics[height=1.7in]{fig/usps_kprox_dict.png}%
+%\includegraphics[height=1.7in]{fig/usps_kprox_err.png}\\
+%\includegraphics[width=\columnwidth]{fig/usps_kprox_coef_crop.png}
+%\caption{\label{fig:usps-kprox} Sample model obtained for the USPS dataset. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
+%\end{figure}
 %
 \begin{figure}
-\includegraphics[width=\columnwidth]{fig/usps_dict.png}
-\includegraphics[width=\columnwidth]{fig/usps_coef.png}
-\includegraphics[width=\columnwidth]{fig/usps_err.png}
-\caption{\label{fig:usps-kprox} Sample model obtained for the USPS dataset. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
-\end{figure}
-%
-\begin{figure}
-\includegraphics[width=\columnwidth]{fig/einstein_dict.png}
-\includegraphics[width=\columnwidth]{fig/einstein_coef.png}
-\includegraphics[width=\columnwidth]{fig/einstein_err.png}
-\caption{\label{fig:einstein-kprox} Sample model obtained for the Einsteinimage. Left: dictionary. Center: first 100 coefficients. Right: zoom of residual. }
+\includegraphics[height=1.55in]{fig/einstein_kprox_dict.png} %
+\includegraphics[height=1.55in]{fig/einstein_kprox_err_zoom.png}\\[1ex]
+\includegraphics[width=\columnwidth]{fig/einstein_kprox_coef_crop.png}
+\caption{\label{fig:einstein-mob} Sample model obtained for the Einsteinimage. Left: dictionary. Center: first 100 coefficients. Right: zoom of residual. }
 \end{figure}
 %
 
 We now show sample models for all three datasets, first using the MOB dictionary update, and then using K-PROX. Figure~\ref{fig:mnist-mob} shows the dictionary and a few columns from the coefficients and residial matrices $A$ and $E$; atoms from $D$ and samples from $E$ arerepresented as mosaics with each sample/atom displayed as a tile. The same is done in Figure~\ref{fig:usps-mob} for USPS. Finally, in Figure~\ref{fig:einstein-mob} we show the dictionary, a few columns, and a zoom of the residual image obtained after stitching the patches in their original place. Figures~\ref{fig:mnist-kprox},~\ref{fig:usps-kprox} and ~\ref{fig:einstein-kprox} show the corresponding results using K-PROX.
 
 \subsection{Initialization}
-\begin{figure*}[t]
-\includegraphics[height=1.85in]{fig/usps_init_part.png} %
-\includegraphics[height=1.85in]{fig/usps_init_neigh.png} %
-\includegraphics[height=1.85in]{fig/usps_init_rand.png}
+\begin{figure}[t]
+\includegraphics[height=1.1in]{fig/einstein_init_part0.png} % OK
+\includegraphics[height=1.1in]{fig/einstein_init_neigh0.png} % OK
+\includegraphics[height=1.1in]{fig/einstein_init_rand0.png}\\[1ex]% OK
+\includegraphics[height=1.1in]{fig/einstein_init_part1.png} % OK
+\includegraphics[height=1.1in]{fig/einstein_init_neigh1.png} % OK
+\includegraphics[height=1.1in]{fig/einstein_init_rand1.png}% OK
 \caption{\label{fig:init} Effect of initialization on the USPS dataset. We show the initial (top) and final (bottom) dictionaries obtained by using the pseudo-partition method (left), neighbors (center) and random (right).}
-\end{figure*}
+\end{figure}
 %
 
 In Figure~\ref{fig:init} we show the initial and final dictionaries obtained after initializing the model with the three different methods described in Section~\ref{sec:bdl:init}.
 
+\begin{figure*}
+\includegraphics[width=0.5\textwidth]{fig/conv-mob-einstein-h.pdf}%
+\includegraphics[width=0.5\textwidth]{fig/conv-mob-einstein-L.pdf}\\
+\includegraphics[width=0.5\textwidth]{fig/conv-kprox-einstein-h.pdf}%
+\includegraphics[width=0.5\textwidth]{fig/conv-kprox-einstein-L.pdf}%
+\caption{\label{fig:convergence} Convergence results. Above: evolution of Hamming weight (left) and codelength (right) for each component of the matrix factorization using MOB. Below: analogous results using K-PROX.}
+\end{figure*}
 
 * EXAMPLE OF CONVERGENCE OF BDL (both variants) FOR FIXED K
 
-* SPEED / CODELENGTH COMPARISON FOR THREE SELECTION METHODS
-
-* EXAMPLE RESULTS FOR THREE INIT METHODS
-
-* DENOISING?
+* DENOISING? 	
 
 \section{Conclusion}
 \label{sec:conclusion}

@@ -150,6 +150,11 @@ int main(int argc, char **argv) {
   // Initialize dictionary
   //
   initialize_dictionary(X,H,D,A);
+  write_pbm(D,"dictionary0.pbm");
+  if (image_mode || force_mosaic) {
+      render_mosaic(D,"dict_mosaic0.pbm");
+  }
+   write_pbm(A,"coefficients0.pbm");
   binary_matrix E(N,M);
   //
   //  2. learn model

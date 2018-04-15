@@ -42,10 +42,15 @@ idx_t learn_model_traditional(binary_matrix& X,
     }
     changed = changed_coefs + update_dictionary(E,H,D,A);
     if (get_verbosity() >= 2) {
+      codelength L = model_codelength(E,D,A);
       std::cout << "iter=" << std::setw(8) << iter 
 		<< "\t||E||=" << std::setw(8) << E.weight()
 		<< "\t||D||=" << std::setw(8) << D.weight()
 		<< "\t||A||=" << std::setw(8) << A.weight()
+		<< "\tL(E)=" << std::setw(8) << L.E
+		<< "\tL(D)=" << std::setw(8) << L.D
+		<< "\tL(A)=" << std::setw(8) << L.A
+		<< "\tL(X)=" << std::setw(8) << L.X
 		<< "\tchanged atoms=" << std::setw(8) << changed << std::endl;
     }
   }
