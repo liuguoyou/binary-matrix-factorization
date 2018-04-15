@@ -64,7 +64,8 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-\title{Binary Matrix Factorization via Dictionary Learning}\author{Ignacio Ram\'{i}rez}
+\title{Binary Matrix Factorization via Dictionary Learning}
+\author{Ignacio Ram\'{i}rez~\IEEEmembership{Member,~IEEE}\thanks{Departamento de Procesamiento de Se\~{n}ales, Instituto de Ingenier\'{\i}a El\'{e}ctrica, Facultad de Ingenier\'{i}a, Universidad de la Rep\'{u}blica, Uruguay.} }
 %
 %
 %
@@ -74,10 +75,10 @@
 %
 \begin{abstract}
 Matrix factorization is a key tool in data analysis; its applications include recommender systems, correlation analysis, signal processing, among others. Binary matrices are a particular case which has received significant attention for over thirty years, especially within the field of data mining. Dictionary learning refers to a family of methods for learning overcomplete basis (also called frames) in order to efficiently encode samples of a given type; this area, now also about twenty years old, was mostly developed within the signal processing field.
-In this work we propose a number of binary matrix factorization methods which are based on an adaptation of the dictionary learning paradigm to binary matrices.
-The proposed algorithms focus on speed and scalability; they work with binary factors combined with bit-wise operations and a few auxiliary integer ones.
-Another important issue in matrix factorization is the choice of rank for the factors; we address this model selection problem using the Minimum Description Length principle and propose a number of methods for efficiently choosing the best rank.
-Our preliminary results show that the proposed method is effective at producing interpretable factorizations of various data types of interest. We also show the performance of the method on a simple binary denoising application, obtaining promising results.
+In this work we propose two binary matrix factorization methods based on a binary adaptation of the dictionary learning paradigm to binary matrices.
+The proposed algorithms focus on speed and scalability; they work with binary factors combined with bit-wise operations and a few auxiliary integer ones. Furthermore, the methods are readily applicable to online binary matrix factorization.
+Another important issue in matrix factorization is the choice of rank for the factors; we address this model selection problem with an efficient method based on the Minimum Description Length principle.
+Our preliminary results show that the proposed methods are effective at producing interpretable factorizations of various data types of different nature.
 \end{abstract}%
 \begin{IEEEkeywords}
 binary matrix factorization, binary dictionary learning, data mining
@@ -85,7 +86,7 @@ binary matrix factorization, binary dictionary learning, data mining
 %
 \section{introduction}
 
-We consider the problem of approximating a binary matrix $X \in \{0,1\}^{m{\times}n}$ as the product of two other binary matrices $U \in \{0,1\}^{m{\times}k}$ and $V \in \{0,1\}^{n{\times}p}$ plus a third \emph{residual} matrix $E$,
+We consider the problem of approximating a binary matrix $X \in \{0,1\}^{m{\times}n}$ as the product of two other binary matrices $U \in \{0,1\}^{m{\times}p}$ and $V \in \{0,1\}^{n{\times}p}$ plus a third \emph{residual} matrix $E$,
 \begin{equation}
 X = UV\transp + E.
 \label{eq:mf}
@@ -105,13 +106,13 @@ In this work we will consider the $n$ \emph{columns} of $X$ as the data samples 
 % monson95 - inconseguible, pero citado como 'review de enfoque combinatiorio a BMF
 % ASSO: association rule es lo que yo puse como 'correlacion'!
 %
-The Binary Matrix Factorization (BMF) problem, dating back to at least the 1960's~\cite{bmf-oldest}, has been treated extensively in the last three decades by various research communities, under quite different names. It was first studied as a combinatorial problem as a particular case of the classic \emph{set covering} problem (see~\cite{monson95} and references therein). It then received great attention from the data mining community. The earlier works in this field developed the so called \emph{tiling} or {tile matching/searching} heuristics, where binary matrices are decomposed as Boolean or modulo-2 superpositions of rectangular tiles\cite{proximus,tiling}; it was later formulated as a matrix factorization problem in~\cite{asso}, with several works following that line since then.
+The Binary Matrix Factorization (BMF) problem, dating back to at least the 1960's~\cite{bmf-oldest}, has been treated extensively in the last three decades by various research communities, under quite different names. It was first studied as a combinatorial problem as a particular case of the classic \emph{set covering} problem (see~\cite{monson95} and references therein). It then received great attention from the data mining community. The earlier works in this field developed the so called \emph{tiling} or \emph{tile matching/searching} heuristics, where binary matrices are decomposed as Boolean or modulo-2 superpositions of rectangular tiles\cite{proximus,tiling}; it was later formulated as a matrix factorization problem in~\cite{asso}, with several works following that line since then.
 
 A thorough survey of BMF methods is beyond the scope of this paper; we refer the reader to~\cite{bmf-comp} for a more in-depth review. We will however mention some works which are representative of the diversity of formulations and tools that surround the treatment of this problem, as well as the shortcomings that are common to the current state of the art and that motivate the development of the tools that we present in this work.
 
 \subsection{Binary Matrix Factorization}
 
-We begin with the ASSO algorithm proposed in~\cite{asso}. The method in question constructs a binary correlation matrix $C$ by thresholding the correlation matrix $C=A{\transp}A$ with parameter $\tau$. It then produces a series of increasing rank approximations by adding a column taken from $C$ and a row which is chosen to maximize, together with that column, a given covering function (essentially, how many bits are set to zero in the residual). As in our case, this method can be efficiently implemented with bitwise and integer operations. It is also a popular and simple method with good performance. However, it does not scale well with the number of samples. In particular, for dictionary learning applications where $n \gg m$, the matrix $C$ to be computed can be extremely large, and the overall complexity of each step is $O(kn^2m)$, also very large for values of $n$ which in our case can be over a million.
+We begin with the ASSO algorithm proposed in~\cite{asso}. The  method  begins by constructing the so called association matrix $C$, which is a thresholded version of a particular normalization of the correrlation matrix $A{\transp}A$. It then produces a series of increasing rank approximations by adding to $U$ a column taken from $C$ and searching for a corresponding binary row $V_k$ whose outer product with $U_k$ minimizes the number of non-zeros in the current approximation errror $E$. This method can be efficiently implemented with bitwise and integer operations. It is also a popular and simple method with good performance. However, it does not scale well with the number of samples. In particular, for dictionary learning applications where $n \gg m$, the matrix $C$ to be computed can be extremely large, and the overall complexity of each step is $O(kn^2m)$, also very large for values of $n$, something very common in current data science problems.
 
 The work~\cite{bmf07} is one of many examples which use nonlinear optimization over real spaces to solve BMF as a relaxed problem, that is, a Nonnegative Matrix Factorization formulation with values restricted to lie in the range $[0,1]$. The problem solved by~\cite{bmf07} is actually convex and can be solved exactly. Furthermore, if one assumes that $X$ is a noisy observation of a low-rank matrix $\hat{X}$ corrupted by a sparse noise matrix $E$, the solution obtained can be shown to coincide with the sought matrix $\hat{X}$. However, even with modern nonlinear optimization tools, the problem to be solved is computationally very demanding, requiring, as most such methods, repeated computations of the Singular Value Decomposition of a matrix of the same size as $X$.
 % bmf13 - semi-binario, resuelto con optimización tradicional, pesado, pero
@@ -127,22 +128,19 @@ As with any statistical model, the problem of model (order) selection, (in this 
 
 \subsection{Main contribution}
 
-As far as we know, the works in the existing literature on BMF make no particular assumptions on the \emph{shape} of the matrices to be decomposed. As such, despite assigning different roles (such as \emph{factors} for the rows and \emph{loadings} for the columns), most methods treat them symmetrically. Also, most methods deal with the offline analysis of 
-readily available matrices, which makes them unsuitable to many recent data processing tasks.
+As far as we know, the works in the existing literature on BMF make no particular assumptions on the \emph{shape} of the matrices to be decomposed. As such, despite assigning different roles (such as \emph{factors} for the rows and \emph{loadings} for the columns), most methods treat them symmetrically. Also, most methods deal with the \emph{offline} analysis of 
+readily available matrices, which makes them unsuitable to many recent data processing tasks involving \emph{online} adaptation of the models.
 
 We propose a family of methods for BMF which are particularly suited to the treatment of extremely fat (or tall) matrices, which is also suitable to online processing of samples. The proposed methods are, essentially, adaptations to the \emph{dictionary learning} and \emph{sparse coding} techniques which have been developed since the late 1990's~\cite{lewicki99,engan00,aharon06} within the field of signal processing (see see~\cite{dl-review} for a review on both subjects).
 
-In this setting, $X$ is a matrix of $n$ $m$-dimensional column samples which is decomposed as $X=\hat{X}+E=DA+E$, where $D$ is a dictionary of column \emph{atoms}, that is, representativve patterns of the data, and $A$ is a \emph[{sparse} matrix whose columns dictate the linear combination of columns of $D$ which make up the approximation $\hat{X}$. Another important aspect of dictionary learning methods is that they do not seek low-rank decompositions; the solutions can in fact be \emph{overcomplete}, meaning that the number of columns in $D$ may be larger than $m$, the dimension of the samples to be represented. While dictionary learning can be applied to fixed matrices $X$, efficient online implementations which can adapt both the dictionary and the coefficients as new columns are added to $X$ exist~\cite{online-dl}.
+In our setting, $X$ is a matrix of $n$ $m$-dimensional column samples which is decomposed as $X=\hat{X}+E=DA+E$, where $D$ is a dictionary of column \emph{atoms}, that is, representative patterns of the data, and $A$ is a \emph{sparse} matrix whose columns dictate the linear combination of columns of $D$ which make up the approximation $\hat{X}$. Another important aspect of dictionary learning methods is that they do not seek low-rank decompositions; the solutions can in fact be \emph{overcomplete}, meaning that the number of columns in $D$ may be larger than $m$, the dimension of the samples to be represented. While dictionary learning can be applied to fixed matrices $X$, efficient online implementations which can adapt both the dictionary and the coefficients as new columns are added to $X$ exist~\cite{online-dl}. We show in Section~\ref{sec:bdl:mod} that the same strategy can be applied to the binary case.
 
-Our methods construct binary dictionaries and binary coefficients matrices using efficient bitwise and a few integer operations. This is particularly relevant to the efficiency and scalability of our method as recent processor architectures incorporate the ability to process large number of bits through SIMD (Single Instruction Multiple Data) instructions. For example, a current off-the-shelf processor can perform a \emph{popcount} instruction (which counts the number of $1$s in a binary array) on a 256-bit register. This allows, for example, to perform the dot product between two binary vectors of dimension $256$ in just two processor instructions. In contrast, double-valued BMF algorithms would require up to $512$ floating point operations to perform the same operation\footnote{This can be reduced with SIMD single-precission floating point instructions to perhaps $128$}, or either resort to specialized GPU-based parallel implementations.
+Our methods construct binary dictionaries and binary coefficients matrices using efficient bitwise and a few integer operations. This is particularly relevant to the efficiency and scalability of our method as recent processor architectures incorporate the ability to process large number of bits through SIMD (Single Instruction Multiple Data) instructions. For example, a current off-the-shelf processor can perform a \emph{popcount} instruction (which counts the number of $1$s in a binary array) on a 256-bit register. This allows, for example, to perform the dot product between two binary vectors of dimension $256$ in just two processor instructions. 
 
-%Despite the restriction to binary operations, the convergence guarantees offered by our method are no worse than those of most matrix factorization methods (with the exception of PCA, which can be solved exactly) and, in particular, dictionary learning;  as most MF problems are non-convex, the solutions can be guaranteed to be locally optimal at best, and this carries out to our case as well. Furthermore, being of discrete nature, our method is guaranteed to converge in a finite number of steps. This is also a crucial advantage over generic MF methods in terms of speed and accuracy.
-
-We show that the results obtained with our method are clearly interpretable in a variety of cases; we also show how to apply them to perform standard restoration tasks such as classification and correcting noisy or corrupt datum (denoising).
+The main objective of this paper is to present our proposed methods, study their mathematical properties, and study their empirical performance in terms of convergence, their sensitivity to initial conditions, and their ability to capture structure from different types of data. We thus show and interpret the results obtained with our algorithnms with a small set of easily-interpretable datasets for which the patterns obtained can be visually asserted to correspond to salient features in the data.
 
 The rest of this document is organized as follows: Section~\ref{sec:background:dictionary-learning} provides the notation and background on the methods on which our methods are based. The proposed methods themselves are described in Section~\ref{sec:bdl}.
-Section~\ref{sec:model-selection} proposes three different model selection algorithms, all based on the MDL criterion. %
-%Section~\ref{sec:denoising} showcases how to apply the result of our method to the problem of binary signal denoising. 
+Section~\ref{sec:model-selection} describes the proposed MDL-based model selection algorithm for searching the best model order $p$. %
 We present and discuss our results in Section~\ref{sec:results}, and provide concluding remarks in Section~\ref{sec:conclusion}.
 
 \section{Background}
@@ -172,7 +170,7 @@ We present and discuss our results in Section~\ref{sec:results}, and provide con
 \newcommand{\svec}[1]{_{[#1]}}
 \newcommand{\col}[1]{_{#1}}
 \newcommand{\row}[1]{^{#1}}
-\newcommand{\havg}[1]{\ll #1 \gg}
+\newcommand{\havg}[1]{\langle\!\langle{#1}\rangle\!\rangle}
 %
 We will now review the tools on which our implementation is based. We draw both from dictionary learning and data mining methods for this task, thus the section is organized by addressing each set of tools separately. 
 
@@ -181,7 +179,7 @@ Standard operations such as addition or substraction are denoted as usual, $1+1=
 
 Let $x$ and $y$ be two binary vectors and $A$ and $B$ two binary matrices.
 We denote the standard  inner and outer vector-vector, matrix-vector and matrix-matrix products as $x{\transp}y$, $xy\transp$, $Ax$ and $AB$.
-The Boolean inner product between two vectors, $z = x\transp \bprod y$ is defined as $\bigor x_i \land y_i$. Similarly, the $C_{ij}$ element of the matrix product $C=A \bprod B$ is defined as the Boolean product beetwen the $i$-th row of $A$, $A^i$,  and the $j$-th column of $B$, $B_j$. Finally we define the modulo-2 inner product of $x$ and $y$ as $x \mprod y = (x+y)\;\mod \;2$.
+The Boolean inner product between two vectors, $z = x\transp \bprod y$ is defined as $\bigor x_i \land y_i$. Similarly, the $C_{ij}$ element of the matrix product $C=A \bprod B$ is defined as the Boolean product beetwen the $i$-th row of $A$, $A^i$,  and the $j$-th column of $B$, $B_j$. We define the modulo-2 inner product of $x$ and $y$ as $x \mprod y = (x+y)\;\mod \;2$. Finally, similarly to the boolean case the $C_{ij}$ element of the modulo-2 product between two matrices, $C=A \mprod B$ is given by $A^i \mprod B_j$. 
 
 The number of elements or size of a set $J$ is denoted by $|J|$. 
 For a vector $x$, its Hamming weight $h(x)$ is defined as the number of non-zero elements in $x$, that is $h(x)=|\{i: x_i \neq 0\}|$. In dictionary learning and sparse coding jargon, the Hamming weight is referred to as the $\ell_0$ pseudo-norm, $\|x\|_0=h(x)$. Note that, for binary vectors, $h(x)=\|x\|_0=\|x\|_1=\norm{x}_2^2$. The function $\indicator(\cdot)$ is defined so that $\indicator(cond)=1$ if $cond$ is true, and $0$ otherwise. 
@@ -190,7 +188,7 @@ Finally, we define the \emph{Hamming average} of a binary vector of length $m$  
 \subsection{Dictionary Learning and sparsity}
 \label{sec:background:dictionary-learning}
 %
-The aim of \emph{Dictionary Learning} methods is to obtain efficient representations of specific types of signals in terms of basis or \emph{frames} which are adapted to the particularities of the signal type at hand (see~\cite{dl-review} for a review). This is in contrast to the traditional approach where fixed transforms such as the Discrete Fourier Transform (DFT) or any of the wide family of Discrete Wavelet Transforms (DWT) are used to compactly represent the salient data of signals such as audio tracks or natural images. In this setting, the columns of $X$ are data samples, for example short audio segments or pixel values from patches of natural images. The dimension $m$ of the data samples is usually much smaller than the number of samples $n$. In the more general context of matrix factorizations, we say that these are extremely \emph{fat matrices}; this is an important aspect to consider in MF algorithms, as we will see later.
+The aim of \emph{Dictionary Learning} methods is to obtain efficient representations of specific types of signals in terms of basis or \emph{frames} which are adapted to the particularities of the signal type at hand (see~\cite{dl-review} for a review). This is in contrast to the traditional approach where fixed transforms such as the Discrete Fourier Transform (DFT) or any of the wide family of Discrete Wavelet Transforms (DWT) are used to compactly represent the salient features of signals such as audio tracks or natural images. In this setting, the columns of $X$ are data samples, for example short audio segments or pixel values from patches of natural images. The dimension $m$ of the data samples is usually much smaller than the number of samples $n$. In the more general context of matrix factorizations, we say that these are extremely \emph{fat matrices}; this is an important aspect to consider in MF algorithms, as we will see later.
 For sufficiently large $n$, we can tailor a \emph{dictionary} $D \in \reals^{m{\times}p}$ such that each sample in $X$ can be compactly represented in terms of a few columns of $D$; by compact we mean that we can represent $X=DA+E$ with $\|E_i\| \ll \|X_i\|$ and $\|A_i\|_0 \ll p$.
 
 As we can see from the previous discussion, contrary to the more general MF approach where the factors $U$ and $V$ have similar roles, those of $D$ and $A$ are quite different. The columns of the matrix $D$ are called ``atoms'' and are supposed to embody typical patterns observed throughout the columns of $X$, while the columns of $A$ specify the linear combination of columns of $D$ that better approximates the corresponding columns of $X$.
@@ -207,19 +205,17 @@ where $f(\cdot)$ and $g(\cdot)$ are \emph{fitting} and \emph{regularization} fun
 
 \subsubsection{Method of Optimal Directions (MOD)} 
 \label{sec:mod}
-\fix{it is AtA and XAt, you idiot}
-
 For the case $f(D,A)=\|DA-X\|_2^2$ and $g(A)=\sum_{i}\|A_i\|_1$ the \emph{Method of Directions} (MOD)~\cite{mod}, is given by
 \begin{eqnarray}
 A_j\iter{k+1}\!\! &=&\!\! \arg\min_{a \in \reals^p} \{ \|x_j - D\iter{k}a \|_2^2 + \|a\|_1, \} \\
-D_r\iter{k+1}\!\! &=&\!\! u_r/\min\{1,\|u_r\|_2\},\nonumber\\
-\!\!&&\!\!u_r = \left(A\iter{k+1}(A\iter{k+1})\transp\right)^{-1}\!\!\!\!\!(A\iter{k+1})_r\transp{X},\,
+D_r\iter{k+1}\!\! &=&\!\! U_r/\min\{1,\|U_r\|_2\},\nonumber\\
+\!\!&&U=\!\!X(A\iter{k+1})\transp\left(A\iter{k+1}({A}\iter{k+1})\transp\right)^{-1},\,
 \label{eq:mod}
 \end{eqnarray}
 where $A_j$ and $D_r$ are the $j$-th and $r$-th columns of $A$ and $D$ respectively. The first step corresponds to an $\ell_1$-regularized least squares regression problem on each column of $A$, also known as LASSO~\cite{lasso}, a non-differentiable convex problem whose solution has been extensively studied in recent years, with several efficient algorithms designed especifically for the task (see e.g.~\cite{fista}).
-In the second step, each atom $D_r$ of the dictionary corresponds to a normalized down version of the least squares solution $u_r$. Here too, (although not ``officially'' part of the algorithm,) it is customary  to apply some sort of regularization so that the Hessian matrix $A\transp{A}$ is invertible and well conditioned.
+In the second step, each atom $D_r$ of the dictionary corresponds to a normalized down version of the least squares solution $u_r$. Here too, (although not ``officially'' part of the algorithm,) it is customary  to apply some sort of regularization so that the Hessian matrix $AA\transp$ is invertible and well conditioned.
 
-The MOD algorithm is well suited for online dictionary adaptation, as both  $A\transp{A}$ and $A\transp{X}$ can be efficiently updated when new columns are added to $X$. Furthermore, if new samples arrive one at a time, the inverse of the Hessian matrix $\left(A\iter{k+1}(A\iter{k+1})\transp\right)^{-1}$ can be efficiently updated via the matrix inversion lemma~\cite{matrix-inv-lemma}. Moreover, as shown in~\cite{online-dl}, excellent results are still obtained by this method if the full Hessian is approximated by its diagonal (in which case its inverse is trivial to compute and update).
+The MOD algorithm is well suited for online dictionary adaptation, as both  $A{A}\transp$ and $XA\transp$ can be efficiently updated when new columns are added to $X$. Furthermore, if new samples arrive one at a time, the inverse of the Hessian matrix $({A}A\transp)^{-1}$ can be efficiently updated via the matrix inversion lemma~\cite{matrix-inv-lemma}. Moreover, as shown in~\cite{online-dl}, excellent results are still obtained by this method if the full Hessian is approximated by its diagonal (in which case its inverse is trivial to compute and update).
 
 \subsubsection{The K-SVD algorithm} 
 \label{sec:ksvd}
@@ -240,6 +236,7 @@ Set $g\iter{0} \leftarrow D\transp{r\iter{0}}$, $G \leftarrow D\transp{D}$ \;
   $g\iter{t+1} \leftarrow g\iter{t} - {\Delta}G_i $\tcc*{(a)} 
   $t \leftarrow t+1 $ \;
 }
+\Return $a \leftarrow a\iter{t}$ \;
 \end{algorithm}
 %
 What MP does at each iteration is to project the residual onto the atom that is most correlated to it, and then remove the projection from the residual. For this to work well, the atoms must be normalized to have $\ell_2$ norm 1.
@@ -258,12 +255,13 @@ The dictionary update of K-SVD performs a simultaneous update of each atom $D_r$
 \KwData{Current model $D\iter{t}$, $A\iter{t}$ and $E\iter{t}=X-D\iter{t}A\iter{t}$}
 \KwResult{Dictionary and coefficients for next iteration $D\iter{t+1}$,$A\iter{t+1}$}
 \For{$r=1,\ldots,p$}{
-  $R \leftarrow X - D\iter{k}A\iter{k} + D\iter{k}_r(A\iter{k})^r$ \;
+  $R \leftarrow X - D\iter{t}A\iter{t} + D\iter{t}_r(A\iter{t})^r$ \;
   $U{\Sigma}V\transp \leftarrow \mathrm{SVD}(R)$ \;
   $D_r \leftarrow U_1$ \;
   \tcc{\small $A^r_{nz}$ are the non-zero entries of $A^r$}  
   $A^r_{nz} \leftarrow V_1$ \;
 }
+\Return $(D,A,E) \leftarrow (D\iter{t},A\iter{t},E\iter{t})$ \;
 \caption{\label{alg:ksvd}K-SVD Dictionary update.}
 \end{algorithm}
 
@@ -273,30 +271,30 @@ The dictionary update described in Algorithm~\ref{alg:ksvd} is significantly mor
 \section{Binary Dictionary Learning}
 \label{sec:bdl}
 
-Given a particular model order (determined by the dictionary size) $p$, our proposed method consists of a traditional alternate descent dictionary learning approach much like MOD and K-SVD. On top of it, we use the Minimum Description Length (MDL) criterion for evaluating the parsimony of the best learned model of size $p$, together with  three different algorithms for performing the selection of the best model among a range of model sizes $p=p_{\min},\ldots,p_{\max}$. We leave the description of the top-level model selection algorithms to Section~\ref{sec:model-selection}.
+Given a particular model order (determined by the dictionary size) $p$, our proposed methods consist of a traditional alternate descent dictionary learning approach much like MOD and K-SVD. On top of it, we use the Minimum Description Length (MDL) criterion for evaluating the parsimony of the best learned model of size $p$, together with a top-level MDL-based model selection algorithm for choosing the best order $p$ within a range $0 \leq  p_{\min} \leq p \leq  p_{\max}$. We leave the description of the top-level model selection algorithms to Section~\ref{sec:model-selection}.
 
-For the dictionary learning algorithm we provide a common coefficients update step, the Binary Matching Pursuit (BMP) algorithm, and  two choices for the dictionary update step: MOB (a binarized version of MOD) and K-PROX (combining ideas of K-SVD and Proximus)  We now provide details on each of these algorithms.
+Both BMF algorithms share a common coefficients update step, the Binary Matching Pursuit (BMP) algorithm, and  two choices for the dictionary update step: MOB (a binarized version of MOD) and K-PROX (combining ideas of K-SVD and Proximus)  We now provide details on each of these new algorithms.
 
 \subsection{Coefficients update via Binary Matching Pursuit (BMP)}
 \label{sec:bdl:bmp}
 
-In essence, BMP is a binarized version of the Matching Pursuit Algorithm~\ref{alg:mp}. However, there are some subtleties which need to be addressed. 
-For a given sample $x$, we begin ($t=0$) with an initial coefficients vector $a\iter{0}=a_0$, a residual $r\iter{0}_j=x \oplus D \mprod a\iter{0}$ and an initial vector $g\iter{0}=D\transp x$ which records the \emph{Euclidean} (traditional)  correlation between the columns of $D$ and $x$; this detail will be clarified later. Then, at each iteration $t$ we \emph{toggle} the coefficient $a_j(k)$ corresponding to the atom that is most correlated to $r\iter{t}$, $D_{k}$, $D_k$ is accordingly added to $r\iter{t}$. The pseudocode is given in Algorithm~\ref{alg:bmp}. 
+In essence, BMP is a binarized version of the Matching Pursuit Algorithm~\ref{alg:mp}. For a given sample $x$, we begin ($t=0$) with an initial coefficients vector $a\iter{0}=a_0$, a residual $r\iter{0}_j=x \oplus D \mprod a\iter{0}$ and an initial vector $g\iter{0}=D\transp x$ which keeps track of the \emph{Euclidean} (traditional)  correlation between the columns of $D$ and $r\iter{t}$. Then, at each iteration $t$ we \emph{toggle} the coefficient $a_j(k)$ corresponding to the atom that is most correlated to $r\iter{t}$, $D_{k}$, and $D_k$ is accordingly modulo-2 added to $r\iter{t}$. The pseudocode is given in Algorithm~\ref{alg:bmp}. 
 %
 \begin{algorithm}[ht]
 \KwData{sample to encode $x$, dictionary $D$, initial coeficients $a_0$, maximum steps $t_{\max}$, maximum residual weight $w_{\max}$, residual exponent $\beta$}
 \KwResult{Optimum coefficients for $x$, $a$}
-Set iteration $t=0$, coefficients $a\iter{0}=a_0$ ,residual $r\iter{0}=x \oplus Da\iter{0}$\;
+Set iteration $t=0$, coefficients $a\iter{0}=a_0$ ,residual $r\iter{0}=x \oplus D{\mprod}a\iter{0}$\;
 Set modulo-2 Gramm matrix $G = D\transp \mprod D$\tcc*{(a)}
 Set residual correlation $g\iter{0}=D\transp{r\iter{0}}$\tcc*{(b)}
 \While{$h(r\iter{t}) \geq w_{\max}$ \textbf{and} $t < t_{\max}$ }{
   $k \leftarrow \arg \max_l \{\;|g\iter{t}_l|\;/\;\|D_l\|_2^\beta\;\} $ \tcc*{(c)}
-  \If{$g\iter{t}_{k} = 0$} { \textbf{finish} }  
+  \If{$g\iter{t}_{k} = 0$} { 
+  	  \Return $a \leftarrow a\iter{t}$ \; 
+  }  
   $r\iter{t+1} \leftarrow r\iter{t} \oplus  D_{k} $\; 
   \If { $h(r\iter{t+1}) \geq h(r\iter{t})$\tcc*{(d)} } 
   {
-	  $r\iter{t+1} \leftarrow r\iter{t} \oplus  D_{k} $\; 
-	  \textbf{finish} \;
+	  \Return $a \leftarrow a\iter{t}$ \;
   }
   \eIf {$a\iter{t+1}_{k} = 1$} {
     $a\iter{t+1}_{k} \leftarrow 0$ \;
@@ -306,17 +304,18 @@ Set residual correlation $g\iter{0}=D\transp{r\iter{0}}$\tcc*{(b)}
     $g\iter{t+1} \leftarrow g\iter{t} + G_{k}$ \tcc*{(e)}
     }
 } 
+\Return $a \leftarrow a\iter{t}$ \;
 \caption{\label{alg:bmp} Binary Matching Pursuit.}
 \end{algorithm}
 
 Some steps of the algorithm, marked as $(a)$, $(b)$, $(c)$, $(d)$ and $(e)$ (appearing twice) are not obvious from the overall description of the algorithm and need to be clarified. 
 
-In $(a)$, the \emph{modulo-2 Gramm matrix} of $D$ is computed. This matrix is used in an analogous way in Algorithm~\ref{alg:mp} for the fast update of the correlations vector $g$ as described in \refeq{eq:corr-up}. Despite the fact that we are working with binary vectors with binary operations, the euclidean correlation between the dictionary and the residual is still a good proxy for choosing an atom that will serve to reduce the weight of the residual. Note however that this will work correctly if the atoms are normalized, which they are not. This is why 
+In $(a)$, the \emph{modulo-2 Gramm matrix} of $D$ is computed. This matrix is used in an analogous way in Algorithm~\ref{alg:mp} for the fast update of the correlations vector $g$ as described in \refeq{eq:corr-up}. Despite the fact that we are working with binary vectors with binary operations, the euclidean correlation $(b)$ between the dictionary and the residual  is still a good proxy for choosing an atom that will serve to reduce the weight of the residual. Note however that this will work correctly if the atoms are normalized, which they are not. This is why 
 the maximum in $(c)$ is taken with respect to the ratio $g\iter{t}_l / \|D_l\|_2^\beta$, which corresponds to the empirical Pearson correlation for $\beta=1$ (the inclusion of $\|r\iter{t}\|_2$ in the denominator is irrelevant for minimization purposes). In our experiments we use $\beta=2$, which corresponds to the so called \emph{association accuracy} in data mining~\cite{association-accuracy}. 
 
 The step marked with $(d)$ adds monotonicity to the method: if the weight of the residual increases (which might happen), the update is rolled back and the algorithm finishes.
 
-Finally, and most interestingly, despite the correlation vector $g$ being initially computed using the \emph{standard} matrix-vector product, it can be updated using exactly the same form as \refeq{eq:corr-up}, only that the Gramm matrix is actually computed using the modulo-2; The first $(e)$ corresponds to the case when $\Delta=1$, that is, when $a_k$ is switched from $0$ to $1$. The second $(e)$ corresponds to $\Delta=-1$, when $a_k$ is switched off. (This curious result is easily verified by writing down the corresponding arithmetic.) 
+Finally, and most interestingly, despite the correlation vector $g$ being initially computed using the \emph{standard} matrix-vector product, it can be updated using exactly the same form as \refeq{eq:corr-up}, only that the Gramm matrix $G$ is actually computed using the modulo-2; The first $(e)$ corresponds to the case when $\Delta=1$, that is, when $a_k$ is switched from $0$ to $1$. The second $(e)$ corresponds to $\Delta=-1$, when $a_k$ is switched off. (This curious result is easily verified by writing down the corresponding arithmetic.) 
 
 %
 %\subsection{Coefficients update/Binary Weight Pursuit (BWP)}
@@ -342,22 +341,22 @@ Finally, and most interestingly, despite the correlation vector $g$ being initia
 Here we want to update each atom so that the Hamming weight of the total residual matrix $E = X \oplus D \mprod A$ is minimum (we recall that minus and plus are the same thing in modulo-2 arithmetic). Say we want to update the $r$-th atom at iteration $k$. Clearly, the affected columns will only be those for which the  coefficients in $A$  corresponding to that atom are non-zero, that is $\{j : A_{rj} \neq 0 \}$; let us call this set $J_r$ and $n_r$ its size. What we want is the update $\Delta$ that, when added to $D_r$, minimizes the weight of the residual $E$ in those colums affected by $D_r$,
  \begin{eqnarray}
  \Delta  =& \arg\min_d \sum_{j \in J_r}  h(E\iter{k}_j \oplus d) \\
- =& \arg\min_d \sum_{j \in J_r} (\sum_i E\iter{k}_j + n_r d_i).
+ =& \arg\min_d \sum_{j \in J_r} (\sum_i E\iter{k}_{ij} + n_r d_i).
 \label{eq:mob1}
  \end{eqnarray}
 
-The above objective is trivially separable in the elements of $d$,
+According to~\refeq{eq:mob1}, the optimization of $\Delta$ is trivially separable as,
  \begin{eqnarray}
- \Delta_i  =& \arg\min_{u \in \{0,1\}} \sum_j E_{ij}\iter{k} \oplus d_i\\
- =& \arg\min_{u \in \{0,1\}} \sum_{j\in J_r} E_{ij}\iter{k} + n_r u.
+ \Delta_i  =& \arg\min_{u \in \{0,1\}} \sum_j E_{ij}\iter{k} \oplus u\\
+ =& \arg\min_{u \in \{0,1\}} \sum_{j\in J_r} E_{ij} + n_r u.
 \label{eq:mob2}
  \end{eqnarray}
 In other words, the $i$-th element of $D_r$ should be $0$ if most of the elements in the rows of $E$ affected by it are $0$, and $1$ otherwise. 
 This is clearly an optimum solution (note that there could be many optima  when $n_r$ is even, in which case we simply choose one value; in our case we use $0$).
 
-We now observe that, at any given step of the algorithm, the $r$-th diagonal element of the Hessian matrix $(A)\transp{A}$ is precisely $n_r=h(A^r)$, and that $\sum_{j\in J_r} E_{ij}\iter{k}=E(A^r)\transp$. Therefore, the update \refeq{eq:mob2} can be seen as a binarized version of the dictionary update proposed in~\cite{online-dl}, that is, 
+We now observe that, at any given step of the algorithm, the $r$-th diagonal element of the Hessian matrix $(AA\transp)_{rr}=n_r=h(A^r)$, and that $\sum_{j\in J_r} E_{ij}\iter{k}=E(A^r)\transp(1/n_r)$. Therefore, the update \refeq{eq:mob2} can be seen as a binarized version of the dictionary update proposed in~\cite{online-dl}, that is, 
 $$D_r = \indicator\left(\frac{E(A^r)\transp}{h(A^r)} \geq \frac{1}{2}\right).$$
-From the above observations, it follows that MOB can also be used for fast online dictionary adaptation, as both $n_r$ and $E(A^r)$ can be easily updated as new samples arrive.
+From the above observations, it follows that MOB can also be used for fast online dictionary adaptation, as both $n_r$ and $E(A^r)$ can be easily updated as new samples arrive. (Our implementation of this feature is still work in progress.)
 
 \subsection{K-PROX: Dictionary Update via Proximus}
 \label{sec:bdl:k-prox}
@@ -405,12 +404,10 @@ The output $(u,v)$ of the Proximus Algorithm~\ref{alg:proximus} is a local optim
 \subsection{Initialization}
 \label{sec:bdl:init}
 
-Initialization is of paramount importance to the success of any non-convex matrix factorization method. At the same time, there is no provably optimum way of doing so, otherwise we would be contravening the NP-hard nature of the factorization problem itself. We are left with heuristics based on intuition and prior information, if any. Ultimately, \emph{initialization is an art}. Below we describe the three methods we have tested with our algorithms, two of which are vaguely inspired by the ones proposed in Proximus (which are defined only for rank-$1$ factorizations.)
+Initialization is of paramount importance to the success of any non-convex matrix factorization method. At the same time, there is no provably optimum way of doing so, otherwise we would be contravening the NP-hard nature of the factorization problem itself. We are left with heuristics based on intuition and prior information, if any. Ultimately, \emph{initialization is an art}. Below we describe the three methods we have tested with our algorithms, two of which are vaguely inspired by the ones proposed in Proximus (which are defined only for rank-$1$ factorizations.) In any case, these are not to be taken as particularly good methods; they are examples which in some cases, as we will see, can work well. 
 
-In any case, these are not to be taken as particularly good methods; they are examples which in some cases, as we will see, can work well. We advise the interested reader to investigate whether these are adequate to the data at hand in each case, eventually defining new strategies which can take into account prior information particular to the problem at hand. 
-
-\paragraph{(Pseudo) Partition}: This method works for dictionaries of size $p \leq m$. Let $I=\{i_1,i_2,\ldots,i_p\}$ be the indexes of the $p$ rows of $X$ which have the largest weight, that is, $h(X_i) \geq h(X_{i'}),\forall\,i\in{I},\,i' \notin{I}$. Then the $k$-th atom is initialized as the Hamming average of all the \emph{columns} of $X$ which have a $1$ in their $i_k$-th row. If we define $J_k=\{j:1 \leq j \leq n, X_{ij_k}=1 \}$, then $$D_k = \frac{1}{|J_k|}\sum_{j \in J_k} X_j.$$ 
-The idea behind this initialization is to ensure that the initial atoms are correlated with those dimensions which are more commonly active in the dataset; this is particularly useful in very sparse matrices, but for the same reason can fail for dense matrices as all the atoms may end up being mostly $1$ and very similar among themselves.
+\paragraph{(Pseudo) Partition}: This method works for dictionaries of size $p \leq m$. Let $I=\{i_1,i_2,\ldots,i_p\}$ be the indexes of the $p$ rows of $X$ which have the largest weight, that is, $h(X_i) \geq h(X_{i'}),\forall\,i\in{I},\,i' \notin{I}$. Then the $k$-th atom is initialized as the Hamming average of all the \emph{columns} of $X$ which have a $1$ in their $i_k$-th row. If we define $J_k=\{j:1 \leq j \leq n, X_{i_kj}=1 \}$, then $$D_k = \frac{1}{|J_k|}\sum_{j \in J_k} X_j.$$ 
+The idea behid this initialization is to ensure that the initial atoms are correlated with those dimensions which are more commonly active in the dataset; this is particularly useful in very sparse matrices, but for the same reason can fail for dense matrices as all the atoms may end up being mostly $1$ and very similar among themselves.
  
 \paragraph{Neighbor}: Here we draw $p$ samples at random from $X$, then each atom $D_k$ is initialized as the Hamming average of all samples in $X$ which have non-zero correlation with $X$. This is essentially a rank-$k$ extension of the method described in \cite{proximus} under the same name. It is however not a good method for dense, fat matrices (see Figure~\ref{fig:init-mnist} on page~\pageref{fig:init-mnist}), especially if some row of $E$ is largely composed of $1$s, in which case all or most atoms may end up being identical, dense patterns.
 
@@ -435,7 +432,7 @@ The idea behind this initialization is to ensure that the initial atoms are corr
 A crucial problem in BMF is how to choose the appropriate rank $p$ of the decomposition. In dictionary learning, this translates into the number $p$ of atoms of the dictionary $D$. This is a particular case of what is generally known as the \emph{model selection} problem. 
 
 Beyond theoretical results and simulations, when confronted with real data, 
-the true underlying model governing the generation of data is rarely available. In such situations, models can only be assumed to be tools for understanding the data at hand, and the best choice is dictated by how much regularity or structure each candidate model is capable to grasp from that data. In particular, the complexity of a model is limited by the amount of data available to estimate the different parameters of the model. An overly complex model will tend to \emph{overfit} the data, whereas an overly simple one will miss important details. The problem of model selection is that of finding the best model for a given data set. Typically this is done by seeking a balance between the \emph{goodness of fit} of a model, usually expressed in terms of the likelihood of the data given the model, and a measure of \emph{model complexity}; two very popular examples in this category are the Bayesian Information Criterion (BIC)~\cite{bic}, the Akaike's Information Criterion~\cite{aic}. 
+the true underlying model governing the generation of data is rarely available. In such situations, models can only be assumed to be tools for understanding the data at hand, and the best choice is dictated by how much regularity or structure each candidate model is capable to grasp from that data. In particular, the complexity of a model is limited by the amount of data available to estimate the different parameters of the model. An overly complex model will tend to \emph{overfit} the data, whereas an overly simple one will miss important details. The problem of model selection is that of finding the best model for a given data set. Typically this is done by seeking a balance between the \emph{goodness of fit} of a model, usually expressed in terms of the likelihood of the data given the model, and a measure of the \emph{model complexity}; two very popular examples in this category are the Bayesian Information Criterion (BIC)~\cite{bic}, the Akaike's Information Criterion~\cite{aic}. 
 
 The Minimum Description Length principle (MDL)~\cite{mdl1,mdl2,mdl3} translates the model selection problem as one of data compression, where both the data and the model have to be (hypothetically) transmitted and perfectly recovered using some encoding mechanism. The tension between complexity is then resolved by how many bits are required to describe the data in terms of the model (stochastic complexity) and how many bits are required to describe the model itself (model complexity). The original version of MDL~\cite{mdl1} made this division explicit, and is asymptotically equivalent to BIC. However, the modern version of MDL~\cite{mdl2,mdl3} uses the more recent information-theoretic \emph{universal coding theory} to make the aforementioned balance implicit by producing an optimum, joint description of both the model and the data which is furthermore independent of arbitrary choices of, for example, the way the model is parameterized. These advantages make MDL an appealing method for model selection. However, contrary to BIC and AIC, MDL is more difficult to implement, in particular in its modern version. 
 
@@ -443,7 +440,7 @@ In this section we describe a particular implementation of the MDL criterion for
 
 \subsection{Codelength computation}
 
-The universal compression of binary sources has been extensively studied in the literature. Moreover, we do not need to perform a real encoding; we need only to compute the codelength. One particularly simple method, for which the codelength is easy to compute, is the enumerative coding~\cite{enum}. Given a binary string $x$ of length $n$ ahd its hamming weight $r=h(x)$, its code is composed of two parts. The first one describes $r$ with $\lceil\log_2(n)\rceil$ bits, and the second one describes the index of $x$ in the lexicographically ordered list of all strings of length $n$ with the same weight $r$, which requires $\lceil\log_2{r \choose n}\rceil$ bits. The total codelength is then $$L(x) = \lceil\log_2(n)\rceil + \lceil\log_2{r \choose n}\rceil.$$ (Note that $\log(r \choose n)$ can be accurately approximated by using Stirling's formula, a function which is readily available in most scientific computation libraries.)
+The universal compression of binary sources has been extensively studied in the literature. Moreover, we do not need to perform a real encoding; we need only to compute the codelength. One particularly simple method, for which the codelength is easy to compute, is \emph{enumerative coding}~\cite{enum}. Given a binary string $x$ of length $n$ ahd its hamming weight $r=h(x)$, its enumerative code is composed of two parts. The first one describes $r$ with $\lceil\log_2(n)\rceil$ bits, and the second one describes the index of $x$ in the lexicographically ordered list of all strings of length $n$ with the same weight $r$, which requires $\lceil\log_2{r \choose n}\rceil$ bits. The total codelength is then $$L(x) = \lceil\log_2(n)\rceil + \lceil\log_2{r \choose n}\rceil.$$ (Note that $\log{r \choose n}$ can be accurately approximated by using Stirling's formula, a function which is readily available in most scientific computation libraries.)
 As we expect the different columns of $D$ to represent particular patterns in the data, and the corresponding rows of $A$ their appearance in $X$, it makes sense to consider different codes for each column and row of $D$ and $A$ respectively. As of $E$, the usual assumption is to consider it as \emph{noise}. While this may not always be the case (remaining structure may still exist in $E$ after the decomposition), it is a safe and general assumption. Thus, we encode the whole matrix $E$ as one single binary string of length $m{\times}n$. The total codelength for our model is then givem by
 \begin{equation}
 L(X) = L(E) + \sum_k [ L(D_k) + L(A^k) ] 
@@ -453,62 +450,7 @@ The codelength function~\refeq{eq:codelength} encoding scheme is among the ones 
 
 \subsection{Model selection}
 
-Given the codelength function $L(X)$, we now need to solve: a) the search for the best model given $p$ and b) the best value of $p$. The first problem is what most of this paper is about, that is, to learn the dictionary and coefficients $A$, and is described in Section~\ref{sec:bdl}. In order to choose the best order $p$ of the model we apply a \emph{forward selection} strategy. We begin with an initial dictionary size $K=K_{\min}$, adapt it to the data, add one or a few more atoms to $D$, and re-adapt both $D$ and $A$. The previous step is repeated until no further improvement is obtained, that is, until the overall codelength does not decrease by adding new atoms to the dictionary.
-
-%\section{Application to Denoising}
-%\label{sec:denoising}
-%
-%Denoising is a special case of the more general \emph{signal restoration} problem (other examples are zooming, deblurring, or inpainting -- a.k.a. filling erased regions). Here we assume that we want to recover a signal sample $x \in \reals^{m}$ from a noisy observation $z \in \reals^{m}$, both related by
-%\[
-%z = x + n,
-%\]
-%where $n \in \reals^m$ is a vector of i.i.d. samples from some known distribution, e.g. Gaussian or Poisson. For instance, in the context of Image Processing, $z$ and $x$ are usually vectorized versions of square $\sqrt{m}\times\sqrt{m}$ patches of an image, and what one desires to recover is the whole image $I$ from its corresponding noisy version $J$.
-%
-%The method used for denoising an image in the Dictionary Learning framework usually proceeds as follows:
-%\begin{itemize}
-%\item An initial dictionary $D_0 \in \reals^{m{\times}p}$ is available; this dictionary is learned to efficiently represent a \emph{large} set of patches taken from some public dataset of natural images, usually comprising thousands of images.
-%\item The image to be denoised, $J \in \reals^{M{\times}N}$, is decomposed into $n=(M-\sqrt{m}+1){\times}(N-\sqrt{m}+1)$ overlapping patches $(z_j : j = 1,\ldots,n)$ that we will arrange for convenience as columns in a matrix $Z \in \reals^{m{\times}n}$
-%\item The samples $Z$ are used to further adapt the initial dictionary and the accompanying sparse coefficients $A \in \reals^{p{\times}n}$; the sparse coding variant during the coefficient update step of this dictionary learning process is the \emph{denoising} formulation, given by
-%\[
-%a\iter{t+1}_j = \arg\min_a \|a\|_r \st \|z_j - D\iter{t}a \|_2 \leq C\sigma, 
-%\]
-%where $\sigma$ is the variance of the noise $C$ is a positive constant usually close to $1$ and $0 \leq r \leq 1$ is a sparsity-inducing (pseudo)-norm. The dictionary update is the same as described before in \refeq{sec:mod}
-%\item Upon convergence, the \emph{clean image patches $x_j$} are estimated from the solution $(D\opt,A\opt)$ as $$x_j = D\opt a\opt_j.$$
-%\item Finally, the estimated clean image is obtained by stitching back the estimated clean patches $x_j$ into their respective locations, averaging pixels where intersections between patches occur.
-%\end{itemize}
-%
-%\subsection{Inpainting -- missing data}
-%
-%Here the task is to fill in missing samples. As we only have binary matrices around, we need an auxiliary mask matrix $H \in \reals^{m{\times}n}$ which will tell us which samples are to be considered missing (value $0$) in the data matrix $X$, regardless of their value in $X$. The known values in $X$ are indicated with a $1$ in the corresponding place in $H$. The task is to fill in the missing values.
-%
-%If we have a dictionary $D$ trained to samples similar to $X$, the idea is the following:
-%
-%\begin{itemize}
-%\item For each sample $x$ with missing samples specified in a corresponding mask sample $h$,
-%\item Take the subset of rows from $D$ and $x$, $D_{h}$ and  $x_{h}$ for which the corresponding row in $h$ is $1$.
-%\item Encode $x_{h}$ using $D_{h}$ using the usual encoding scheme (that is, add atoms until no further decrease in the error is obtained); we obtain a vector of coefficients $a$
-%\item Fill in the subvector of missing values, $x_{\bar h}$ ($\bar h = 1 - h$) as, $$x_{\bar h} = D_{\bar h}a$$
-%\end{itemize}
-
-%\subsection{Classification}
-%
-%Here again we discuss the case of image patches classification, including the special case where the patches are not part of a larger image but pre-cropped and aligned handwritten characters taken from the public datasets MNIST and USPS typically used in character recognition benchmarks.
-%
-%There are several variants in this case. The one we'll mention here~\cite{ramirez10cvpr}, which seems quite natural, is a generative one where a dictionary $D_c$ is  adapted to efficiently represent samples from each class $c  \ in \mathcal{C}$. A new sample is then classified into class $c'$ if its representation under the dictionary $D_{c'}$ is better in some sense than that obtained using the dictionaries trained for the other classes. The method  can be summarized as follows:
-%
-%\begin{itemize}
-%\item A  dictionary $D_c$ is adapted to a set of samples $X_c$ known to belong to class $c$ using some known method; this is done for each $c \in \mathcal{C}$. 
-%\item In order  to classifiy a new sample $x$, it is sparsely encoded using each of the dictionaries $D_c, c \in \mathcal{C}$, and the corresponding optimum coding cost is used as a score $l_c$. Any sparse coding variant could be used in principle, but typical choices here are the ``basis pursuit'' variant,
-%\[
-%l_c(x) = \min_a \|z_j - D\iter{t}a \|_2 \st  \|a\|_r \leq \tau, 
-%\]
-%and the Lagrangian variant,
-%\[
-%l_c(x) = \min_a \|z_j - D\iter{t}a \|_2 + \tau  \|a\|_r. 
-%\]
-%\item The sample $x$ is then declared to belong to the class $c$ so that  $l_c$ is the smallest. 
-%More so than in denoising, the success in this application depends largely  on the (critical) parameters $\tau$,  the $r$-norm  to be used, and the size of the dictionary $p$. These critical issues are treated in \cite{ramirez12tsp}.
-%\end{itemize}
+Given the codelength function $L(X)$, we now need to solve: a) the search for the best model given $p$ and b) the best value of $p$. The first problem is what most of this paper is about, that is, to learn the dictionary and coefficients $A$, and is described in Section~\ref{sec:bdl}. In order to choose the best order $p$ of the model we apply a \emph{forward selection} strategy. We begin with an initial dictionary size $K=K_{\min}$, adapt it to the data, add one or a few more atoms to $D$, and re-adapt both $D$ and $A$. The previous step is repeated until no further improvement is obtained, that is, until the overall codelength $L(X)$ does not decrease by adding new atoms to the dictionary.
 
 \section{Results and discussion}
 \label{sec:results}
@@ -522,7 +464,7 @@ Given the codelength function $L(X)$, we now need to solve: a) the search for th
 \caption{\label{fig:datasets} Left to right: MNIST dataset, Einstein image, USPS dataset,  detail of Einstein's left eye.}
 \end{figure*}
 %
-The following results were obtained with our current implementation, which can be found at \url{http://iie.fing.edu.uy/~nacho/bdl/} along with more experiments and data. The results here are for binarized version the handwritten digits dataset MNIST~\cite{mnist} and for the halftone binary image of Einstein. Figure~\ref{fig:datasets} shows a few samples from MNIST, the Einstein image, and a detail of his eye which shows the halftoning pattern. The MNIST dataset consists of $10000$ $16{\times}16$ grayscale images of hand written digits. For Einstein, the samples consist of the $4088$ non-overlapping blocks of size $16{\times}16$ that the image can be decomposed into.
+The following results were obtained with our current implementation, which can be download fromt \url{http://iie.fing.edu.uy/~nacho/bdl/}, and which includes scripts that reproduce all the results shown in this section and many more. The results shown are for binarized version the handwritten digits dataset MNIST~\cite{mnist} and for the halftone binary image of Einstein. Both datasets have easily visually interpretable patterns, which helps in assessing the quality of the obtained models. Figure~\ref{fig:datasets} shows a few samples from MNIST, the Einstein image, and a detail of his eye which shows the halftoning pattern. The MNIST dataset consists of $10000$ $16{\times}16$ grayscale images of hand written digits. For Einstein, the samples consist of the $4088$ non-overlapping blocks of size $16{\times}16$ that the image can be decomposed into.
 
 \subsection{Models}
 
@@ -604,12 +546,12 @@ Here we analyze the convergence of both methods. Figure~\ref{fig:convergence} sh
 
 \subsection{Initialization}
 
-Figures~\ref{fig:init-mnist}and~\ref{fig:init-einstein}  show initial and final dictionaries of fixed size $p=100$ for MNIST and Einstein, both obtained after initializing the model with the three different methods described in Section~\ref{sec:bdl:init}. As mentioned in Section~\ref{sec:bdl:init}, the neighbor strategy is disastrous forthe MNIST case. The same happens with the random initialization.  However, using a random initialization both MOB and K-PROX are able to capture interesting patterns from Einstein after a few iterations. 
+Figures~\ref{fig:init-einstein} and~\ref{fig:init-mnist} show initial and final dictionaries of fixed size $p=100$ for MNIST and Einstein, both obtained after initializing the model with the three different methods described in Section~\ref{sec:bdl:init}. As mentioned in Section~\ref{sec:bdl:init}, the neighbor strategy is disastrous for the MNIST case. The same happens with the random initialization.  However, using a random initialization both MOB and K-PROX are able to capture interesting patterns from Einstein after a few iterations. 
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-We have presented a novel, efficient Binary Factorization Method based in dictionary learning techniques which, as shown in our preliminary results, is able to capture relevant patterns from the two datasets on which we experimented, both exhibiting quite different characteristics. The methods were analyzed in terms of their convergence and their sensibility to initialization. 
+We have presented a novel, efficient Binary Factorization Method based in dictionary learning techniques which, as shown in our preliminary results, is able to capture relevant patterns from the two datasets on which we experimented, both exhibiting quite different characteristics. The methods were analyzed in terms of their convergence and their sensibility to initialization. An online implementation of our proposed methods is currently underway and will be published in a follow up of this publication.
 
 \bibliographystyle{plain}
 \bibliography{IEEEabrv,bmf}
