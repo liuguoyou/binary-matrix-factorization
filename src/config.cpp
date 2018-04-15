@@ -5,6 +5,9 @@
 #include "coefficients_update.h"
 #include "update_dictionary.h"
 
+double max_err_weight = 0;
+size_t max_coef_weight = 0;
+
 mi_algorithm_t initialize_dictionary = initialize_dictionary_neighbor;
 es_algorithm_t coefficients_update = coefficients_update_omp;
 //es_algorithm_t coefficients_update = coefficients_update_corr;
@@ -85,3 +88,9 @@ void learn_model_setup(int mi_algo, int es_algo, int du_algo, int lm_algo, int l
   learn_model_inner = learn_model_algorithm_catalog[lmi_algo];
   std::cout << "Using " << lm_algorithm_names[lmi_algo] << " for inner learning." << std::endl;
 }
+
+void set_max_err_weight(size_t _me) { max_err_weight = _me; }
+void set_max_coef_weight(size_t _ma) { max_coef_weight = _ma; }
+
+size_t get_max_err_weight() { return max_err_weight; }
+size_t get_max_coef_weight()  { return max_coef_weight; }

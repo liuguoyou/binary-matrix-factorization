@@ -18,7 +18,7 @@ idx_t learn_model_traditional(binary_matrix& X,
 			      binary_matrix& A) {
   const idx_t K = D.get_rows();
   const idx_t ma  = K;
-  const idx_t me  = 0;
+  const idx_t me  = get_max_err_weight();
   mul(A,false,D,false,E);
   add(E,X,E);
   idx_t changed = 1;

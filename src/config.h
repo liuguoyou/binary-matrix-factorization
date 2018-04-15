@@ -39,4 +39,11 @@ extern const char* lm_algorithm_names[];
 
 void learn_model_setup(int mi_algo, int es_algo, int du_algo, int lm_algo, int lmi_algo);
 
+
+void set_max_err_weight(size_t _me);
+void set_max_coef_weight(size_t _ma);
+
+size_t get_max_err_weight();
+size_t get_max_coef_weight();
+
 #endif

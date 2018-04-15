@@ -162,17 +162,18 @@ int main(int argc, char **argv) {
   //  2. further update dictionary
   //
   std::cout << "Further adapting dictionary to data." << std::endl;
+  const idx_t me = cols*error_probability;
+  set_max_err_weight(2*me);
   learn_model(X,H,E,D,A);
   render_mosaic(D,"denoising_adapted_dictionary.pbm");
   //
   // 3. denoise: average number of errors in Bernoulli(p) on a
   //    vector of length M is colsp
   //
-  const idx_t me = cols*error_probability;
   std::cout << "Denoising. <<" << std::endl;
   std::cout << "Average number of errors per row " << me << std::endl;
-  //A.clear();
-  //coefficients_update(X,H,D,A,K,me);  
+  A.clear();
+  coefficients_update(X,H,D,A,K,me);  
   X.copy_to(E); // at this point X contains the residual
   std::cout << "Average residual weight=" << (double)E.weight()/(double)rows << std::endl;
   std::cout << "Average coefficients weight=" << (double)A.weight()/(double)rows << std::endl;
