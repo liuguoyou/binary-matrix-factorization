@@ -141,7 +141,9 @@ Our methods construct binary dictionaries and binary coefficients matrices using
 We show that the results obtained with our method are clearly interpretable in a variety of cases; we also show how to apply them to perform standard restoration tasks such as classification and correcting noisy or corrupt datum (denoising).
 
 The rest of this document is organized as follows: Section~\ref{sec:background:dictionary-learning} provides the notation and background on the methods on which our methods are based. The proposed methods themselves are described in Section~\ref{sec:bdl}.
-Section~\ref{sec:model-selection} proposes three different model selection algorithms, all based on the MDL criterion. Section~\ref{sec:denoising} showcases how to apply the result of our method to the problem of binary signal denoising. We present and discuss our results in Section~\ref{sec:results}, and provide concluding remarks in Section~\ref{sec:conclusion}.
+Section~\ref{sec:model-selection} proposes three different model selection algorithms, all based on the MDL criterion. %
+%Section~\ref{sec:denoising} showcases how to apply the result of our method to the problem of binary signal denoising. 
+We present and discuss our results in Section~\ref{sec:results}, and provide concluding remarks in Section~\ref{sec:conclusion}.
 
 \section{Background}
 \label{sec:background}
@@ -353,7 +355,7 @@ The above objective is trivially separable in the elements of $d$,
 In other words, the $i$-th element of $D_r$ should be $0$ if most of the elements in the rows of $E$ affected by it are $0$, and $1$ otherwise. 
 This is clearly an optimum solution (note that there could be many optima  when $n_r$ is even, in which case we simply choose one value; in our case we use $0$).
 
-We now observe that, at any given step of the algorithm, the $r$-th diagonal element of the Hessian matrix $(A)\transp{A}$ is precisely $n_r=h(A^r)$, and that $\sum_{j\in J_r} E_{ij}\iter{k}=E(A^r)\transp$. Therefore, the update \refeq{eq:mpb2} can be seen as a binarized version of the dictionary update proposed in~\cite{online-dl}, that is, 
+We now observe that, at any given step of the algorithm, the $r$-th diagonal element of the Hessian matrix $(A)\transp{A}$ is precisely $n_r=h(A^r)$, and that $\sum_{j\in J_r} E_{ij}\iter{k}=E(A^r)\transp$. Therefore, the update \refeq{eq:mob2} can be seen as a binarized version of the dictionary update proposed in~\cite{online-dl}, that is, 
 $$D_r = \indicator\left(\frac{E(A^r)\transp}{h(A^r)} \geq \frac{1}{2}\right).$$
 From the above observations, it follows that MOB can also be used for fast online dictionary adaptation, as both $n_r$ and $E(A^r)$ can be easily updated as new samples arrive.
 
@@ -401,6 +403,7 @@ The output $(u,v)$ of the Proximus Algorithm~\ref{alg:proximus} is a local optim
 %
 
 \subsection{Initialization}
+\label{sec:bdl:init}
 
 Initialization is of paramount importance to the success of any non-convex matrix factorization method. At the same time, there is no provably optimum way of doing so, otherwise we would be contravening the NP-hard nature of the factorization problem itself. We are left with heuristics based on intuition and prior information, if any. Ultimately, \emph{initialization is an art}. Below we describe the three methods we have tested with our algorithms, two of which are vaguely inspired by the ones proposed in Proximus (which are defined only for rank-$1$ factorizations.)
 
@@ -409,7 +412,7 @@ In any case, these are not to be taken as particularly good methods; they are ex
 \paragraph{(Pseudo) Partition}: This method works for dictionaries of size $p \leq m$. Let $I=\{i_1,i_2,\ldots,i_p\}$ be the indexes of the $p$ rows of $X$ which have the largest weight, that is, $h(X_i) \geq h(X_{i'}),\forall\,i\in{I},\,i' \notin{I}$. Then the $k$-th atom is initialized as the Hamming average of all the \emph{columns} of $X$ which have a $1$ in their $i_k$-th row. If we define $J_k=\{j:1 \leq j \leq n, X_{ij_k}=1 \}$, then $$D_k = \frac{1}{|J_k|}\sum_{j \in J_k} X_j.$$ 
 The idea behind this initialization is to ensure that the initial atoms are correlated with those dimensions which are more commonly active in the dataset; this is particularly useful in very sparse matrices, but for the same reason can fail for dense matrices as all the atoms may end up being mostly $1$ and very similar among themselves.
  
-\paragraph{Neighbor}: Here we draw $p$ samples at random from $X$, then each atom $D_k$ is initialized as the Hamming average of all samples in $X$ which have non-zero correlation with $X$. This is essentially a rank-$k$ extension of the method described in \cite{proximus} under the same name. It is however not a good method for dense, fat matrices (see Figure~\ref{fig:neighbor-fail} on page~\pageref{fig:neighbor-fail}), especially if some row of $E$ is largely composed of $1$s, in which case all or most atoms may end up being identical, dense patterns.
+\paragraph{Neighbor}: Here we draw $p$ samples at random from $X$, then each atom $D_k$ is initialized as the Hamming average of all samples in $X$ which have non-zero correlation with $X$. This is essentially a rank-$k$ extension of the method described in \cite{proximus} under the same name. It is however not a good method for dense, fat matrices (see Figure~\ref{fig:init} on page~\pageref{fig:init}), especially if some row of $E$ is largely composed of $1$s, in which case all or most atoms may end up being identical, dense patterns.
 
 \paragraph{Random} This is a fallback, universal alternative for initializing a dictionary when almost no prior information can be exploited to devise a better alternative. The samples are initialized using pseudo-random Bernoulli samples of probability $\theta$, a parameter which can be chosen to reflect, for example, the density of $1$s in the dataset.  The value by default is $1/2$, which is a good idea even for very sparse matrices, as $\theta \ll 1$ combined with a large dimension $m$ may result in atoms which are orthogonal to most or even all data samples if the data is sparse.
 
@@ -440,7 +443,7 @@ In this section we describe a particular implementation of the MDL criterion for
 
 \subsection{Codelength computation}
 
-The universal compression of binary sources has been extensively studied in the literature. Moreover, we do not need to perform a real encoding; we need only to compute the codelength. One particularly simple method, for which the codelength is easy to compute, is the enumerative coding~\cite{enum}. Given a binary string $x$ of length $n$ ahd its hamming weight $r=h(x)$, its code is composed of two parts. The first one describes $r$ with $\lceil\log_2(n)\rceil$ bits, and the second one describes the index of $x$ in the lexicographically ordered list of all strings of length $n$ with the same weight $r$, which requires $\lceil\log_2(r \choose n)\rceil$ bits. The total codelength is then $L(x) = \lceil\log_2(n)\rceil + \lceil\log_2(r \choose n)\rceil$. (Note that $\log(r \choose n)$ can be accurately approximated by using Stirling's formula, a function which is readily available in most scientific computation libraries.)
+The universal compression of binary sources has been extensively studied in the literature. Moreover, we do not need to perform a real encoding; we need only to compute the codelength. One particularly simple method, for which the codelength is easy to compute, is the enumerative coding~\cite{enum}. Given a binary string $x$ of length $n$ ahd its hamming weight $r=h(x)$, its code is composed of two parts. The first one describes $r$ with $\lceil\log_2(n)\rceil$ bits, and the second one describes the index of $x$ in the lexicographically ordered list of all strings of length $n$ with the same weight $r$, which requires $\lceil\log_2{r \choose n}\rceil$ bits. The total codelength is then $$L(x) = \lceil\log_2(n)\rceil + \lceil\log_2{r \choose n}\rceil.$$ (Note that $\log(r \choose n)$ can be accurately approximated by using Stirling's formula, a function which is readily available in most scientific computation libraries.)
 As we expect the different columns of $D$ to represent particular patterns in the data, and the corresponding rows of $A$ their appearance in $X$, it makes sense to consider different codes for each column and row of $D$ and $A$ respectively. As of $E$, the usual assumption is to consider it as \emph{noise}. While this may not always be the case (remaining structure may still exist in $E$ after the decomposition), it is a safe and general assumption. Thus, we encode the whole matrix $E$ as one single binary string of length $m{\times}n$. The total codelength for our model is then givem by
 \begin{equation}
 L(X) = L(E) + \sum_k [ L(D_k) + L(A^k) ] 
@@ -452,28 +455,28 @@ The codelength function~\refeq{eq:codelength} encoding scheme is among the ones 
 
 Given the codelength function $L(X)$, we now need to solve: a) the search for the best model given $p$ and b) the best value of $p$. The first problem is what most of this paper is about, that is, to learn the dictionary and coefficients $A$, and is described in Section~\ref{sec:bdl}. In order to choose the best order $p$ of the model we apply a \emph{forward selection} strategy. We begin with an initial dictionary size $K=K_{\min}$, adapt it to the data, add one or a few more atoms to $D$, and re-adapt both $D$ and $A$. The previous step is repeated until no further improvement is obtained, that is, until the overall codelength does not decrease by adding new atoms to the dictionary.
 
-\section{Application to Denoising}
-\label{sec:denoising}
-
-Denoising is a special case of the more general \emph{signal restoration} problem (other examples are zooming, deblurring, or inpainting -- a.k.a. filling erased regions). Here we assume that we want to recover a signal sample $x \in \reals^{m}$ from a noisy observation $z \in \reals^{m}$, both related by
-\[
-z = x + n,
-\]
-where $n \in \reals^m$ is a vector of i.i.d. samples from some known distribution, e.g. Gaussian or Poisson. For instance, in the context of Image Processing, $z$ and $x$ are usually vectorized versions of square $\sqrt{m}\times\sqrt{m}$ patches of an image, and what one desires to recover is the whole image $I$ from its corresponding noisy version $J$.
-
-The method used for denoising an image in the Dictionary Learning framework usually proceeds as follows:
-\begin{itemize}
-\item An initial dictionary $D_0 \in \reals^{m{\times}p}$ is available; this dictionary is learned to efficiently represent a \emph{large} set of patches taken from some public dataset of natural images, usually comprising thousands of images.
-\item The image to be denoised, $J \in \reals^{M{\times}N}$, is decomposed into $n=(M-\sqrt{m}+1){\times}(N-\sqrt{m}+1)$ overlapping patches $(z_j : j = 1,\ldots,n)$ that we will arrange for convenience as columns in a matrix $Z \in \reals^{m{\times}n}$
-\item The samples $Z$ are used to further adapt the initial dictionary and the accompanying sparse coefficients $A \in \reals^{p{\times}n}$; the sparse coding variant during the coefficient update step of this dictionary learning process is the \emph{denoising} formulation, given by
-\[
-a\iter{t+1}_j = \arg\min_a \|a\|_r \st \|z_j - D\iter{t}a \|_2 \leq C\sigma, 
-\]
-where $\sigma$ is the variance of the noise $C$ is a positive constant usually close to $1$ and $0 \leq r \leq 1$ is a sparsity-inducing (pseudo)-norm. The dictionary update is the same as described before in \refeq{sec:mod}
-\item Upon convergence, the \emph{clean image patches $x_j$} are estimated from the solution $(D\opt,A\opt)$ as $$x_j = D\opt a\opt_j.$$
-\item Finally, the estimated clean image is obtained by stitching back the estimated clean patches $x_j$ into their respective locations, averaging pixels where intersections between patches occur.
-\end{itemize}
-
+%\section{Application to Denoising}
+%\label{sec:denoising}
+%
+%Denoising is a special case of the more general \emph{signal restoration} problem (other examples are zooming, deblurring, or inpainting -- a.k.a. filling erased regions). Here we assume that we want to recover a signal sample $x \in \reals^{m}$ from a noisy observation $z \in \reals^{m}$, both related by
+%\[
+%z = x + n,
+%\]
+%where $n \in \reals^m$ is a vector of i.i.d. samples from some known distribution, e.g. Gaussian or Poisson. For instance, in the context of Image Processing, $z$ and $x$ are usually vectorized versions of square $\sqrt{m}\times\sqrt{m}$ patches of an image, and what one desires to recover is the whole image $I$ from its corresponding noisy version $J$.
+%
+%The method used for denoising an image in the Dictionary Learning framework usually proceeds as follows:
+%\begin{itemize}
+%\item An initial dictionary $D_0 \in \reals^{m{\times}p}$ is available; this dictionary is learned to efficiently represent a \emph{large} set of patches taken from some public dataset of natural images, usually comprising thousands of images.
+%\item The image to be denoised, $J \in \reals^{M{\times}N}$, is decomposed into $n=(M-\sqrt{m}+1){\times}(N-\sqrt{m}+1)$ overlapping patches $(z_j : j = 1,\ldots,n)$ that we will arrange for convenience as columns in a matrix $Z \in \reals^{m{\times}n}$
+%\item The samples $Z$ are used to further adapt the initial dictionary and the accompanying sparse coefficients $A \in \reals^{p{\times}n}$; the sparse coding variant during the coefficient update step of this dictionary learning process is the \emph{denoising} formulation, given by
+%\[
+%a\iter{t+1}_j = \arg\min_a \|a\|_r \st \|z_j - D\iter{t}a \|_2 \leq C\sigma, 
+%\]
+%where $\sigma$ is the variance of the noise $C$ is a positive constant usually close to $1$ and $0 \leq r \leq 1$ is a sparsity-inducing (pseudo)-norm. The dictionary update is the same as described before in \refeq{sec:mod}
+%\item Upon convergence, the \emph{clean image patches $x_j$} are estimated from the solution $(D\opt,A\opt)$ as $$x_j = D\opt a\opt_j.$$
+%\item Finally, the estimated clean image is obtained by stitching back the estimated clean patches $x_j$ into their respective locations, averaging pixels where intersections between patches occur.
+%\end{itemize}
+%
 %\subsection{Inpainting -- missing data}
 %
 %Here the task is to fill in missing samples. As we only have binary matrices around, we need an auxiliary mask matrix $H \in \reals^{m{\times}n}$ which will tell us which samples are to be considered missing (value $0$) in the data matrix $X$, regardless of their value in $X$. The known values in $X$ are indicated with a $1$ in the corresponding place in $H$. The task is to fill in the missing values.
@@ -523,11 +526,11 @@ The following results were obtained with our current implementation, which can b
 
 \subsection{Models}
 
-\begin{figure*}
+\begin{figure*}[t]
 \includegraphics[height=2.75in]{fig/mnist_mob_dict.png}\hspace{2ex}%
 \includegraphics[height=2.75in]{fig/mnist_mob_coef_crop.png}%\\
 %\includegraphics[width=\columnwidth]{fig/mnist_mob_coef_crop.png}
-\caption{\label{fig:mnist-mod} Sample model obtained for the MNIST dataset. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
+\caption{\label{fig:mnist-mob} Sample model obtained for the MNIST dataset. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
 \end{figure*}
 %
 \begin{figure*}
@@ -562,42 +565,44 @@ The following results were obtained with our current implementation, which can b
 \includegraphics[height=1.55in]{fig/einstein_kprox_dict.png} %
 \includegraphics[height=1.55in]{fig/einstein_kprox_err_zoom.png}\\[1ex]
 \includegraphics[width=\columnwidth]{fig/einstein_kprox_coef_crop.png}
-\caption{\label{fig:einstein-mob} Sample model obtained for the Einsteinimage. Left: dictionary. Center: first 100 coefficients. Right: zoom of residual. }
+\caption{\label{fig:einstein-kprox} Sample model obtained for the Einsteinimage. Left: dictionary. Center: first 100 coefficients. Right: zoom of residual. }
 \end{figure}
 %
 
-We now show sample models for all three datasets, first using the MOB dictionary update, and then using K-PROX. Figure~\ref{fig:mnist-mob} shows the dictionary and a few columns from the coefficients and residial matrices $A$ and $E$; atoms from $D$ and samples from $E$ arerepresented as mosaics with each sample/atom displayed as a tile. The same is done in Figure~\ref{fig:usps-mob} for USPS. Finally, in Figure~\ref{fig:einstein-mob} we show the dictionary, a few columns, and a zoom of the residual image obtained after stitching the patches in their original place. Figures~\ref{fig:mnist-kprox},~\ref{fig:usps-kprox} and ~\ref{fig:einstein-kprox} show the corresponding results using K-PROX.
+We now show sample models for both datasets, first using the MOB dictionary update, and then using K-PROX. Figure~\ref{fig:mnist-mob} shows the dictionary and a few columns from the coefficients and residial matrices $A$ and $E$; atoms from $D$ and samples from $E$ are represented as mosaics with each sample/atom displayed as a tile. In Figure~\ref{fig:einstein-mob} we show the dictionary, a few columns, and a zoom of the residual image obtained after stitching the patches in their original place. Figures~\ref{fig:mnist-kprox} and ~\ref{fig:einstein-kprox} show the corresponding results using K-PROX.
+
+\subsection{Convergence}
+%
+\begin{figure*}
+\includegraphics[width=0.5\textwidth]{fig/conv-mob-einstein-h.pdf}%
+\includegraphics[width=0.5\textwidth]{fig/conv-mob-einstein-L.pdf}\\
+\includegraphics[width=0.5\textwidth]{fig/conv-kprox-einstein-h.pdf}%
+\includegraphics[width=0.5\textwidth]{fig/conv-kprox-einstein-L.pdf}%
+\caption{\label{fig:convergence} Convergence results. Above: evolution of Hamming weight (left) and codelength (right) for each component of the matrix factorization using MOB. Below: analogous results using K-PROX. Both methods show a monotonic decrease in Hamming error ($h(E)$) and overall codelength $L(E)$.}
+\end{figure*}
+Here we analyze the convergence of both methods. Figure~\ref{fig:convergence} shows the results for the two datasets analyzed both in terms of Hamming weight of the solutions and their corresponding codelength. Both MOB and K-PROX are monotonic as expected. We also note that, similarly to K-SVD~\cite{ksvd}, K-PROX achives convergence faster.  Although in these examples it appears to give worse results than MOB, the reader is warned not to generalize such results, as they can be extremely data dependent.
 
 \subsection{Initialization}
+
 \begin{figure}[t]
 \includegraphics[height=1.1in]{fig/einstein_init_part0.png} % OK
 \includegraphics[height=1.1in]{fig/einstein_init_neigh0.png} % OK
 \includegraphics[height=1.1in]{fig/einstein_init_rand0.png}\\[1ex]% OK
 \includegraphics[height=1.1in]{fig/einstein_init_part1.png} % OK
 \includegraphics[height=1.1in]{fig/einstein_init_neigh1.png} % OK
-\includegraphics[height=1.1in]{fig/einstein_init_rand1.png}% OK
-\caption{\label{fig:init} Effect of initialization on the USPS dataset. We show the initial (top) and final (bottom) dictionaries obtained by using the pseudo-partition method (left), neighbors (center) and random (right).}
+\includegraphics[height=1.1in]{fig/einstein_init_rand1.png}\\% OK
+\includegraphics[height=1.1in]{fig/einstein_init_part1_kprox.png} % OK
+\includegraphics[height=1.1in]{fig/einstein_init_neigh1_kprox.png} % OK
+\includegraphics[height=1.1in]{fig/einstein_init_rand1_kprox.png}% OK
+\caption{\label{fig:init} Effect of initialization on Einstein. We show the initial (top), MOB (middle) and K-PROX (bottom) dictionaries obtained by using the pseudo-partition method (left), neighbors (center) and random (right).}
 \end{figure}
 %
-
-In Figure~\ref{fig:init} we show the initial and final dictionaries obtained after initializing the model with the three different methods described in Section~\ref{sec:bdl:init}.
-
-\begin{figure*}
-\includegraphics[width=0.5\textwidth]{fig/conv-mob-einstein-h.pdf}%
-\includegraphics[width=0.5\textwidth]{fig/conv-mob-einstein-L.pdf}\\
-\includegraphics[width=0.5\textwidth]{fig/conv-kprox-einstein-h.pdf}%
-\includegraphics[width=0.5\textwidth]{fig/conv-kprox-einstein-L.pdf}%
-\caption{\label{fig:convergence} Convergence results. Above: evolution of Hamming weight (left) and codelength (right) for each component of the matrix factorization using MOB. Below: analogous results using K-PROX.}
-\end{figure*}
-
-* EXAMPLE OF CONVERGENCE OF BDL (both variants) FOR FIXED K
-
-* DENOISING? 	
+In Figure~\ref{fig:init} we show the initial and final dictionaries obtained after initializing the model with the three different methods described in Section~\ref{sec:bdl:init}. As mentioned in Section~\ref{sec:bdl:init}, the Neighbor strategy can lead to disastrous results in some situations. The random initialization strategy appears to be useless for MNIST, but is actually able to capture interesting patterns from Einstein after a few iterations. These results, obtained using MOB, carry over when using K-PROX.
 
 \section{Conclusion}
 \label{sec:conclusion}
-%
-%FALTA
+
+We have presented a novel, efficient Binary Factorization Method based in dictionary learning techniques which, as shown in our preliminary results, is able to capture relevant patterns from the two datasets on which we experimented, both exhibiting quite different characteristics. The methods were analyzed in terms of their convergence and their sensibility to initialization. 
 
 \bibliographystyle{plain}
 \bibliography{IEEEabrv,bmf}
