@@ -412,7 +412,7 @@ In any case, these are not to be taken as particularly good methods; they are ex
 \paragraph{(Pseudo) Partition}: This method works for dictionaries of size $p \leq m$. Let $I=\{i_1,i_2,\ldots,i_p\}$ be the indexes of the $p$ rows of $X$ which have the largest weight, that is, $h(X_i) \geq h(X_{i'}),\forall\,i\in{I},\,i' \notin{I}$. Then the $k$-th atom is initialized as the Hamming average of all the \emph{columns} of $X$ which have a $1$ in their $i_k$-th row. If we define $J_k=\{j:1 \leq j \leq n, X_{ij_k}=1 \}$, then $$D_k = \frac{1}{|J_k|}\sum_{j \in J_k} X_j.$$ 
 The idea behind this initialization is to ensure that the initial atoms are correlated with those dimensions which are more commonly active in the dataset; this is particularly useful in very sparse matrices, but for the same reason can fail for dense matrices as all the atoms may end up being mostly $1$ and very similar among themselves.
  
-\paragraph{Neighbor}: Here we draw $p$ samples at random from $X$, then each atom $D_k$ is initialized as the Hamming average of all samples in $X$ which have non-zero correlation with $X$. This is essentially a rank-$k$ extension of the method described in \cite{proximus} under the same name. It is however not a good method for dense, fat matrices (see Figure~\ref{fig:init} on page~\pageref{fig:init}), especially if some row of $E$ is largely composed of $1$s, in which case all or most atoms may end up being identical, dense patterns.
+\paragraph{Neighbor}: Here we draw $p$ samples at random from $X$, then each atom $D_k$ is initialized as the Hamming average of all samples in $X$ which have non-zero correlation with $X$. This is essentially a rank-$k$ extension of the method described in \cite{proximus} under the same name. It is however not a good method for dense, fat matrices (see Figure~\ref{fig:init-mnist} on page~\pageref{fig:init-mnist}), especially if some row of $E$ is largely composed of $1$s, in which case all or most atoms may end up being identical, dense patterns.
 
 \paragraph{Random} This is a fallback, universal alternative for initializing a dictionary when almost no prior information can be exploited to devise a better alternative. The samples are initialized using pseudo-random Bernoulli samples of probability $\theta$, a parameter which can be chosen to reflect, for example, the density of $1$s in the dataset.  The value by default is $1/2$, which is a good idea even for very sparse matrices, as $\theta \ll 1$ combined with a large dimension $m$ may result in atoms which are orthogonal to most or even all data samples if the data is sparse.
 
@@ -513,12 +513,12 @@ Given the codelength function $L(X)$, we now need to solve: a) the search for th
 \section{Results and discussion}
 \label{sec:results}
 
-\begin{figure*}[t]
+\begin{figure*}[p]
 \centering%
-\includegraphics[height=1.85in]{fig/mnist_bin.png} %
-\includegraphics[height=1.85in]{fig/einstein.png} %
+\includegraphics[height=1.6in]{fig/mnist_bin.png} %
+\includegraphics[height=1.6in]{fig/einstein.png} %
 %\includegraphics[height=1.8in]{fig/usps_b.png} %
-\includegraphics[height=1.85in]{fig/einstein_zoom3.png}
+\includegraphics[height=1.6in]{fig/einstein_zoom3.png}
 \caption{\label{fig:datasets} Left to right: MNIST dataset, Einstein image, USPS dataset,  detail of Einstein's left eye.}
 \end{figure*}
 %
@@ -526,32 +526,26 @@ The following results were obtained with our current implementation, which can b
 
 \subsection{Models}
 
-\begin{figure*}[t]
-\includegraphics[height=2.75in]{fig/mnist_mob_dict.png}\hspace{2ex}%
-\includegraphics[height=2.75in]{fig/mnist_mob_coef_crop.png}%\\
+\begin{figure*}[tp]
+\centering\includegraphics[height=2.2in]{fig/mnist_mob_dict.png}\hspace{2ex}%
+\includegraphics[height=2.2in]{fig/mnist_mob_coef_crop.png}%\\
 %\includegraphics[width=\columnwidth]{fig/mnist_mob_coef_crop.png}
-\caption{\label{fig:mnist-mob} Sample model obtained for the MNIST dataset. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
+\caption{\label{fig:mnist-mob} Sample model obtained for the MNIST dataset using the MOB method. The best order here is $p=340$, which is greater than the data dimension $m=256$. The residual $E$ negligible, with only $h(E)=2630$ nonzero elements in a matrix of $2.560.000$ entries. On the left we show the dictionary, comprised mostly of digits of various shapes and then a large number of small details. The picture to the left corresponds to the rows of $A$ corresponding to samples $750$ to $1250$, spanning the last $250$ $0$s and the first 250 $1$s in the dataset; note the different activation patterns between the two.}
 \end{figure*}
 %
-\begin{figure*}
-\centering\includegraphics[height=2.3in]{fig/mnist_kprox_dict.png}\hspace{2ex}% 
-\includegraphics[height=2.3in]{fig/mnist_kprox_coef_crop.png}%\\
+\begin{figure*}[tp]
+\centering\includegraphics[height=2.0in]{fig/mnist_kprox_dict.png}\hspace{2ex}% 
+\includegraphics[height=2.0in]{fig/mnist_kprox_coef_crop.png}%\\
 %\includegraphics[width=\columnwidth]{fig/mnist_kprox_coef_crop.png}
-\caption{\label{fig:mnist-kprox} Model obtained for the MNIST dataset using K-PROX. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
+\caption{\label{fig:mnist-kprox} Model obtained for the MNIST dataset using K-PROX. A similar situation occurs in this case, with $p=264$ and a dictionary which consists of $10$ digits closely resembling digits and then a number of atoms whose function appears to be the correction of the crude approximations obtained after using the first $10$ atoms. Here again the final weight of $E$ is just $h(E)=2615$, but  the coefficients matrix (of which we show the same samples as in Fig.~\ref{fig:mnist-mob}) are significantly more dense. }
 \end{figure*}
 %
-%\begin{figure}
-%\includegraphics[height=1.7in]{fig/usps_mob_dict.png}%
-%\includegraphics[height=1.7in]{fig/usps_mob_err.png}\\
-%\includegraphics[width=\columnwidth]{fig/usps_mob_coef_crop.png}
-%\caption{\label{fig:usps-mob} Sample model obtained for the USPS dataset. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
-%\end{figure}
-%
-\begin{figure}
-\includegraphics[width=\columnwidth]{fig/einstein_mob_dict.png} %
+\begin{figure}[tp]
+\includegraphics[width=0.9\columnwidth]{fig/einstein_mob_dict.png} %
 %\includegraphics[height=1.55in]{fig/einstein_mob_err_zoom.png}\\[1ex]
-\includegraphics[width=\columnwidth]{fig/einstein_mob_coef_crop.png}
-\caption{\label{fig:einstein-mob} Sample model obtained for the Einsteinimage. Left: dictionary. Center: first 100 coefficients. Right: zoom of residual. }
+\includegraphics[width=0.9\columnwidth]{fig/einstein_mob_coef_crop.png}
+\caption{\label{fig:einstein-mob} Sample model obtained for the Einstein image using MOB. The error in this case is $h(E)=0$, $p=330$, and the dictionary, shown above, follows a similar pattern as that observed in Fig.~\ref{fig:mnist-mob},
+ with most of the last atoms being actually just elements from the canonical basis. Below, we show the first $1000$ coefficients corresponding to atoms $1$ to $100$. }
 \end{figure}
 %
 %\begin{figure}
@@ -561,11 +555,37 @@ The following results were obtained with our current implementation, which can b
 %\caption{\label{fig:usps-kprox} Sample model obtained for the USPS dataset. Left: dictionary. Center: first 100 coefficients. Right: sample residual images. }
 %\end{figure}
 %
-\begin{figure}
+\begin{figure}[tp]
 \includegraphics[height=1.55in]{fig/einstein_kprox_dict.png} %
 \includegraphics[height=1.55in]{fig/einstein_kprox_err_zoom.png}\\[1ex]
 \includegraphics[width=\columnwidth]{fig/einstein_kprox_coef_crop.png}
-\caption{\label{fig:einstein-kprox} Sample model obtained for the Einsteinimage. Left: dictionary. Center: first 100 coefficients. Right: zoom of residual. }
+\caption{\label{fig:einstein-kprox} Model obtained for the Einstein image using K-PROX. In this case the result is quite different from that obtained with MOB. The first atoms are very similar, but the dictinary is much smaller ($p=48$) here lacks most of the finer details represented in that shown in Fig.~\ref{fig:einstein-mob}. Below we show the first $400$ columns of $A$. }
+\end{figure}
+%
+\begin{figure}[tp]
+\centering\includegraphics[height=1.0in]{fig/einstein_init_part0.png} % OK
+\includegraphics[height=1.0in]{fig/einstein_init_neigh0.png} % OK
+\includegraphics[height=1.0in]{fig/einstein_init_rand0.png}\\[1ex]% OK
+\includegraphics[height=1.0in]{fig/einstein_init_part1.png} % OK
+\includegraphics[height=1.0in]{fig/einstein_init_neigh1.png} % OK
+\includegraphics[height=1.0in]{fig/einstein_init_rand1.png}%\\[1ex]% OK
+%\includegraphics[height=1.1in]{fig/einstein_init_part1_kprox.png} % OK
+%\includegraphics[height=1.1in]{fig/einstein_init_neigh1_kprox.png} % OK
+%\includegraphics[height=1.1in]{fig/einstein_init_rand1_kprox.png}% OK
+\caption{\label{fig:init-einstein} Effect of initialization on Einstein. We show the initial (top), MOB (middle) and K-PROX (bottom) dictionaries obtained by using the pseudo-partition method (left), neighbors (center) and random (right).}
+\end{figure}
+%
+\begin{figure}[tp]
+\centering\includegraphics[height=1.0in]{fig/mnist_init_part0.png} % OK
+\includegraphics[height=1.0in]{fig/mnist_init_neigh0.png} % OK
+\includegraphics[height=1.0in]{fig/mnist_init_rand0.png}\\[1ex]% OK
+\includegraphics[height=1.0in]{fig/mnist_init_part1.png} % OK
+\includegraphics[height=1.0in]{fig/mnist_init_neigh1.png} % OK
+\includegraphics[height=1.0in]{fig/mnist_init_rand1.png}%\\[1ex]% OK
+%\includegraphics[height=1.1in]{fig/mnist_init_part1_kprox.png} % OK
+%\includegraphics[height=1.1in]{fig/mnist_init_neigh1_kprox.png} % OK
+%\includegraphics[height=1.1in]{fig/mnist_init_rand1_kprox.png}% OK
+\caption{\label{fig:init-mnist} Effect of initialization on MNIST. We show the initial (top), MOB (middle) and K-PROX (bottom) dictionaries obtained by using the pseudo-partition method (left), neighbors (center) and random (right).}
 \end{figure}
 %
 
@@ -573,31 +593,18 @@ We now show sample models for both datasets, first using the MOB dictionary upda
 
 \subsection{Convergence}
 %
-\begin{figure*}
-\includegraphics[width=0.5\textwidth]{fig/conv-mob-einstein-h.pdf}%
-\includegraphics[width=0.5\textwidth]{fig/conv-mob-einstein-L.pdf}\\
-\includegraphics[width=0.5\textwidth]{fig/conv-kprox-einstein-h.pdf}%
-\includegraphics[width=0.5\textwidth]{fig/conv-kprox-einstein-L.pdf}%
+\begin{figure*}[tp]
+\centering\includegraphics[width=0.45\textwidth]{fig/conv-mob-einstein-h.pdf}%
+\includegraphics[width=0.45\textwidth]{fig/conv-mob-einstein-L.pdf}\\
+\includegraphics[width=0.45\textwidth]{fig/conv-kprox-einstein-h.pdf}%
+\includegraphics[width=0.45\textwidth]{fig/conv-kprox-einstein-L.pdf}%
 \caption{\label{fig:convergence} Convergence results. Above: evolution of Hamming weight (left) and codelength (right) for each component of the matrix factorization using MOB. Below: analogous results using K-PROX. Both methods show a monotonic decrease in Hamming error ($h(E)$) and overall codelength $L(E)$.}
 \end{figure*}
 Here we analyze the convergence of both methods. Figure~\ref{fig:convergence} shows the results for the two datasets analyzed both in terms of Hamming weight of the solutions and their corresponding codelength. Both MOB and K-PROX are monotonic as expected. We also note that, similarly to K-SVD~\cite{ksvd}, K-PROX achives convergence faster.  Although in these examples it appears to give worse results than MOB, the reader is warned not to generalize such results, as they can be extremely data dependent.
 
 \subsection{Initialization}
 
-\begin{figure}[t]
-\includegraphics[height=1.1in]{fig/einstein_init_part0.png} % OK
-\includegraphics[height=1.1in]{fig/einstein_init_neigh0.png} % OK
-\includegraphics[height=1.1in]{fig/einstein_init_rand0.png}\\[1ex]% OK
-\includegraphics[height=1.1in]{fig/einstein_init_part1.png} % OK
-\includegraphics[height=1.1in]{fig/einstein_init_neigh1.png} % OK
-\includegraphics[height=1.1in]{fig/einstein_init_rand1.png}\\% OK
-\includegraphics[height=1.1in]{fig/einstein_init_part1_kprox.png} % OK
-\includegraphics[height=1.1in]{fig/einstein_init_neigh1_kprox.png} % OK
-\includegraphics[height=1.1in]{fig/einstein_init_rand1_kprox.png}% OK
-\caption{\label{fig:init} Effect of initialization on Einstein. We show the initial (top), MOB (middle) and K-PROX (bottom) dictionaries obtained by using the pseudo-partition method (left), neighbors (center) and random (right).}
-\end{figure}
-%
-In Figure~\ref{fig:init} we show the initial and final dictionaries obtained after initializing the model with the three different methods described in Section~\ref{sec:bdl:init}. As mentioned in Section~\ref{sec:bdl:init}, the Neighbor strategy can lead to disastrous results in some situations. The random initialization strategy appears to be useless for MNIST, but is actually able to capture interesting patterns from Einstein after a few iterations. These results, obtained using MOB, carry over when using K-PROX.
+Figures~\ref{fig:init-mnist}and~\ref{fig:init-einstein}  show initial and final dictionaries of fixed size $p=100$ for MNIST and Einstein, both obtained after initializing the model with the three different methods described in Section~\ref{sec:bdl:init}. As mentioned in Section~\ref{sec:bdl:init}, the neighbor strategy is disastrous forthe MNIST case. The same happens with the random initialization.  However, using a random initialization both MOB and K-PROX are able to capture interesting patterns from Einstein after a few iterations. 
 
 \section{Conclusion}
 \label{sec:conclusion}
