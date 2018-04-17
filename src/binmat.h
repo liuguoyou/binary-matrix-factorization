@@ -4,6 +4,7 @@
 #include <bitset>
 #include <cstring>
 #include "base_types.h"
+#include <cassert>
 
 #ifdef __GNUC__
 #define block_weight(a) __builtin_popcountl(a)
@@ -131,6 +132,11 @@ public:
    if (v) set(i,j); else clear(i,j);
  }
 
+ /** convenience function for vector representation: one row */
+ inline void set(const idx_t j, const bool v) {
+   if (v) set(j); else clear(j);
+ }
+ 
  /**
   * Sets the bit at the specified position to 1
   */
@@ -138,10 +144,20 @@ public:
    data[i*blocks_per_row + (j / BITS_PER_BLOCK)] |= (MSB >> (j % BITS_PER_BLOCK));
  }
 
+ inline void set(const idx_t j) {
+   assert(get_rows() == 1);
+   data[(j / BITS_PER_BLOCK)] |= (MSB >> (j % BITS_PER_BLOCK));
+ }
+ 
  inline void flip(const idx_t i, const idx_t j) {
    data[i*blocks_per_row + (j / BITS_PER_BLOCK)] ^= (MSB >> (j % BITS_PER_BLOCK));
  }
 
+ inline void flip(const idx_t j) {
+   assert(get_rows()==1);
+   data[j / BITS_PER_BLOCK] ^= (MSB >> (j % BITS_PER_BLOCK));
+ }
+ 
  /**
   * Sets the bit at the specified position to 0
   */
@@ -149,6 +165,14 @@ public:
    data[i*blocks_per_row + (j / BITS_PER_BLOCK)] &= ONES ^ (MSB >> (j % BITS_PER_BLOCK)); 
  }
 
+ /**
+  * Sets the bit at the specified position to 0
+  */
+ inline void clear(const idx_t j) {
+   assert(get_rows() == 1);
+   data[j / BITS_PER_BLOCK] &= ONES ^ (MSB >> (j % BITS_PER_BLOCK)); 
+ }
+ 
  /** @return the number of ones in the matrix */
  idx_t weight() const; 
 
