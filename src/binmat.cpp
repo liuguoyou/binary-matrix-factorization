@@ -655,3 +655,162 @@ std::ostream& operator<<(std::ostream& out, const binary_matrix& A)  {
   return out;
 }
 
+void binary_matrix::set_row(const idx_t i) {
+  std::fill(data + i*blocks_per_row, data + (i+1)*blocks_per_row,ONES);
+}
+
+void binary_matrix::clear_row(const idx_t i) {
+  std::fill(data + i*blocks_per_row, data + (i+1)*blocks_per_row,0);
+}
+
+void binary_matrix::set_col(const idx_t j) {
+  const size_t m = get_rows();
+  size_t off = j / BITS_PER_BLOCK;
+  const size_t bit = MSB >> (j % BITS_PER_BLOCK);
+  for (idx_t i = 0; i < m; i++, off += blocks_per_row)
+    data[off] |= bit;
+}
+
+void binary_matrix::clear_col(const idx_t j) {
+  const size_t m = get_rows();
+  size_t off = j / BITS_PER_BLOCK;
+  const size_t bit = MSB >> (j % BITS_PER_BLOCK);
+  for (idx_t i = 0; i < m; i++, off += blocks_per_row)
+    data[off] &= ONES ^ (MSB >> (j % BITS_PER_BLOCK));
+}
+// fix these rotate-stuff routines. They are not right
+
+void binary_matrix::rotate_row_left(idx_t i) {
+  const size_t bpr = blocks_per_row;
+  if (bpr == 0) return;
+  size_t off = i*bpr;
+  block_t trailing_bit = data[off] & MSB;
+  for (size_t k = 0; k < blocks_per_row; k++, off++) {
+    data[off] <<= 1;
+    if (k > 0)
+      data[off-1] = (data[off-1] & ~block_t(1)) | trailing_bit;
+    trailing_bit = data[off] & MSB;
+  }
+}
+
+void binary_matrix::rotate_row_right(idx_t i) {
+  const size_t bpr = blocks_per_row;
+  if (bpr == 0) return;
+  size_t off = i*bpr;
+  block_t trailing_bit = 0;
+  for (size_t k = 0; k < blocks_per_row; k++, off++) {
+    data[off] >>= 1;
+    data[off] = (data[off-1] & ~block_t(MSB)) | (trailing_bit ? MSB : 0);
+    trailing_bit = data[off] & 1;
+  }
+}
+
+void binary_matrix::shift_row_left(idx_t i) {
+  const size_t bpr = blocks_per_row;
+  if (bpr == 0) return;
+  size_t off = i*bpr;
+  block_t trailing_bit = data[off] & MSB;
+  for (size_t k = 0; k < blocks_per_row; k++, off++) {
+    data[off] <<= 1;
+    if (k > 0)
+      data[off-1] = (data[off-1] & ~block_t(1)) | trailing_bit;
+    trailing_bit = data[off] & MSB;
+  }
+}
+
+void binary_matrix::shift_row_right(idx_t i) {
+  const size_t bpr = blocks_per_row;
+  if (bpr == 0) return;
+  size_t off = i*bpr;
+  block_t trailing_bit = 0;
+  for (size_t k = 0; k < blocks_per_row; k++, off++) {
+    data[off] >>= 1;
+    data[off] = (data[off-1] & ~block_t(MSB)) | (trailing_bit ? MSB : 0);
+    trailing_bit = data[off] & 1;
+  }
+}
+
+void binary_matrix::rotate_left() {
+  const idx_t m = get_rows();
+  const idx_t n = get_cols();
+  for (idx_t i = 0; i < m; i++) {
+    rotate_row_left(i);
+  }
+}
+
+void binary_matrix::rotate_right() {
+  const idx_t m = get_rows();
+  const idx_t n = get_cols();
+  for (idx_t i = 0; i < m; i++) {
+    rotate_row_right(i);
+  }
+}
+
+void binary_matrix::rotate_up() {
+  const idx_t m = get_rows();
+  const idx_t n = get_cols();
+  binary_matrix first(1,n);
+  binary_matrix row(1,n);
+  copy_row_to(0,first);
+  for (size_t i = 1; i < m; i++) {
+    copy_row_to(i,row);
+    set_row(i-1,row);
+  }
+  set_row(m-1,first);
+}
+
+void binary_matrix::rotate_down() {
+  const idx_t m = get_rows();
+  const idx_t n = get_cols();
+  binary_matrix last(1,n);
+  binary_matrix row(1,n);
+  copy_row_to(m-1,last);
+  for (idx_t i = 1; i < m; i++) {
+    copy_row_to(m-i-1,row);
+    set_row(m-i,row);
+  }
+  set_row(0,last);
+}
+
+
+void binary_matrix::shift_left() {
+  const idx_t m = get_rows();
+  const idx_t n = get_cols();
+  for (idx_t i = 0; i < m; i++) {
+    shift_row_left(i);
+  }
+}
+
+void binary_matrix::shift_right() {
+  const idx_t m = get_rows();
+  const idx_t n = get_cols();
+  for (idx_t i = 0; i < m; i++) {
+    shift_row_right(i);
+  }
+}
+
+void binary_matrix::shift_up() {
+  const idx_t m = get_rows();
+  const idx_t n = get_cols();
+  binary_matrix first(1,n);
+  binary_matrix row(1,n);
+  copy_row_to(0,first);
+  for (size_t i = 1; i < m; i++) {
+    copy_row_to(i,row);
+    set_row(i-1,row);
+  }
+  clear_row(m-1);
+}
+
+void binary_matrix::shift_down() {
+  const idx_t m = get_rows();
+  const idx_t n = get_cols();
+  binary_matrix last(1,n);
+  binary_matrix row(1,n);
+  copy_row_to(m-1,last);
+  for (idx_t i = 1; i < m; i++) {
+    copy_row_to(m-i-1,row);
+    set_row(m-i,row);
+  }
+  clear_row(0);
+}

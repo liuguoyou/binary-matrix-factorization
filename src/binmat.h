@@ -87,6 +87,14 @@ public:
 
  void set_row(const idx_t i, const binary_matrix& src);
 
+ void set_row(const idx_t i);
+
+ void clear_row(const idx_t i);
+
+ void set_col(const idx_t i);
+
+ void clear_col(const idx_t i);
+ 
  void set_submatrix(const idx_t i0,const  idx_t j0, const binary_matrix& src);
 
  void add_rows(idx_t nrows);
@@ -191,6 +199,38 @@ public:
  /** @return the boolean sum (XOR), that is, the parity, of a given column */
  bool col_sum(idx_t j) const; 
 
+ void rotate_left();
+
+ void rotate_right();
+
+ void rotate_up();
+
+ void rotate_down();
+
+ void rotate_row_left(idx_t i);
+
+ void rotate_row_right(idx_t i);
+
+ void rotate_col_down(idx_t j);
+
+ void rotate_col_up(idx_t j);
+
+ void shift_left();
+
+ void shift_right();
+
+ void shift_up();
+
+ void shift_down();
+
+ void shift_row_left(idx_t i);
+
+ void shift_row_right(idx_t i);
+
+ void shift_col_down(idx_t j);
+
+ void shift_col_up(idx_t j);
+ 
  /** Overloaded print operator */
  friend std::ostream& operator<<(std::ostream& out, const binary_matrix& A);
 
