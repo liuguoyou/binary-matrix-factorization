@@ -17,14 +17,17 @@ ml_algorithm_t learn_model_inner = learn_model_traditional;
 
 mi_algorithm_t mi_algorithm_catalog[] = {initialize_dictionary_neighbor,
 					 initialize_dictionary_partition,
-					 // initialize_dictionary_random_centroids,
-					 // initialize_dictionary_random_centroids_xor,
-					 // initialize_dictionary_graph_grow,
+					 initialize_dictionary_sdct,
+					 initialize_dictionary_sdct2d,
+					 initialize_dictionary_hamming,
 					 initialize_dictionary_random,
 					 0};
 
 const char* mi_algorithm_names[] = {"Neighbor initialization",
 				    "Partition initialization",
+				    "sign of DCT" ,
+				    " sign of 2D DCT",
+				    "Hamming basis",
 				    "purely random dictionary",
 				    0
 };

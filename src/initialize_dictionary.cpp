@@ -3,8 +3,13 @@
 #include "util.h"
 #include "intmat.h"
 
-//#include <algorithm>
 
+static double density = 0.5;
+void set_random_dictionary_density(double a) {
+  if (a < 0) a = 0.01;
+  if (a > 1) a = 0.99;
+  density = a;
+}
 
 void initialize_dictionary_random(const binary_matrix& E, 
 				  const binary_matrix& H,
@@ -14,7 +19,7 @@ void initialize_dictionary_random(const binary_matrix& E,
   const idx_t M = D.get_cols();
   for (idx_t k = 0; k < K; k++) {
     for (idx_t j = 0; j < M; j++) {
-      D.set(k,j,get_bernoulli_sample(0.5));
+      D.set(k,j,get_bernoulli_sample(density));
     }
   }
   A.clear();
@@ -57,6 +62,60 @@ void initialize_dictionary_sdct(const binary_matrix& E,
   }
 }
 
+void initialize_dictionary_sdct2d(const binary_matrix& E, 
+				  const binary_matrix& H,
+				  binary_matrix& D, 
+				  binary_matrix& A) {
+  const idx_t m = E.get_cols();
+  const idx_t n = E.get_rows();
+  const idx_t p = D.get_rows();
+  binary_matrix dx, dy,Di;
+  
+  idx_t w = ( idx_t ) sqrt ( double ( m ) );
+  if ( ( w*w ) != m ) {
+    std::cerr << "ERROR: only square patches allowed." << std::endl;
+    return;
+  }
+  idx_t L = ( idx_t ) sqrt ( double ( p ) );
+  if ( ( L*L ) != p ) {
+    std::cerr << "ERROR: number of atoms must be a square number." << std::endl;
+    return;
+  }
+  dx.allocate ( 1, w );
+  dy.allocate ( 1, w );
+  Di.allocate ( w, w );
+  //
+  // fill D
+  //
+  idx_t k = 0;
+  for ( idx_t i=0; i < L; i++ ) {
+    // fill 1D basis for current 'y' coordinate
+    double wy = ( double ) M_PI*double ( i ) /double ( L );
+    for ( idx_t r=0; r < w; r++ ) {
+      dy.set(0,r,cos ( wy* ( 0.5+double ( r ) ) )  >= 0 ? 1 : 0); // type II DCT
+    }
+    for ( idx_t j=0; j < L; j++, k++ ) {
+      // fill 1D basis for current 'x' coordinate
+      double wx = ( double ) M_PI*double ( j ) /double ( L );
+      for ( idx_t r=0; r < w; r++ ) {
+	dx.set(0, r, cos ( wx* ( 0.5+double ( r ) ) ) >=0 ? 1: 0 ); // type II DCT
+      }
+      mul_AtB(dx,dy,Di);
+      idx_t r = 0;
+      for (idx_t r1=0; r1 < w; r1++) {
+	for (idx_t r2=0; r2 < w; r2++, r++) {
+	  D.set(k,r, Di.get(r1,r2) );
+	}
+      }
+	
+    }
+  }
+  Di.destroy();
+  dy.destroy();
+  dx.destroy();
+}
+
+
 /** Hamming overcomplete basis: columns are the binary representations of '1','2','etc. We can get up to 2^n elements **/
 void initialize_dictionary_hamming(const binary_matrix& E, 
 				  const binary_matrix& H,
@@ -66,14 +125,12 @@ void initialize_dictionary_hamming(const binary_matrix& E,
   const idx_t n = E.get_rows();
   const idx_t p = D.get_rows();
   D.clear();
-  unsigned long basis = 1UL;
   for (idx_t k = 0; k < p ; k++) {
     unsigned long mask = 1UL;
     for (size_t i = 0; i < m; i++) {
-      D.set(k,i, (i & mask) != 0);
+      D.set(k,i, ((k+1) & mask) != 0);
       mask <<= 1;
     }
-    basis++;
   }
 }
 
