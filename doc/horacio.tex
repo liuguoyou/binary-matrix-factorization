@@ -1,0 +1,156 @@
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PDFTEX commands
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\pdfoutput=1
+\pdfimageresolution=300
+\pdfcompresslevel=5
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\documentclass{article}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\usepackage[pdftex]{graphicx}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{cite}
+\usepackage{array}
+\usepackage{url}
+\usepackage{xcolor}
+\usepackage{xspace}
+\usepackage{url}
+\usepackage{subfig}
+\usepackage{balance}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\theoremstyle{definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+%
+% general notation
+%
+\def\transp{^\intercal}
+\newcommand{\refeq}[1]{(\ref{#1})}
+\def\opt{\ensuremath{^{*}}}
+\providecommand{\argmin}{\mathop{\textup{argmin}}}
+\def\gradient{\nabla}
+\def\hessian{\nabla^2}
+\def\reals{\ensuremath{\mathbb{R}}}
+\def\naturals{\ensuremath{\mathbb{N}}}
+%
+% version control
+%
+\definecolor{NewTextFG}{rgb}{0.0,0.1,0.8}
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\pendcite}[1]{{\color{red}[#1]}}
+\newcommand{\note}[1]{\colorbox{yellow}{\scriptsize NOTE: #1}} % a la Acrobat
+\newcommand{\pending}[1]{{\color{red}\bf PENDING: #1}}
+\newcommand{\missing}[1]{{\color{red}\bf MISSING: #1}}
+\newcommand{\newtext}[1]{{\color{NewTextFG}{#1}}\xspace}
+\newcommand{\patibulo}[1]{{\color{red}{#1}}\xspace}
+\newenvironment{textnote}[1]{\colorbox{yellow}{\scriptsize #1$\gg$}}{\colorbox{yellow}{\scriptsize $\ll$}\xspace}
+\newcommand{\best}[1]{\textbf{\color{blue}#1}\xspace}
+\newcommand{\falta}[1]{{\color{red}FALTA:#1}}
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+\title{Propuesta de proyecto de tesis de Horacio Lena}
+\author{Ignacio Ram\'{i}rez}
+\date{\today}
+%
+%
+%
+\begin{document}
+%
+\maketitle
+%
+\begin{abstract}
+La idea central de esta etapa de la tesis de Horacio es la de aplicar y comparar herramientas de factorización de matrices binarias en un conjunto de problemas, con énfasis  en los métodos K-MOB y K-PROX, y problemas de bioinformática. Al respecto de los algoritmos, se buscará no sólo evaluar su desempeño tal cual como están definidos, sino la posibilidad de mejorar y o adaptar dichos algoritmos al caso particular de la bioinformática. Para ésto último se analizará en profundidad los resultados obtenidos (factores, resultados intermedios), se buscarán posibles causas o errores sistemáticos cometidos por los modelos, y se intentará corregirlos mediante modificaciones a los algoritmos o su inicialización, que es crucial ya que ambos métodos sólo obtienen soluciones aproximadas a un problema no convexo de grandes dimensiones.
+\end{abstract}
+
+\section{Objetivos}
+
+El objetivo general de la tesis es posicionar al estudiante en el estado del arte de lo que es análisis de datos de origen biológico mediante herramientas de factorización de matrices categóricas.
+
+Como primer objetivo específico, el estudiante deberá realizar una búsqueda bibliográfica para, familiarizarse y poder aplicar al menos dos métodos existentes (por ej., ASSO), y adquirir conocimiento profundo sobre el funcionamiento y uso de los métodos K-MOD y K-PROX definidos en \cite{bmf}.
+
+Como segundo objetivo específico, se aplicará y analizará en profundidad los resultados obtenidos con los métodos mencionados (los dos métodos de la bibliografía más K-MOD y K-PROX) sobre los conjuntos de datos del proyecto Urugenome (base de datos de genómica humana de personas de nacionalidad uruguaya) y sobre los datos de función genética del Dr. Flavio Pazos.
+Para tener una base comparativa, se evaluarán los métodos sobre un tercer conjunto de datos que sea relativamente conocido en la literatura referida, es decir, que existan resultados reportados sobre ellos utilizando al menos uno de los métodos de la literatura seleccionados, y que sean accesibles.
+
+Como tercer y último objetivo específico, se espera que, de ser posible, el estudiante realice adaptaciones y/o extensiones menores a los algoritmos anteriores para que se funcionen mejor sobre los datos en cuestión.
+
+
+\section{Algoritmos}
+
+Se propone estudiar y evaluar los algoritmos K-MOB y K-PROX definidos en \cite{bmf}. Además, se seleccionará al menos dos algoritmos adicionales referidos en \cite{bmf} que sean considerados generalmente buenos y en lo posible hayan sido aplicados a problemas similares a los que se describen más adelante. De interés particular es el algoritmo ASSO~\cite{asso}, pero pueden ser otros. Se intentará en lo posible conseguir implementaciones de dichos algoritmos. Incluso se dará preponderancia a aquellos métodos que tengan sus implementaciones (sea en la plataforma que sea) disponibles, para no tener que implementarlos.
+De ser necesario implementar, se hará énfasis en la simplicidad (por ej., ASSO que es muy simple).
+
+\section{Datos}
+
+\paragraph{Urugenome} Esta matriz consta de los genomas completos de un número relativamente pequeño de individuos. Los datos se codifican respecto a un \emph{centroide} calculado a partir de los mismos datos; en lugar de codificarse, para cada gen, el  par correspondiente 'AG', 'AA', etc., se codifica la distancia entre el gen de cada individuo y el gen correspondiente en el \emph{centroide}, dando  lugar a tres posibles valores: 0 (igual), 1 (difiere en un nucleótido), 2 (difiere en ambos). Estos valores pueden ser mapeados a una matriz binaria $G$ mediante \emph{one hot mapping}, es decir, $0 \rightarrow (0,0)$, $1 \rightarrow (0,1)$, $2 \rightarrow (1,0)$.
+
+\paragraph{Funcion genética} Esta es una matriz binaria $F$ altamente esparsa (apenas $\approx 1e5$ elementos no nulos de entre $\approx 1e5{\times}1e4$ elementos totales. Un $1$ en la posición $F_{ij}$ indica que el gen $i$ participa en la función biológica $j$. La idea es identificar grupos de genes que participan en la misma función, teniendo como información a priori que existe correlación entre la cercanía espacial de los genes y la función que cumplen.
+
+\paragraph{Conjuntos de comparación} Deben ser por lo menos dos conjuntos de datos, uno de ellos de origen no biológico, sobre los que que hayan sido  aplicados y comparados por lo menos uno de los métodos de la literatura elegida en alguno de los trabajos previos. Por supuesto, deben ser archivos de dominio público y de fácil acceso.
+
+
+\section{Metodología}
+
+\paragraph{Primer hito:} debe hacerse la revisión bibliográfica. No se pretende que sea de cero ni mucho menos en este caso. Se tomará como punto de partida la hecha en \cite{bmf} y las revisiones referidas en ese documento, y se estará atento en el transcurso de la tesis a nuevos trabajos en el tema. Al final debe contarse con una revisión bibliográfica que incluya las de \cite{bmf}, de los trabajos citados en las revisiones principales citadas en \cite{bmf} (ya que no es en sí una revisión, delega tal cosa a algunos otros trabajos reconocidos), y de todo nuevo algoritmo que surgiera entre ahora y la hora de redactar la tesis.
+
+\paragraph{Segundo hito:} se seleccionarán dos métodos de la literatura. Estos métodos deben o bien a) tener sus implementaciones disponibles públicamente en un lenguaje conocido y actual (Python, R, C o b) ser fáciles de implementar en un lenguaje a elección. Estos métodos serán estudiados a partir de sus publicaciones correspondientes. 
+
+Nota: \emph{Se evitará profundizar en detalles técnicos o fundamentaciones teóricas que salgan radicalmente del foco de la tesis, a menos que sea vital para su ejecución o comprensión.}
+
+\paragraph{Tercer hito:} Se deberá acordar un conjunto de métricas de desempeño de los métodos. (SEGUIR)
+
+\paragraph{Cuarto hito:} Se definirá una plataforma de evaluación de los métodos. Para cáda método debe ser posible: 
+\begin{enumerate}
+\item ejecutarlo sobre todos los conjuntos de datos; 
+\item registrar hora, versión, y parámetros con los que se ejecutó;
+\item almacenar las salidas en un formato fácilmente legible;
+\item calcular métricas de desempeño;
+\end{enumerate}
+
+%
+% NOTATION
+%
+\def\indicator{\mathbf{1}}
+\def\bool{\mathrm{bool}}
+\def\bprod{\circ}
+\def\bsum{\lor}
+\def\bigand{\bigwedge}
+\def\bigor{\bigvee}
+\def\msum{\oplus}
+\def\mprod{\otimes}
+\def\mod{\mathrm{mod}}
+\newcommand{\iter}[1]{^{(#1)}}
+\newcommand{\st}{\ensuremath{\quad\mathrm{s.t.}\quad}}
+\newcommand{\norm}[1]{\ensuremath{\left\|#1\right\|}}
+\newcommand{\support}[1]{\mathrm{supp}(#1)}
+\newcommand{\rankf}[1]{\mathrm{rank}(#1)}
+\def\rank{\mathrm{rank}}
+\newcommand{\fun}[1]{\mathrm{#1}}
+\newcommand{\abs}[1]{\ensuremath{\left|#1\right|}}
+\newcommand{\setdef}[1]{\ensuremath{\left\{#1\right\}}}
+\newcommand{\setspan}{\ensuremath{\mathrm{span}}}
+\newcommand{\svec}[1]{_{[#1]}}
+\newcommand{\col}[1]{_{#1}}
+\newcommand{\row}[1]{^{#1}}
+\newcommand{\havg}[1]{\langle\!\langle{#1}\rangle\!\rangle}
+%
+
+\bibliographystyle{plain}
+\bibliography{IEEEabrv,bmf,mios}
+\balance
+\end{document}
