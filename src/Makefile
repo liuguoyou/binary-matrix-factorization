@@ -30,6 +30,8 @@ CFLAGS=-DDEBUG -O -Wall -g -fopenmp -march=native -mtune=native
 else
 CFLAGS=-O3 -Wall -Wno-unused-variable -Wno-unused-parameter -fopenmp -msse3 -march=native -mtune=native
 endif
+CFLAGS+=-I../contrib/include
+LDFLAGS=-L../contrib/lib -lgsl -lgslcblas -lm
 
 all: $(OBJ) $(TOOL) $(TEST) $(EXP)
 
@@ -44,13 +46,13 @@ tools: $(TOOL)
 	g++ $(CFLAGS) -c -o $@ $<
 
 %_test: %_test.cpp $(HDR) $(OBJ) Makefile
-	g++  $(CFLAGS)  -o $@ $< $(OBJ) -lgsl -lgslcblas -lm
+	g++  $(CFLAGS)  -o $@ $< $(OBJ) $(LDFLAGS)
 
 %_exp: %_exp.cpp $(HDR) $(OBJ) Makefile
-	g++  $(CFLAGS)  -o $@ $< $(OBJ) -lgsl -lgslcblas -lm
+	g++  $(CFLAGS)  -o $@ $< $(OBJ) $(LDFLAGS)
 
 %_tool: %_tool.cpp $(HDR) $(OBJ) Makefile
-	g++  $(CFLAGS)  -o $@ $< $(OBJ) -lgsl -lgslcblas -lm
+	g++  $(CFLAGS)  -o $@ $< $(OBJ) $(LDFLAGS)
 
 clean:
 	rm -f $(TEST) $(TOOL) $(EXP) $(OBJ)
