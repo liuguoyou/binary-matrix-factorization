@@ -8,7 +8,7 @@ TEXFO := ./inc/tfm/::
 all: $(TARGETS)
 
 
-%.pdf: %.tex bmf.bib sparse.bib Makefile
+%.pdf: %.tex bmf.bib  Makefile
 	TEXFONTS=$(TEXFO) TEXINPUTS=$(TEXIN) pdflatex $(TEXOPT) -draftmode $<
 	bibtex $(patsubst %.tex,%.aux,$(TEX_SRC))
 	TEXFONTS=$(TEXFO) TEXINPUTS=$(TEXIN) pdflatex $(TEXOPT) -draftmode -interaction batchmode $<
