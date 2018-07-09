@@ -15,7 +15,7 @@
  * The first, mode.pbm, is a 4xn binary pseudo-image where each row corresponds to one of four
  * symbols: "A" is represented as "0 0 0 1", T as "0 0 1 0", G as "0 1 0 0" and C as "1 0 0 0".  The
  * value at each row corresponds to the symbol that occurs more often in the corresponding row in
- * the input file.
+ * the input file. PENDING: what happens to erasures? Should be 0 0 0 0
  * 
  * The second, dist.pbm, is an (2m)xn binary pseudo-image. Given the pair at row i and column j in
  * the input file, the corresponding pair of values (2*i,j) and (2*i+1,j) of this files are defined
